@@ -43,3 +43,11 @@ Currently analysis consists of:
 - Neighbourhood graph
 
 ![Analysis](screenshots/Analysis.png "Analysis")
+
+## Future work
+
+- Integrate postgresql database for persistent record keeping
+- Add logging, make visible on ui
+- Add other autoencoder models
+- support other files types
+- Add other analysis scores/graphs
