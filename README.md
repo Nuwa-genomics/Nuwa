@@ -14,6 +14,7 @@ The easiest way to get started is using docker compose:
 ```bash
 docker-compose up -d --build
 ```
+If on Windows you can use [docker desktop](https://www.docker.com/products/docker-desktop/)
 
 Then visit http://localhost in your browser.
 
