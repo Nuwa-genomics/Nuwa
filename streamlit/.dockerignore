@@ -1,0 +1,8 @@
+Dockerfile
+.dockerignore
+streamlit-run.sh
+.streamlit
+volume
+__pycache__
+ml/__pycache__
+.vscode

@@ -1,0 +1,9 @@
+bin
+.vscode
+postgresql/data
+streamlit/cache
+streamlit/figures
+streamlit/results
+streamlit/tmp
+streamlit/uploads
+streamlit/volume

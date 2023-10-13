@@ -1,0 +1,15 @@
+[server]
+headless = true
+
+[client]
+toolbarMode = "viewer"
+
+[deprecation]
+showPyplotGlobalUse = false
+
+[theme]
+primaryColor="#F63366"
+backgroundColor="#181a1e"
+secondaryBackgroundColor="linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%)"
+textColor="#fff"
+font="sans serif"
