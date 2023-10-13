@@ -28,7 +28,7 @@ Then visit http://localhost in your browser.
 
 ## Build model
 
-![build model](screenshots/Model.png "Build Model")
+![build model](screenshots/model.png "Build Model")
 
 ## Analysis
 
