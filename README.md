@@ -15,11 +15,6 @@ The easiest way to get started is using docker compose:
 docker-compose up -d --build
 ```
 
-Alternatively, you can run streamlit directly:
-```bash
-cd streamlit && streamlit run Dashboard.py --server.maxUploadSize 100000
-```
-
 Then visit http://localhost in your browser.
 
 ## Preprocess
