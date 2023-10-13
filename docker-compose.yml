@@ -1,0 +1,32 @@
+version: "3.9"
+services:
+  streamlit:
+    container_name: streamlit
+    build:
+      context: ./streamlit
+      dockerfile: Dockerfile
+    ports:
+      - "80:8501"
+    volumes:
+      - ./streamlit/volume:/app/volume
+      - ./streamlit/.streamlit:/root/.streamlit
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+  postgres:
+    container_name: postgresql
+    build: 
+      context: ./postgresql
+      dockerfile: Dockerfile
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=db
+    volumes:
+      - ./postgresql/data:/var/lib/postgresql/data
