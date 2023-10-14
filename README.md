@@ -1,5 +1,5 @@
 # Nuwa 🧬🐍
-A Bioinformatics web tool built with scanpy for genomics data processing and analysis
+A bioinformatics web tool built with scanpy for genomics data processing and analysis.
 
 ### \*\*Work in progress!\*\*
 
@@ -14,7 +14,7 @@ The easiest way to get started is using docker compose:
 ```bash
 docker-compose up -d --build
 ```
-If on Windows you can use [docker desktop](https://www.docker.com/products/docker-desktop/)
+You can also use [docker desktop](https://www.docker.com/products/docker-desktop/)
 
 Then visit http://localhost in your browser.
 
