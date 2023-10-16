@@ -3,6 +3,7 @@ import scanpy as sc
 import pickle
 import pandas as pd
 import warnings
+import os
 
 warnings.filterwarnings("ignore")
 
@@ -98,6 +99,8 @@ class Preprocess:
     def __init__(self, adata):
         self.adata = adata
 
+
+
         st.title("Preprocess")
 
     def show_preview(self):
@@ -109,6 +112,7 @@ class Preprocess:
         st.subheader("Show highest expressed genes")
         st.number_input(label="Number of genes", min_value=1, max_value=100, value=20, key="n_top_genes")
         fn = 'figures/highest_expr_genes.pdf'
+        sc.pl.highest_expr_genes(self.adata, n_top=st.session_state.n_top_genes, save=True)
         
         with open(fn, "rb") as img:
             ax = sc.pl.highest_expr_genes(self.adata, n_top=st.session_state.n_top_genes)

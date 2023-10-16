@@ -8,7 +8,6 @@ services:
     ports:
       - "80:8501"
     volumes:
-      - ./streamlit/volume:/app/volume
       - ./streamlit/.streamlit:/root/.streamlit
     deploy:
       resources:
