@@ -6,6 +6,9 @@ import seaborn as sns
 
 from ml.citeseq.dataset import TabularDataset
 from ml.citeseq.train import get_encodings
+from ml.citeseq.model import CiteAutoencoder
+from ml.solo.solo import solo_model
+
 import pickle
 
 import scanpy as sc
@@ -56,36 +59,37 @@ class Analysis:
                     st.error("Model hasn't been trained to provide data")
                     st.link_button(label="Train", url='/Create_model')
                 else:
-
+                    
                     trained_model = st.session_state["trained_model"]
                     device = st.session_state["device"]
 
-                    encodings = get_encodings(trained_model, test_dl, device)
-                    encodings = encodings.cpu().numpy()
+                    if isinstance(trained_model, CiteAutoencoder):
 
-                    metadata_df = self.adata.obs
+                        encodings = get_encodings(trained_model, test_dl, device)
+                        encodings = encodings.cpu().numpy()
+                        metadata_df = self.adata.obs
+                        cell_ids = rna_df_original.index.values
+                        plot_df = metadata_df.loc[metadata_df.index.isin(cell_ids)]
+                        embedding = umap.UMAP(random_state=0).fit_transform(encodings)
+                        
+                        plot_df["UMAP1"] = embedding[:, 0]
+                        plot_df["UMAP2"] = embedding[:, 1]
 
-                    cell_ids = rna_df_original.index.values
+                        colors_var = self.adata.obs.columns
 
-                    plot_df = metadata_df.loc[metadata_df.index.isin(cell_ids)]
+                        def update_autoencoder_colors():
+                            st.session_state.update()
+                        
+                        st.selectbox(label="Colour", options=(colors_var), key="sb_auto_colors", on_change=update_autoencoder_colors)
+                        st.scatter_chart(plot_df, x="UMAP1", y="UMAP2", color=st.session_state['sb_auto_colors'])
 
-                    embedding = umap.UMAP(random_state=0).fit_transform(encodings)
-                    
-                    plot_df["UMAP1"] = embedding[:, 0]
-                    plot_df["UMAP2"] = embedding[:, 1]
+                    elif(isinstance(trained_model, solo_model)):
+                        ax = trained_model.get_umap_plt()
+                        st.pyplot(ax)
 
-                    colors_var = self.adata.obs.columns
+                    else:
+                        st.error("Unknown model")
 
-                    def update_autoencoder_colors():
-                        st.session_state.update()
-                    
-
-                    st.selectbox(label="Colour", options=(colors_var), key="sb_auto_colors", on_change=update_autoencoder_colors)
-
-                    
-                    
-
-                    st.scatter_chart(plot_df, x="UMAP1", y="UMAP2", color=st.session_state['sb_auto_colors'])
 
     def pca_graph(self):
         with self.col2:
@@ -151,6 +155,13 @@ class Analysis:
             
             
 adata = st.session_state.adata
+
+def add_experiment():
+    print("hi")
+
+with st.sidebar:
+    st.selectbox(label="Current Experiment:", options=(["raw", "adata"]))
+    st.button(label="Add experiment", on_click=add_experiment, use_container_width=True)
 
 analysis = Analysis(adata)
 

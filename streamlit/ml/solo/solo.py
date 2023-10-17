@@ -24,19 +24,29 @@ class solo_model():
         df.index = df.index.map(lambda x: x[:-2])
         self.adata.obs['prediction'] = df.prediction.values
 
-    def cluster_analysis(self):
+    def cluster_analysis(self, callback):
+        callback(percent=85, text="Normalizing data")
         sc.pp.normalize_total(self.adata, target_sum=1e4)
         sc.pp.log1p(self.adata)
+        callback(percent=88, text="Computing PCA")
         sc.tl.pca(self.adata)
+        callback(percent=90, text="Computing neighbours")
         sc.pp.neighbors(self.adata)
+        callback(percent=96, text="Computing UMAP")
         sc.tl.umap(self.adata)
+        callback(percent=98, text="Computing Leiden")
         sc.tl.leiden(self.adata, resolution=0.5)
+        callback(percent=100, text="Predictions are ready!")
 
-    def train(self):
+    def train(self, callback):
+        callback(percent=1, text="Training vae model")
         self.train_vae()
+        callback(percent=70, text="Training solo model")
         self.train_solo()
+        callback(percent=80, text="Making predictions")
         self.predict_solo()
-        self.cluster_analysis()
+        self.cluster_analysis(callback=callback)
+        return self
 
     def get_umap_plt(self):
         self.umap_plt = sc.pl.umap(self.adata, color = ['leiden', 'prediction'])

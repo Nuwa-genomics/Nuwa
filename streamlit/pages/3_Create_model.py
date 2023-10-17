@@ -165,18 +165,13 @@ class CreateSoloModel:
         with col1:
             st.selectbox(label="Device", options=(self.device_options), on_change=self.set_device, key="sb_select_device_solo")
 
-        col1, col2 = st.columns(2, gap="large")
+        col1, col2 = st.columns(2)
         with col1:
-            st.subheader("Vae model")
+            st.subheader("Model parameters")
             st.number_input(label="Epochs", min_value=1, value=400, key="ni_vae_epochs")
+            st.number_input(label="Learning rate", min_value=1e-4, max_value=10.0, value=1e-3, format='%.4f', key="ni_solo_lr")
             st.subheader("Train/test split")
             st.slider(label=f"Train data %", min_value=1, max_value=99, value=90, key="input_train_test_split_solo_vae")
-        with col2:
-            st.subheader("Solo model")
-            st.number_input(label="Epochs", min_value=1, value=400, key="ni_solo_epochs")
-            st.number_input(label="Learning rate", min_value=1e-4, max_value=10.0, value=1e-3, key="ni_solo_lr")
-            st.subheader("Train/test split")
-            st.slider(label=f"Train data %", min_value=1, max_value=99, value=90, key="input_train_test_split_solo_solo")
 
     def init_device(self):
         #init devices if not already exists
@@ -200,38 +195,21 @@ class CreateSoloModel:
     def init_model(self):
         #initialize model object
         self.model_dict = {
-            "vae": {
-                "model": None,
-                "lr": 1e-2,
-                "n_epochs": 100,
-                "n_features": adata.to_df().shape[1],
-                "optim": 'Adam',
-                "test_split": 0.1,
-                "train_dl": None,
-                "valid_dl": None
-            },
-            "solo": { 
-                "model": None,
-                "lr": 1e-2,
-                "n_epochs": 100,
-                "n_features": adata.to_df().shape[1],
-                "optim": 'Adam',
-                "test_split": 0.1,
-                "train_dl": None,
-                "valid_dl": None
-            }
+            "model": None,
+            "n_epochs": 400,
+            "test_split": 0.1,
+            "lr": 1e-3,
         }
 
         st.session_state['model_obj'] = self.model_dict
 
     def build_model(self, adata):
         model = solo_model(adata)
+        st.session_state.model_obj["model"] = model
 
     def change_hyperparams(self):
-        pass
-
-    def set_hyperparams(self):
-        pass
+        st.session_state.model_obj["lr"] = 1e-3
+        st.session_state.model_obj["n_epochs"] = 400
 
 
 def create_citeseq():
@@ -271,6 +249,14 @@ def change_model():
         create_solo()
 
 st.title("Create Model")
+
+def add_experiment():
+    print("hi")
+
+with st.sidebar:
+    st.selectbox(label="Current Experiment:", options=(["raw", "adata"]))
+    st.button(label="Add experiment", on_click=add_experiment, use_container_width=True)
+
 col1, _, _, _ = st.columns(4)
 col1.selectbox(label="model", options=(["Citeseq (dimensionality reduction)", "Solo (doublet removal)"]), key='sb_model_selection')
 

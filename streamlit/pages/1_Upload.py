@@ -33,12 +33,21 @@ else:
 def show_anndata(adata):
     st.text(f"AnnData object with n_obs x n_vars = {adata.n_obs} x {adata.n_vars}")
     st.text(f"Size: {f.size} bytes")
+
     st.subheader("Obs")
-    st.dataframe(adata.obs.head())
-    st.text(f"Showing 5 rows of {len(adata.obs.columns)} columns")
+    if not adata.obs.empty:
+        st.dataframe(adata.obs.head())
+        st.text(f"Showing 5 rows of {len(adata.obs.columns)} columns")
+    else:
+        st.text("No obs to show")
+    
     st.subheader("Var")
-    st.dataframe(adata.var.head())
-    st.text(f"Showing 5 rows of {len(adata.var.columns)} columns")
+    if not adata.var.empty:
+        st.dataframe(adata.var.head())
+        st.text(f"Showing 5 rows of {len(adata.var.columns)} columns")
+    else:
+        st.text("No var to show")
+
     st.session_state["adata"] = adata
     with open('./tmp/adata.pkl', 'wb') as tmp:
         pickle.dump(adata, tmp, pickle.HIGHEST_PROTOCOL)

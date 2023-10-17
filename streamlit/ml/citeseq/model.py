@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-
 class LinBnDrop(nn.Sequential):
     """Module grouping `BatchNorm1d`, `Dropout` and `Linear` layers, adapted from fastai."""
     

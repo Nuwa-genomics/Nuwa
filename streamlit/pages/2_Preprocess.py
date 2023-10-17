@@ -99,8 +99,6 @@ class Preprocess:
     def __init__(self, adata):
         self.adata = adata
 
-
-
         st.title("Preprocess")
 
     def show_preview(self):

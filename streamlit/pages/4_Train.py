@@ -3,11 +3,13 @@ import time
 import json
 import streamlit.components.v1 as com
 from streamlit_lottie import st_lottie
+from ml.citeseq.model import CiteAutoencoder
 from ml.citeseq.train import train_model
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 from ml.citeseq.train import train_model
+from ml.solo.solo import solo_model
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬', layout="centered")
 
@@ -33,11 +35,11 @@ if 'train_loss' not in st.session_state:
 
 class Train:
     def __init__(self, adata):
-        self.model_params = st.session_state["model_obj"]
+        self.model = st.session_state["model_obj"]
 
         self.placeholder = st.empty()
 
-        self.pb = st.progress(value=0, text=f"Epoch 0/{self.model_params['n_epochs']}")
+        self.pb = st.progress(value=0, text=f"Epoch 0/{self.model['n_epochs']}")
 
         if 'device' not in st.session_state:
             self.device = "cpu"
@@ -56,9 +58,9 @@ class Train:
 
 
     def train_pgb(self, epoch, train_loss, valid_loss):
-        n_epochs = self.model_params['n_epochs']
+        n_epochs = self.model['n_epochs']
         self.pb.progress(round((epoch/n_epochs)*100), text=f"Epoch {epoch}/{n_epochs}")
-        if epoch == self.model_params['n_epochs']:
+        if epoch == self.model['n_epochs']:
             with self.placeholder.container():
                 st.markdown("<h3 style='text-align: center; margin-bottom: 2rem'>Training Complete</h3>", unsafe_allow_html=True)
                 with open("animations/tick.json") as source:
@@ -72,24 +74,50 @@ class Train:
                     with subcol2:
                         st.metric(label="Validation loss", value=round(valid_loss, 4))
 
+    def train_pgb_non_specific(self, percent, text):
+        n_epochs = self.model['n_epochs']
+        self.pb.progress(percent, text=text)
+        if percent >= 100:
+            with self.placeholder.container():
+                st.markdown("<h3 style='text-align: center; margin-bottom: 2rem'>Training Complete</h3>", unsafe_allow_html=True)
+                with open("animations/tick.json") as source:
+                    complete_animation = json.load(source)
+                    st_lottie(complete_animation, width=700, height=200, loop=False, speed=1.2)
+
+                    subcol1, subcol2 = st.columns(2, gap="medium")
+                    
+                    #with subcol1:
+                        #st.metric(label="Train loss", value=round(train_loss, 4))
+                    #with subcol2:
+                        #st.metric(label="Validation loss", value=round(valid_loss, 4))
+
 
     def train(self):
-        trained_model, losses = train_model(
-        model=self.model_params["model"], 
-        train_dl=self.model_params["train_dl"], 
-        valid_dl=self.model_params["valid_dl"], 
-        lr=self.model_params["lr"], 
-        epochs=self.model_params["n_epochs"], 
-        callback_on_epoch=self.train_pgb, 
-        verbose=True,
-        device=self.device
-        )
+        if(isinstance(self.model['model'], CiteAutoencoder)):
+            trained_model, losses = train_model(
+            model=self.model["model"], 
+            train_dl=self.model["train_dl"], 
+            valid_dl=self.model["valid_dl"], 
+            lr=self.model["lr"], 
+            epochs=self.model["n_epochs"], 
+            callback_on_epoch=self.train_pgb, 
+            verbose=True,
+            device=self.device
+            )
 
-        st.session_state["losses"] = losses #save losses
-        st.session_state["trained_model"] = trained_model #save model to local session
-
+            st.session_state["losses"] = losses #save losses
+            st.session_state["trained_model"] = trained_model #save model to local session
+        elif(isinstance(self.model['model'], solo_model)):
+            st.session_state["trained_model"] = self.model['model'].train(callback=self.train_pgb_non_specific)
 
 adata = st.session_state["adata"]
+
+def add_experiment():
+    print("hi")
+
+with st.sidebar:
+    st.selectbox(label="Current Experiment:", options=(["raw", "adata"]))
+    st.button(label="Add experiment", on_click=add_experiment, use_container_width=True)
 
 train = Train(adata)
 
