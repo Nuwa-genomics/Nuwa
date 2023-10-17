@@ -1,7 +1,7 @@
 # Nuwa 🧬🐍
 A bioinformatics web tool built with scanpy for genomics data processing and analysis. 
 
-### \*\*Work in progress!\*\*
+### \*\*Work in progress! ⚠️\*\*
 
 Deep neural networks have many potential use cases for genomic analyses including quality control, dimensionality reduction and spatial transcriptomics. Nuwa aims to integrate several deep learning models in a visual, easy to use interface with other filtering and data analysis familiar to most scanpy users. 
 
