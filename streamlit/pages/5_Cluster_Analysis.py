@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 import seaborn as sns
 
-from ml.dataset import TabularDataset
-from ml.train import get_encodings
+from ml.citeseq.dataset import TabularDataset
+from ml.citeseq.train import get_encodings
 import pickle
 
 import scanpy as sc

@@ -3,11 +3,11 @@ import time
 import json
 import streamlit.components.v1 as com
 from streamlit_lottie import st_lottie
-from ml.train import train_model
+from ml.citeseq.train import train_model
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
-from ml.train import train_model
+from ml.citeseq.train import train_model
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬', layout="centered")
 

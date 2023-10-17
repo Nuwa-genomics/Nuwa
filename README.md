@@ -3,7 +3,7 @@ A bioinformatics web tool built with scanpy for genomics data processing and ana
 
 ### \*\*Work in progress!\*\*
 
-Deep neural networks have many potential use cases for genomic analyses including quality control, dimensionality reduction and spatial transcriptomics. Nuwa aims to integrate some of these models in a visual, easy to use interface with other filtering and data analysis familiar to most scanpy users. 
+Deep neural networks have many potential use cases for genomic analyses including quality control, dimensionality reduction and spatial transcriptomics. Nuwa aims to integrate several deep learning models in a visual, easy to use interface with other filtering and data analysis familiar to most scanpy users. 
 
 ## Getting Started
 
@@ -28,7 +28,11 @@ Filter genes and cell metrics, find mitochrondrial and ribosomal genes, look at 
 
 ## Build model
 
-Build an deep autoencoder based on [Cite-seq model](https://github.com/naity/citeseq_autoencoder) for cluster analysis. Automatically selects a Cuda capable GPU for faster training if one is available.
+Available models:
+- [Cite-seq](https://github.com/naity/citeseq_autoencoder) dimensionality reduction for cluster analysis. 
+- [Solo](https://github.com/calico/Solo) Remove doublets using semi-supervised autoencoders
+
+Automatically selects a Cuda capable GPU for faster training if one is available.
 
 ![build model](screenshots/model.png "Build Model")
 

@@ -6,6 +6,7 @@ scanpy
 torch
 tqdm
 scikit-learn
+scikit-misc
 scipy
 seaborn
 umap-learn
@@ -16,3 +17,4 @@ leidenalg
 spatialde
 scanorama
 anndata
+scvi-tools
