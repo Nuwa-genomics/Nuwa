@@ -28,7 +28,7 @@ Filter genes and cell metrics, find mitochrondrial and ribosomal genes, look at 
 
 ## Build model
 
-Build an deep autoencoder based on [Cite-seq model](https://github.com/naity/citeseq_autoencoder) for cluster analysis.
+Build an deep autoencoder based on [Cite-seq model](https://github.com/naity/citeseq_autoencoder) for cluster analysis. Automatically selects a Cuda capable GPU for faster training if one is available.
 
 ![build model](screenshots/model.png "Build Model")
 

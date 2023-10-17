@@ -124,7 +124,7 @@ class Preprocess:
 
     def filter_highly_variable_genes(self):
         self.adata_hvg = self.adata
-        st.subheader("Filter highly variable genes")
+        st.subheader("Show highly variable genes")
         st.number_input(label="min mean", value=0.0125, key="input_highly_variable_min_mean")
         st.number_input(label="max mean", value=3.0, key="input_highly_variable_max_mean")
         sc.pp.normalize_total(self.adata_hvg, target_sum=1e4)
