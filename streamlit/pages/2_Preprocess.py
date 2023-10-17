@@ -9,7 +9,7 @@ warnings.filterwarnings("ignore")
 
 sc.settings.verbosity = 3
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
 common_style = """
             <style>

@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from ml.train import train_model
 
+st.set_page_config(page_title='Nuwa', page_icon='🧬', layout="centered")
+
 common_style = """
             <style>
             footer {visibility: hidden;}

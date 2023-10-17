@@ -3,6 +3,8 @@ from components.workspace import workspace
 import pandas as pd
 import os
 
+st.set_page_config(page_title='Nuwa', page_icon='🧬')
+
 common_style = """
             <style>
             footer {visibility: hidden;}

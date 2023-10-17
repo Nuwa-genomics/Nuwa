@@ -12,7 +12,7 @@ import scanpy as sc
 import streamlit as st
 import umap.umap_ as umap
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
 common_style = """
             <style>
@@ -64,7 +64,6 @@ class Analysis:
                     encodings = encodings.cpu().numpy()
 
                     metadata_df = self.adata.obs
-                    print(metadata_df.head())
 
                     cell_ids = rna_df_original.index.values
 
@@ -77,9 +76,16 @@ class Analysis:
 
                     colors_var = self.adata.obs.columns
 
-                    st.selectbox(label="Colour", options=(colors_var), key="sb_colors")
+                    def update_autoencoder_colors():
+                        st.session_state.update()
+                    
 
-                    st.scatter_chart(plot_df, x="UMAP1", y="UMAP2", color=st.session_state.sb_colors)
+                    st.selectbox(label="Colour", options=(colors_var), key="sb_auto_colors", on_change=update_autoencoder_colors)
+
+                    
+                    
+
+                    st.scatter_chart(plot_df, x="UMAP1", y="UMAP2", color=st.session_state['sb_auto_colors'])
 
     def pca_graph(self):
         with self.col2:
