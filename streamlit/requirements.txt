@@ -14,7 +14,5 @@ streamlit_lottie
 psycopg2-binary
 sqlalchemy
 leidenalg
-spatialde
-scanorama
 anndata
 scvi-tools

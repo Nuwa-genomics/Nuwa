@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from collections import defaultdict
 from tqdm import tqdm
-import time
 
 def train_model(model, train_dl, valid_dl, lr, epochs, device, callback_on_epoch=None, verbose=True):
     model.to(device)

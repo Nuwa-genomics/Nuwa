@@ -1,20 +1,17 @@
 import streamlit as st
 import scanpy as sc
-import math
-import time
 import pickle
 import os
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬')
 
-common_style = """
-            <style>
-            footer {visibility: hidden;}
-            .st-emotion-cache-1cypcdb {background: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%); box-shadow: 1px 0 10px -2px #000;}
-            .st-emotion-cache-86cver {rgba(250, 250, 250, 0.6)}
-            </style>
-            """
-st.markdown(common_style, unsafe_allow_html=True)
+with open('css/common.css') as f:
+    common_style = f"""
+                <style>
+                {f.read()}
+                </style>
+                """
+    st.markdown(common_style, unsafe_allow_html=True)
 
 
 st.title("Upload a file")

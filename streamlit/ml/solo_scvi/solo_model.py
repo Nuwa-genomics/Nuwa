@@ -1,10 +1,8 @@
 import scvi
 import scanpy as sc
-import pandas as pd
-
 
 class solo_model():
-
+    
     def __init__(self, adata):
         self.adata = adata
         self.adata.var_names_make_unique()

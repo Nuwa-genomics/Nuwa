@@ -3,7 +3,6 @@ import scanpy as sc
 import pickle
 import pandas as pd
 import warnings
-import os
 
 warnings.filterwarnings("ignore")
 
@@ -11,73 +10,13 @@ sc.settings.verbosity = 3
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
-common_style = """
-            <style>
-            footer {visibility: hidden;}
-            .st-emotion-cache-1cypcdb {background: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%); box-shadow: 1px 0 10px -2px #000;}
-            .st-emotion-cache-86cver {color: rgba(250, 250, 250, 0.6)}
-            .stButton button {
-                border-radius: 0.5rem;
-                background: #004dcf;
-                color: #fff;
-                border: 1px solid #004dcf;
-                padding: 0.25rem 0.75rem;
-            }
-
-            .stButton button:hover {
-                background: transparent;
-                color: #004dcf;
-                transition: all 0.1s ease-in-out;
-                border: 1px solid #004dcf;
-            }
-
-            .stButton button:focus {
-                border: 1px solid #004dcf;
-                color: #004dcf;
-            }
-
-            .stButton button:active {
-                border: 1px solid #004dcf;
-                color: #004dcf;
-            }
-
-            .stButton button:visited {
-                border: 1px solid #004dcf;
-                color: #004dcf;
-            }
-
-            .st-emotion-cache-1b9yna5:focus:not(:active) {
-                border: 1px solid #004dcf;
-                color: #004dcf;
-            }
-
-            .st-emotion-cache-1b9yna5:focus:not(:hover) {
-                border: 1px solid #004dcf;
-                color: #fff;
-            }
-
-            .st-emotion-cache-oooxyj:focus:not(:active) {
-                border: 1px solid #004dcf;
-                color: #004dcf;
-            }
-
-            .st-emotion-cache-oooxyj:focus:not(:hover) {
-                border: 1px solid #004dcf;
-                color: #fff;
-            }
-
-            .st-emotion-cache-1ts31n5:focus:not(:active) {
-                border: 1px solid #004dcf;
-                color: #004dcf;
-            }
-
-            .st-emotion-cache-1ts31n5:focus:not(:hover) {
-                border: 1px solid #004dcf;
-                color: #fff;
-            }
-            </style>
-            """
-st.markdown(common_style, unsafe_allow_html=True)
+with open('css/common.css') as f:
+    common_style = f"""
+                <style>
+                {f.read()}
+                </style>
+                """
+    st.markdown(common_style, unsafe_allow_html=True)
 
 
 
@@ -98,6 +37,7 @@ adata = st.session_state["adata"]
 class Preprocess:
     def __init__(self, adata):
         self.adata = adata
+        self.adata_raw = adata
 
         st.title("Preprocess")
 
@@ -269,7 +209,8 @@ def add_experiment():
 
 
 with st.sidebar:
-    st.selectbox(label="Current Experiment:", options=(["raw", "adata"]))
+    st.session_state['adata_selection'] = ["adata_raw"]
+    st.selectbox(label="Current Experiment:", options=st.session_state['adata_selection'], key="sb_adata_selection")
     st.button(label="Add experiment", on_click=add_experiment, use_container_width=True)
 
 preprocess = Preprocess(adata)

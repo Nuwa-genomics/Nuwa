@@ -1,7 +1,5 @@
 import streamlit as st
-from components.workspace import workspace
 import pandas as pd
-import os
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬')
 
