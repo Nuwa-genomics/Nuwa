@@ -20,11 +20,6 @@ with open('css/common.css') as f:
                 """
     st.markdown(common_style, unsafe_allow_html=True)
 
-if 'adata' not in st.session_state:
-    tmp_file = open("./tmp/adata.pkl",'rb')
-    cached_adata = pickle.load(tmp_file)
-    st.session_state["adata"] = cached_adata
-
 try:
     adata = st.session_state["adata"]
 except KeyError as ke:

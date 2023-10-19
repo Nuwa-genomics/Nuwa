@@ -17,7 +17,7 @@ with open('css/common.css') as f:
 st.title("Upload a file")
 
 
-uploaded_f = st.file_uploader("Choose a file to upload", type=["csv", "h5ad", "loom", "mtx", "tsv"], accept_multiple_files=True)
+uploaded_f = st.file_uploader("Choose a file to upload", type=["csv", "h5ad", "h5", "loom", "mtx", "tsv"], accept_multiple_files=True)
 
 
 if not uploaded_f:
@@ -46,8 +46,6 @@ def show_anndata(adata):
         st.text("No var to show")
 
     st.session_state["adata"] = adata
-    with open('./tmp/adata.pkl', 'wb') as tmp:
-        pickle.dump(adata, tmp, pickle.HIGHEST_PROTOCOL)
 
 
 def show_mtx_file_info(p):
@@ -55,7 +53,6 @@ def show_mtx_file_info(p):
         adata = sc.read_10x_mtx(p, var_names='gene_symbols', cache=True)
         show_anndata(adata)
         
-
 def show_h5ad_file_info(f):
     with st.spinner(text="Loading data files"):
         adata = sc.read_h5ad(f)

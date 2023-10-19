@@ -8,6 +8,7 @@ from ml.citeseq.model import CiteAutoencoder
 from ml.solo_scvi.solo_model import solo_model
 
 import pickle
+import pandas as pd
 
 import scanpy as sc
 import streamlit as st
@@ -22,11 +23,6 @@ common_style = f"""
     </style>
 """
 st.markdown(common_style, unsafe_allow_html=True)
-
-if 'adata' not in st.session_state:
-    tmp_file = open("./tmp/adata.pkl",'rb')
-    cached_adata = pickle.load(tmp_file)
-    st.session_state["adata"] = cached_adata
 
 
 class Analysis:
@@ -149,8 +145,8 @@ class Analysis:
                     ax = sc.pl.rank_genes_groups(self.adata, n_genes=25, sharey=False)
                     st.pyplot(ax)
             st.button(label="Save figure", key="btn_marker_gene")
-            
-            
+
+
 adata = st.session_state.adata
 
 def add_experiment():
