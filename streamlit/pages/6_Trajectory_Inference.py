@@ -79,14 +79,14 @@ class Trajectory_Inference:
     def dpt(self):
         with self.col2:
             st.subheader("Diffusion Pseudotime")
-            st.selectbox(label='Root cell', options=(self.adata.obs['louvain']), key='sb_root_cell')
+            st.selectbox(label='Root cell', options=(self.adata.obs['louvain'].unique()), key='sb_root_cell')
             with st.expander(label="Show figure", expanded=True):
                 self.adata.uns['iroot'] = np.flatnonzero(self.adata.obs['louvain']  == st.session_state.sb_root_cell)[0]
                 
 
                 gene_names = ['Gata2', 'Gata1', 'Klf1', 'Epor', 'Hba-a2', 'Elane', 'Cebpe', 'Gfi1', 'Irf8', 'Csf1r', 'Ctsg']    
 
-                adata_raw = self.adata
+                adata_raw = self.adata.copy()
                 sc.tl.dpt(adata_raw)
                 sc.pp.log1p(adata_raw)
                 sc.pp.scale(adata_raw)
@@ -94,8 +94,48 @@ class Trajectory_Inference:
                 ax = sc.pl.draw_graph(adata_raw, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')
                 st.pyplot(ax)
 
+    def show_path(self):
+        with self.col2:
+            st.subheader("Paths")
 
+            paths = [('erythrocytes', [16, 12, 7, 13, 18, 6, 5, 10]),
+                    ('neutrophils', [16, 0, 4, 2, 14, 19]),
+                    ('monocytes', [16, 0, 4, 11, 1, 9, 24])]
+            
+            self.adata.obs['distance'] = self.adata.obs['dpt_pseudotime']
+            self.adata.obs['clusters'] = self.adata.obs['louvain']  # just a cosmetic change
+            self.adata.uns['clusters_colors'] = self.adata.uns['louvain_colors']
 
+            _, axs = plt.subplots(ncols=3, figsize=(6, 2.5), gridspec_kw={'wspace': 0.05, 'left': 0.12})
+            plt.subplots_adjust(left=0.05, right=0.98, top=0.82, bottom=0.2)
+
+            gene_names = ['Gata2', 'Gata1', 'Klf1', 'Epor', 'Hba-a2',  # erythroid
+              'Elane', 'Cebpe', 'Gfi1',                    # neutrophil
+              'Irf8', 'Csf1r', 'Ctsg'] 
+
+      
+
+            for ipath, (descr, path) in enumerate(paths):
+                
+                _, data = sc.pl.paga_path(
+                    adata, path, gene_names,                         
+                    show_node_names=False,
+                    ax=axs[ipath],
+                    ytick_fontsize=12,
+                    left_margin=0.15,
+                    n_avg=50,
+                    annotations=['distance'],
+                    show_yticks=True if ipath==0 else False,
+                    show_colorbar=False,
+                    color_map='Greys',
+                    groups_key='clusters',
+                    color_maps_annotations={'distance': 'viridis'},
+                    title='{} path'.format(descr),
+                    return_data=True,
+                    show=False)
+                
+            st.pyplot(axs)
+                
 
 
 adata = st.session_state.adata
@@ -111,3 +151,5 @@ tji.louvain_cluster()
 tji.draw_graph_paga()
 
 tji.dpt()
+
+#tji.show_path()

@@ -34,19 +34,21 @@ class Preprocess:
         st.title("Preprocess")
 
     def show_preview(self):
-        preview = st.container()
-        preview.subheader("File preview")
-        preview.code(st.session_state.adata)
+        with st.sidebar:
+            with st.expander(label="Show Preview"):
+                st.subheader("Anndata preview")
+                with st.container():
+                    st.markdown(f"<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata}</p>", unsafe_allow_html=True)
+                    #st.code(st.session_state.adata)
 
     def filter_highest_expr_genes(self):
         st.subheader("Show highest expressed genes")
         st.number_input(label="Number of genes", min_value=1, max_value=100, value=20, key="n_top_genes")
         fn = 'figures/highest_expr_genes.pdf'
-        sc.pl.highest_expr_genes(self.adata, n_top=st.session_state.n_top_genes, save=True)
-        
         with open(fn, "rb") as img:
-            ax = sc.pl.highest_expr_genes(self.adata, n_top=st.session_state.n_top_genes)
             with st.expander(label="Show figure"):
+                sc.pl.highest_expr_genes(self.adata, n_top=st.session_state.n_top_genes, save=True)
+                ax = sc.pl.highest_expr_genes(self.adata, n_top=st.session_state.n_top_genes)
                 st.pyplot(ax)
 
             btn = st.download_button (label="Download image", data=img, file_name=fn, mime="application/pdf", use_container_width=True)
@@ -57,16 +59,15 @@ class Preprocess:
         st.subheader("Show highly variable genes")
         st.number_input(label="min mean", value=0.0125, key="input_highly_variable_min_mean")
         st.number_input(label="max mean", value=3.0, key="input_highly_variable_max_mean")
-        sc.pp.normalize_total(self.adata_hvg, target_sum=1e4)
-        sc.pp.log1p(self.adata_hvg)
-        sc.pp.highly_variable_genes(self.adata_hvg, min_mean=0.0125, max_mean=3, min_disp=0.5)
         fn = 'figures/filter_genes_dispersion.pdf'
-        
-        sc.pl.highly_variable_genes(self.adata_hvg, save=True)
 
         with open(fn, "rb") as img:
-            ax = sc.pl.highly_variable_genes(self.adata_hvg)
             with st.expander(label="Show figure"):
+                sc.pp.normalize_total(self.adata_hvg, target_sum=1e4)
+                sc.pp.log1p(self.adata_hvg)
+                sc.pp.highly_variable_genes(self.adata_hvg, min_mean=0.0125, max_mean=3, min_disp=0.5)
+                sc.pl.highly_variable_genes(self.adata_hvg, save=True)
+                ax = sc.pl.highly_variable_genes(self.adata_hvg)
                 st.pyplot(ax)
             subcol1, subcol2 = st.columns(2)
             with subcol1:
@@ -139,6 +140,26 @@ class Preprocess:
             st.number_input(label="max cells for gene", min_value=1, value=None, key="filter_gene_max_cells")
         
         btn = st.button(label="Apply filter", key="btn_filter_genes", on_click=filter_genes_callback)
+
+
+    def recipes(self):
+        st.subheader("Preprocess Recipes")
+        def pp_recipe():
+            adata_copy = self.adata.copy()
+            if st.session_state.sb_pp_recipe == 'Seurat':
+                sc.pp.recipe_seurat(adata_copy)
+            elif st.session_state.sb_pp_recipe == 'Weinreb17':
+                sc.pp.recipe_weinreb17(adata_copy)
+            elif st.session_state.sb_pp_recipe == 'Zheng17':
+                sc.pp.recipe_zheng17(adata_copy)
+            else:
+                st.error("Recipe not found")
+            
+            self.adata = adata_copy
+
+        st.selectbox(label="Recipe", key="sb_pp_recipe", options=(['Seurat', 'Weinreb17', 'Zheng17']))
+        st.button(label='Apply', key='btn_apply_recipe', on_click=pp_recipe)
+
     
     
     def annotate_mito(self):
@@ -207,17 +228,16 @@ with st.sidebar:
 
 preprocess = Preprocess(adata)
 
-preprocess.show_preview()
-
 col1, col2, col3 = st.columns(3, gap="large")
 
 with col1:
     preprocess.filter_highest_expr_genes()
     st.divider()
     preprocess.filter_highly_variable_genes()
-    st.divider()
 
 with col2:
+    preprocess.recipes()
+    st.divider()
     preprocess.filter_cells()
     st.divider()
     preprocess.filter_genes()
@@ -226,7 +246,5 @@ with col3:
     preprocess.annotate_mito()
     st.divider()
     preprocess.annotate_ribo()
-    st.divider()
 
-
-
+preprocess.show_preview()
