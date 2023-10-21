@@ -16,3 +16,4 @@ sqlalchemy
 leidenalg
 anndata
 scvi-tools
+squidpy

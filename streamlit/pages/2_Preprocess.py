@@ -40,6 +40,7 @@ class Preprocess:
                 with st.container():
                     st.markdown(f"<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata}</p>", unsafe_allow_html=True)
                     #st.code(st.session_state.adata)
+                    
 
     def filter_highest_expr_genes(self):
         st.subheader("Show highest expressed genes")
@@ -156,6 +157,8 @@ class Preprocess:
                 st.error("Recipe not found")
             
             self.adata = adata_copy
+            st.toast(f"Applied recipe: {st.session_state.sb_pp_recipe}", icon='✅')
+
 
         st.selectbox(label="Recipe", key="sb_pp_recipe", options=(['Seurat', 'Weinreb17', 'Zheng17']))
         st.button(label='Apply', key='btn_apply_recipe', on_click=pp_recipe)
@@ -163,7 +166,8 @@ class Preprocess:
     
     
     def annotate_mito(self):
-        st.subheader("Annotate Mitochondrial Genes")
+        st.subheader("Mitochondrial Genes", help="Filter mitochrondrial gene counts. All mitochrondrial genes \
+                     are by default annotated and placed in the 'mt' variable.")
         self.adata.var['mt'] = self.adata.var_names.str.startswith(('MT-', 'mt-'))
         sc.pp.calculate_qc_metrics(self.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
         st.text(f"Found {self.adata.var.mt.sum()} mitochondrial genes")
@@ -188,7 +192,8 @@ class Preprocess:
         st.session_state["adata"] = self.adata
 
     def annotate_ribo(self):
-        st.subheader("Annotate Ribosomal Genes")
+        st.subheader("Annotate Ribosomal Genes", help="Filter ribosomal gene counts. All ribosomal genes \
+                     are by default annotated and placed in the 'ribo' variable.")
         with st.spinner(text="Fetching ribosomal genes"):
             ribo_url = "http://software.broadinstitute.org/gsea/msigdb/download_geneset.jsp?geneSetName=KEGG_RIBOSOME&fileType=txt"
             ribo_genes = pd.read_table(ribo_url, skiprows=2, header=None)

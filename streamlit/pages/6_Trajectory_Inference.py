@@ -74,6 +74,11 @@ class Trajectory_Inference:
         st.title("Trajectory Inference")
         #columns
         self.col1, self.col2 = st.columns(2, gap="large")
+        self.draw_graph()
+        self.louvain_cluster()
+        self.draw_graph_paga()
+        self.dpt()
+        #self.show_path()
 
 
     def dpt(self):
@@ -144,12 +149,3 @@ tji = Trajectory_Inference(adata)
 
 tji.draw_page()
 
-tji.draw_graph()
-
-tji.louvain_cluster()
-
-tji.draw_graph_paga()
-
-tji.dpt()
-
-#tji.show_path()

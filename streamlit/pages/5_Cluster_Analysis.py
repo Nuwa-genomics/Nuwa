@@ -17,9 +17,9 @@ import umap.umap_ as umap
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
 
-common_style = f"""
+common_style = """
     <style>
-                
+    .st-emotion-cache-1cypcdb {background: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%); box-shadow: 1px 0 10px -2px #000;}
     </style>
 """
 st.markdown(common_style, unsafe_allow_html=True)
@@ -33,7 +33,7 @@ class Analysis:
         self.col1, self.col2 = st.columns(2, gap="large")
 
         self.adata = adata
-
+        
         self.columns = adata.to_df().columns
         
 
