@@ -36,7 +36,7 @@ Automatically selects a Cuda capable GPU for faster training if one is available
 
 ![build model](screenshots/model.png "Build Model")
 
-## Analysis
+## Cluster Analysis
 
 Currently analysis consists of:
 - Autoencoder cluster plot
@@ -45,6 +45,18 @@ Currently analysis consists of:
 - Neighbourhood graph
 
 ![Analysis](screenshots/analysis.png "Analysis")
+
+## Trajectory Inference
+
+View PAGA graphs and embed PAGA into louvain graphs, view diffusion pseudotime of selected genes.
+
+![Trajectory inference](screenshots/traj_inf.png "Trajectory inference")
+
+## Spatial Transcriptomics
+
+View expression profiles while retaining spatial information. Compute interaction matrices and centrality, ripley and co-occurance scores.
+
+![Spatial transcriptomics](screenshots/spatial.png "Spatial transcriptomics screenshot")
 
 ## Future work
 
