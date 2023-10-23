@@ -34,13 +34,13 @@ class Trajectory_Inference:
             with st.spinner(text="Plotting clusters"):
                 subcol1, _, _, _ = st.columns(4, gap='large')
                 subcol1.selectbox(label='color', options=self.adata.obs.columns, key='sb_plt_colors')
-                ax = sc.pl.draw_graph(self.adata, color=st.session_state.sb_plt_colors)
+                st.slider(label="Point size", min_value=1, max_value=100, key="sl_traj_graph_size", value=50)
                 #denoise
                 # sc.tl.diffmap(self.adata)
                 # sc.pp.neighbors(self.adata, n_neighbors=10, use_rep='X_diffmap')
                 # sc.tl.draw_graph(self.adata)
-                ax_df = pd.DataFrame({'fr1': self.adata.obsm['X_draw_graph_fr'][:,0], 'fr2': self.adata.obsm['X_draw_graph_fr'][:,1], 'color': self.adata.obs[st.session_state.sb_plt_colors]})
-                st.scatter_chart(ax_df, x='fr1', y='fr2', color='color', height=600)
+                self.ax_df = pd.DataFrame({'fr1': self.adata.obsm['X_draw_graph_fr'][:,0], 'fr2': self.adata.obsm['X_draw_graph_fr'][:,1], 'color': self.adata.obs[st.session_state.sb_plt_colors]})
+                st.scatter_chart(self.ax_df, x='fr1', y='fr2', color='color', height=600, size=st.session_state.sl_traj_graph_size)
 
     def draw_graph_paga(self):
         plt.style.use('dark_background')
@@ -88,9 +88,6 @@ class Trajectory_Inference:
             with st.expander(label="Show figure", expanded=True):
                 self.adata.uns['iroot'] = np.flatnonzero(self.adata.obs['louvain']  == st.session_state.sb_root_cell)[0]
                 
-
-                gene_names = ['Gata2', 'Gata1', 'Klf1', 'Epor', 'Hba-a2', 'Elane', 'Cebpe', 'Gfi1', 'Irf8', 'Csf1r', 'Ctsg']    
-
                 adata_raw = self.adata.copy()
                 sc.tl.dpt(adata_raw)
                 sc.pp.log1p(adata_raw)

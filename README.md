@@ -31,6 +31,7 @@ Filter genes and cell metrics, find mitochrondrial and ribosomal genes, look at 
 Available models:
 - [Cite-seq](https://github.com/naity/citeseq_autoencoder) dimensionality reduction for cluster analysis. 
 - [Solo](https://github.com/calico/Solo) Remove doublets using semi-supervised autoencoders
+- [DeepST](https://github.com/JiangBioLab/DeepST) Identify spatial domains using a combination of graph convolutional networks, autoencoders and domain adversarial networks(DANs)
 
 Automatically selects a Cuda capable GPU for faster training if one is available.
 
@@ -54,7 +55,14 @@ View PAGA graphs and embed PAGA into louvain graphs, view diffusion pseudotime o
 
 ## Spatial Transcriptomics
 
-View expression profiles while retaining spatial information. Compute interaction matrices and centrality, ripley and co-occurance scores.
+View expression profiles while retaining spatial information. Currently includes:
+- Visualise spatial plots overlaid on histology
+- Neighbourhood enrichment
+- Interaction matrices 
+- Centrality score
+- Ripley score 
+- Co-occurance score
+- Ligand-receptor interaction
 
 ![Spatial transcriptomics](screenshots/spatial.png "Spatial transcriptomics screenshot")
 

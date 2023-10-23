@@ -7,6 +7,7 @@ import numpy as np
 import pickle
 import scvi
 from ml.solo_scvi.solo_model import *
+from ml.DeepST.deepst.main import *
 import torch
 
 
@@ -206,6 +207,18 @@ class CreateSoloModel:
         st.session_state.model_obj["lr"] = 1e-3
         st.session_state.model_obj["n_epochs"] = 400
 
+class CreateDeepSTModel:
+    def __init__(self, adata):
+        self.adata = adata
+
+    def train(self):
+        create_model = DeepSTModel()
+        create_model.run()
+
+    def draw_page(self):
+        st.number_input(label="Epochs", min_value=1, key="ni_deepst_epochs")
+        st.button(label="train_test", key="btn_test_train", on_click=self.train)
+
 
 def create_citeseq():
     create_model = CreateCiteSeqModel(adata)
@@ -237,11 +250,20 @@ def create_solo():
     st.subheader("Model summary")
     st.json(st.session_state.model_obj, expanded=False)
 
+def create_deepst():
+    create_model = CreateDeepSTModel(adata)
+
+    create_model.draw_page()
+
+    
+
 def change_model():
     if st.session_state.sb_model_selection == 'Citeseq (dimensionality reduction)':
         create_citeseq()
     elif st.session_state.sb_model_selection == 'Solo (doublet removal)':
         create_solo()
+    elif st.session_state.sb_model_selection == 'DeepST (identify spatial domains)':
+        create_deepst()
 
 st.title("Create Model")
 
@@ -253,6 +275,10 @@ with st.sidebar:
     st.button(label="Add experiment", on_click=add_experiment, use_container_width=True)
 
 col1, _, _, _ = st.columns(4)
-col1.selectbox(label="model", options=(["Citeseq (dimensionality reduction)", "Solo (doublet removal)"]), key='sb_model_selection')
+col1.selectbox(label="model", options=([
+    "Citeseq (dimensionality reduction)", 
+    "Solo (doublet removal)",
+    "DeepST (identify spatial domains)"
+    ]), key='sb_model_selection')
 
 change_model()
