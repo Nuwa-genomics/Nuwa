@@ -31,6 +31,7 @@ train(adata_X, graph_dict, stmap, pre_epochs=200, epochs=200).fit()
 
 """
 
+from math import ceil
 import os
 import time
 import numpy as np
@@ -46,7 +47,6 @@ from sknetwork.clustering import Louvain
 from sklearn.cluster import SpectralClustering, KMeans
 from tqdm import tqdm
 
-
 class train():
     def __init__(self,
                 processed_data,
@@ -54,6 +54,7 @@ class train():
                 model,
                 pre_epochs,
                 epochs,
+                callback,
                 corrupt = 0.001,
                 lr = 5e-4,
                 weight_decay = 1e-4,
@@ -74,6 +75,7 @@ class train():
         self.adj_label = graph_dict['adj_label'].to(self.device)
         self.norm = graph_dict['norm_value']
         self.model = model.to(self.device)
+        self.callback = callback
         self.optimizer = torch.optim.Adam(params=list(self.model.parameters()), lr = lr, weight_decay = weight_decay)
         self.pre_epochs = pre_epochs
         self.epochs = epochs
@@ -132,6 +134,7 @@ class train():
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), grad_down)
                 self.optimizer.step()
                 pbar.update(1)
+                self.callback(text=f"Training initial model: Epoch {epoch}/{self.pre_epochs}", percent=round((epoch/self.pre_epochs)*25)+49)
 
     @torch.no_grad()
     def process(
@@ -250,7 +253,8 @@ class train():
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 5)
                 self.optimizer.step()
                 pbar.update(1)
-         
+                self.callback(text=f"Training final model: Epoch {epoch}/{self.epochs}", percent=ceil((epoch/self.epochs)*25)+74)
+            self.callback(text=f"Running Leiden clustering", percent=99)
 def masking_noise(data, frac):
     """
     data: Tensor

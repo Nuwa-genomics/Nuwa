@@ -47,12 +47,14 @@ class image_feature:
         pca_components=50,
         cnnType='ResNet50',
         verbose=False,
+        callback=None,
         seeds=88,
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.adata = adata
         self.pca_components = pca_components
         self.verbose = verbose
+        self.callback=callback
         self.seeds = seeds
         self.cnnType = cnnType
 
@@ -116,6 +118,7 @@ class image_feature:
         with tqdm(total=len(self.adata),
               desc="Extract image feature",
               bar_format="{l_bar}{bar} [ time left: {remaining} ]",) as pbar:
+            pgb_counter = 1
             for spot, slice_path in self.adata.obs['slices_path'].items():
                 spot_slice = Image.open(slice_path)
                 spot_slice = spot_slice.resize((224,224))
@@ -129,6 +132,8 @@ class image_feature:
                 feat_df[spot] = result_npy
                 feat_df = feat_df.copy()
                 pbar.update(1)
+                pgb_counter += 1
+                self.callback(text=f"Extracting image features: {round((pgb_counter/len(self.adata))*100)}%", percent=math.ceil((pgb_counter/len(self.adata))*25))
         self.adata.obsm["image_feat"] = feat_df.transpose().to_numpy()
         if self.verbose:
             print("The image feature is added to adata.obsm['image_feat'] !")

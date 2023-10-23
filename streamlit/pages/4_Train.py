@@ -6,6 +6,7 @@ from ml.citeseq.train import train_model
 import pickle
 from ml.citeseq.train import train_model
 from ml.solo_scvi.solo_model import solo_model
+from ml.DeepST.deepst.main import *
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬', layout="centered")
 
@@ -98,6 +99,8 @@ class Train:
             st.session_state["trained_model"] = trained_model #save model to local session
         elif(isinstance(self.model['model'], solo_model)):
             st.session_state["trained_model"] = self.model['model'].train(callback=self.train_pgb_non_specific)
+        elif(isinstance(self.model['model'], DeepSTModel)):
+            st.session_state["trained_model"] = self.model['model'].run(callback=self.train_pgb_non_specific)
 
 adata = st.session_state["adata"]
 

@@ -6,6 +6,7 @@ from ml.citeseq.dataset import TabularDataset
 from ml.citeseq.train import get_encodings
 from ml.citeseq.model import CiteAutoencoder
 from ml.solo_scvi.solo_model import solo_model
+from ml.DeepST.deepst.main import *
 
 import pickle
 import pandas as pd
@@ -39,7 +40,7 @@ class Analysis:
 
     def autoencoder_cluster_plot(self):
         with self.col1:
-            st.subheader("Autoencoder cluster plot")
+            st.subheader("Cluster plot")
             with st.spinner(text='Preparing data from model'):
 
                 rna_df_original = self.adata.to_df()
@@ -79,6 +80,11 @@ class Analysis:
                     elif(isinstance(trained_model, solo_model)):
                         ax = trained_model.get_umap_plt()
                         st.pyplot(ax)
+
+                    elif(isinstance(trained_model, DeepSTModel)):
+                        ax_df = trained_model.get_adata_df()
+                        st.scatter_chart(ax_df, x='fr1', y='fr2', color='color', height=600)
+
 
                     else:
                         st.error("Unknown model")

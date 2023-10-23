@@ -31,7 +31,7 @@ Filter genes and cell metrics, find mitochrondrial and ribosomal genes, look at 
 Available models:
 - [Cite-seq](https://github.com/naity/citeseq_autoencoder) dimensionality reduction for cluster analysis. 
 - [Solo](https://github.com/calico/Solo) Remove doublets using semi-supervised autoencoders
-- [DeepST](https://github.com/JiangBioLab/DeepST) Identify spatial domains using a combination of graph convolutional networks, autoencoders and domain adversarial networks(DANs)
+- [DeepST](https://github.com/JiangBioLab/DeepST) Identify spatial domains using a combination of graph convolutional networks, autoencoders and domain adversarial networks (DANs)
 
 Automatically selects a Cuda capable GPU for faster training if one is available.
 

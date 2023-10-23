@@ -88,13 +88,14 @@ class run():
 		self,
 		adata,
 		data_name,
+		callback = None,
 		cnnType = 'ResNet50',
 		pca_n_comps = 50, 
 		):
 		save_path_image_crop = Path(os.path.join(self.save_path, 'Image_crop', data_name))
 		save_path_image_crop.mkdir(parents=True, exist_ok=True)
 		adata = image_crop(adata, save_path=save_path_image_crop)
-		adata = image_feature(adata, pca_components = pca_n_comps, cnnType = cnnType).extract_image_feat()
+		adata = image_feature(adata, pca_components = pca_n_comps, cnnType = cnnType, callback=callback).extract_image_feat()
 		return adata
 
 	def _get_augment(
@@ -210,6 +211,7 @@ class run():
 		self,
 		data,
 		graph_dict,
+		callback = None,
 		domains = None,
 		n_domains = None,
 		Conv_type = "GCNConv", 
@@ -241,6 +243,7 @@ class run():
 					deepst_model, 
 					pre_epochs = self.pre_epochs, 
 					epochs = self.epochs,
+					callback = callback,
 					kl_weight = kl_weight,
                 			mse_weight = mse_weight, 
                 			bce_kld_weight = bce_kld_weight,

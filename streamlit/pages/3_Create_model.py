@@ -36,7 +36,7 @@ class CreateCiteSeqModel:
         col1, _, _, _ = st.columns(4)
 
         with col1:
-            st.selectbox(label="Device", options=(self.device_options), on_change=self.set_device, key="select_device")
+            st.selectbox(label="Device", options=(self.device_options), on_change=self.set_device, key="sb_select_device_citeseq")
 
         col1, col2 = st.columns(2, gap="large")
 
@@ -53,16 +53,16 @@ class CreateCiteSeqModel:
         else:
             self.device_options = ["CPU"]
         
-        if not 'select_device' in st.session_state:
+        if not 'sb_select_device_citeseq' in st.session_state:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
         else:
-            self.device = "cpu" if st.session_state.select_device == "CPU" else "cuda"
+            self.device = "cpu" if st.session_state.sb_select_device_citeseq == "CPU" else "cuda"
 
         st.session_state.device = self.device
 
     def set_device(self):
         
-        self.device = "cpu" if st.session_state["select_device"] == "CPU" else "cuda"
+        self.device = "cpu" if st.session_state["sb_select_device_citeseq"] == "CPU" else "cuda"
         st.session_state["device"] = self.device
 
     def init_model(self):
@@ -176,16 +176,16 @@ class CreateSoloModel:
         else:
             self.device_options = ["CPU"]
         
-        if not 'select_device' in st.session_state:
+        if not 'sb_select_device_solo' in st.session_state:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
         else:
-            self.device = "cpu" if st.session_state.select_device == "CPU" else "cuda"
+            self.device = "cpu" if st.session_state.sb_select_device_solo == "CPU" else "cuda"
 
         st.session_state.device = self.device
 
     def set_device(self):
         
-        self.device = "cpu" if st.session_state["select_device"] == "CPU" else "cuda"
+        self.device = "cpu" if st.session_state["sb_select_device_solo"] == "CPU" else "cuda"
         st.session_state["device"] = self.device
 
     def init_model(self):
@@ -211,13 +211,74 @@ class CreateDeepSTModel:
     def __init__(self, adata):
         self.adata = adata
 
-    def train(self):
-        create_model = DeepSTModel()
-        create_model.run()
-
     def draw_page(self):
-        st.number_input(label="Epochs", min_value=1, key="ni_deepst_epochs")
-        st.button(label="train_test", key="btn_test_train", on_click=self.train)
+
+        col1, col2, _, _ = st.columns(4, gap="large")
+        col1.selectbox(label="Device", options=(self.device_options), on_change=self.set_device, key="sb_select_device_deepst")
+
+        col1, col2 = st.columns(2, gap="large")
+
+        with col1:
+            st.subheader("Set model hyperparameters")
+            st.number_input(label="Pre-epochs", min_value=1, key="ni_deepst_preepochs", value=800)
+            st.number_input(label="Epochs", min_value=1, key="ni_deepst_epochs", value=1000)
+            st.slider(label="No. Principal components", min_value=1, max_value=500, value=200, key="sl_n_pca")
+            
+        
+        with col2:
+            st.subheader("Spatial parameters")
+            st.number_input(label="Number of spatial domains", min_value=1, key="ni_sp_domains", value=10)
+            st.selectbox(label="Task", options=(['Identify_Domain', 'Integration']), key="sb_deepst_task")
+            st.selectbox(label="Platform", options=['Visium'], key="sb_deepst_platform")
+            st.selectbox(label="Disttype", options=['BallTree', 'KDTree', 'kneighbors_graph', 'radius'], key="sb_deepst_disttype")
+
+    def init_device(self):
+        #init devices if not already exists
+        if torch.cuda.is_available():
+            self.device_options = ["Cuda (GPU)", "CPU"]
+        else:
+            self.device_options = ["CPU"]
+        
+        if not 'sb_select_device_deepst' in st.session_state:
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        else:
+            self.device = "cpu" if st.session_state.sb_select_device_deepst == "CPU" else "cuda"
+
+        st.session_state.device = self.device
+
+    def set_device(self):
+        
+        self.device = "cpu" if st.session_state["sb_select_device_deepst"] == "CPU" else "cuda"
+        st.session_state["device"] = self.device
+
+    def init_model(self):
+        #initialize model object
+        self.model_dict = {
+            "model": None,
+            "n_preepochs": 800,
+            "n_epochs": 1000,
+            "n_domains": 10,
+            "platform": "visium",
+            "task": "Identify_Domain",
+            "dist type": "BallTree",
+            "n_pca_comp": 200,
+        }
+
+        st.session_state['model_obj'] = self.model_dict
+
+    def build_model(self, adata):
+        model = DeepSTModel(
+            task=st.session_state.sb_deepst_task,
+            n_domains=st.session_state.ni_sp_domains,
+            pre_epochs=st.session_state.ni_deepst_preepochs,
+            epochs=st.session_state.ni_deepst_epochs,
+            use_gpu=(self.device == "cuda"),
+            platform=st.session_state.sb_deepst_platform,
+            dist_type=st.session_state.sb_deepst_disttype,
+            n_pca_comps=st.session_state.sl_n_pca
+        )
+        st.session_state.model_obj["model"] = model
+        
 
 
 def create_citeseq():
@@ -253,7 +314,18 @@ def create_solo():
 def create_deepst():
     create_model = CreateDeepSTModel(adata)
 
+    create_model.init_device()
+
     create_model.draw_page()
+
+    create_model.init_model()
+
+    create_model.build_model(adata)
+
+    st.subheader("Model summary")
+    st.json(st.session_state.model_obj, expanded=False)
+
+    
 
     
 
