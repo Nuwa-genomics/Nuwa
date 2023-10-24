@@ -3,7 +3,7 @@ A bioinformatics web tool built with scanpy for genomics data processing and ana
 
 ### \*\*Work in progress! ⚠️\*\*
 
-Deep neural networks have many potential use cases for genomic analyses including quality control, dimensionality reduction and spatial transcriptomics. Nuwa aims to integrate several deep learning models in a visual, easy to use interface with other filtering and data analysis familiar to most scanpy users. 
+Deep neural networks have many potential use cases for genomic analyses including quality control, dimensionality reduction or even spatial transcriptomics. Nuwa aims to integrate several deep learning models in a visual, easy to use interface with other filtering and data analysis familiar to most scanpy users. 
 
 ## Getting Started
 
@@ -56,7 +56,7 @@ View PAGA graphs and embed PAGA into louvain graphs, view diffusion pseudotime o
 ## Spatial Transcriptomics
 
 View expression profiles while retaining spatial information. Currently includes:
-- Visualise spatial plots overlaid on histology
+- Visualise spatial plots overlaid on histology images
 - Neighbourhood enrichment
 - Interaction matrices 
 - Centrality score
