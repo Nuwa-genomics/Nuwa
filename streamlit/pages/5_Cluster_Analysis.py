@@ -15,6 +15,9 @@ import scanpy as sc
 import streamlit as st
 import umap.umap_ as umap
 
+from components.sidebar import *
+from models.AdataModel import AdataModel
+
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
 
@@ -153,19 +156,22 @@ class Analysis:
             st.button(label="Save figure", key="btn_marker_gene")
 
 
-adata = st.session_state.adata
+try:
+    adata_model: AdataModel = st.session_state["adata"]
+    show_sidebar(adata_model)
+except KeyError as ke:
+    print('Key Not Found in Employee Dictionary:', ke)
 
-def add_experiment():
-    print("hi")
 
-with st.sidebar:
-    st.selectbox(label="Current Experiment:", options=(["raw", "adata"]))
-    st.button(label="Add experiment", on_click=add_experiment, use_container_width=True)
+adata_bytes = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+st.session_state["current_adata"] = pickle.loads(adata_bytes)
 
-analysis = Analysis(adata)
+analysis = Analysis(adata=st.session_state.current_adata)
 
 analysis.autoencoder_cluster_plot()
 analysis.pca_graph()
 analysis.variance_ratio_graph()
 analysis.neighbourhood_graph()
 analysis.find_marker_genes()
+
+show_preview()

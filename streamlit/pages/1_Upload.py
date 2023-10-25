@@ -1,7 +1,9 @@
+from pydantic import ValidationError
 import streamlit as st
 import scanpy as sc
 import pickle
 import os
+from models.AdataModel import AdataModel
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬')
 
@@ -28,6 +30,14 @@ else:
 
 
 def show_anndata(adata):
+
+    #store adata in session storage
+    try:
+        adata_model = AdataModel(id=0, name="adata_raw", adata=pickle.dumps(adata))
+        st.session_state["adata"] = [adata_model]
+    except ValidationError as e:
+        st.error(e)
+
     st.text(f"AnnData object with n_obs x n_vars = {adata.n_obs} x {adata.n_vars}")
     st.text(f"Size: {f.size} bytes")
 
@@ -44,8 +54,6 @@ def show_anndata(adata):
         st.text(f"Showing 5 rows of {len(adata.var.columns)} columns")
     else:
         st.text("No var to show")
-
-    st.session_state["adata"] = adata
 
 
 def show_mtx_file_info(p):

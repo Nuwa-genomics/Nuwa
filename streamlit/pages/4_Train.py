@@ -7,6 +7,8 @@ import pickle
 from ml.citeseq.train import train_model
 from ml.solo_scvi.solo_model import solo_model
 from ml.DeepST.deepst.main import *
+from models.AdataModel import AdataModel
+from components.sidebar import *
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬', layout="centered")
 
@@ -102,18 +104,22 @@ class Train:
         elif(isinstance(self.model['model'], DeepSTModel)):
             st.session_state["trained_model"] = self.model['model'].run(callback=self.train_pgb_non_specific)
 
-adata = st.session_state["adata"]
+try:
+    adata_model: AdataModel = st.session_state["adata"]
+    show_sidebar(adata_model)
+except KeyError as ke:
+    print('Key Not Found in Employee Dictionary:', ke)
 
-def add_experiment():
-    print("hi")
+adata_bytes = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+st.session_state["current_adata"] = pickle.loads(adata_bytes)
 
-with st.sidebar:
-    st.selectbox(label="Current Experiment:", options=(["raw", "adata"]))
-    st.button(label="Add experiment", on_click=add_experiment, use_container_width=True)
+show_preview()
 
-train = Train(adata)
+train = Train(adata=st.session_state.current_adata)
 
 train.draw_animation()
 
 train.train()
+
+
 

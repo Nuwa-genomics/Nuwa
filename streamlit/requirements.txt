@@ -17,6 +17,7 @@ leidenalg
 anndata
 scvi-tools
 squidpy
+pydantic
 bokeh==2.3.1
 h5py==3.8.0
 imageio==2.9.0   
@@ -25,3 +26,4 @@ python-louvain==0.15
 scikit-network==0.28.3
 seaborn==0.12.2
 psutil==5.9.4
+

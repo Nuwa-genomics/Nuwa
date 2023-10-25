@@ -9,6 +9,8 @@ import scvi
 from ml.solo_scvi.solo_model import *
 from ml.DeepST.deepst.main import *
 import torch
+from components.sidebar import *
+from models.AdataModel import AdataModel
 
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
@@ -22,9 +24,14 @@ with open('css/common.css') as f:
     st.markdown(common_style, unsafe_allow_html=True)
 
 try:
-    adata = st.session_state["adata"]
+    adata_model = st.session_state["adata"]
+    show_sidebar(adata_model)
 except KeyError as ke:
     print('Key Not Found in Employee Dictionary:', ke)
+
+
+adata_bytes = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+st.session_state["current_adata"] = pickle.loads(adata_bytes)
 
 
 class CreateCiteSeqModel:
@@ -71,7 +78,7 @@ class CreateCiteSeqModel:
             "model": None,
             "lr": 1e-2,
             "n_epochs": 100,
-            "n_features": adata.to_df().shape[1],
+            "n_features": self.adata.to_df().shape[1],
             "optim": 'Adam',
             "test_split": 0.1,
             "train_dl": None,
@@ -281,7 +288,7 @@ class CreateDeepSTModel:
         
 
 
-def create_citeseq():
+def create_citeseq(adata):
     create_model = CreateCiteSeqModel(adata)
 
     create_model.init_device()
@@ -297,7 +304,7 @@ def create_citeseq():
     st.subheader("Model summary")
     st.json(st.session_state.model_obj, expanded=False)
 
-def create_solo():
+def create_solo(adata):
     create_model = CreateSoloModel(adata)
 
     create_model.init_device()
@@ -311,7 +318,7 @@ def create_solo():
     st.subheader("Model summary")
     st.json(st.session_state.model_obj, expanded=False)
 
-def create_deepst():
+def create_deepst(adata):
     create_model = CreateDeepSTModel(adata)
 
     create_model.init_device()
@@ -325,26 +332,18 @@ def create_deepst():
     st.subheader("Model summary")
     st.json(st.session_state.model_obj, expanded=False)
 
-    
 
-    
-
-def change_model():
+def change_model(adata_model):
+    adata = st.session_state["current_adata"]
     if st.session_state.sb_model_selection == 'Citeseq (dimensionality reduction)':
-        create_citeseq()
+        create_citeseq(adata)
     elif st.session_state.sb_model_selection == 'Solo (doublet removal)':
-        create_solo()
+        create_solo(adata)
     elif st.session_state.sb_model_selection == 'DeepST (identify spatial domains)':
-        create_deepst()
+        create_deepst(adata)
 
 st.title("Create Model")
 
-def add_experiment():
-    print("hi")
-
-with st.sidebar:
-    st.selectbox(label="Current Experiment:", options=(["raw", "adata"]))
-    st.button(label="Add experiment", on_click=add_experiment, use_container_width=True)
 
 col1, _, _, _ = st.columns(4)
 col1.selectbox(label="model", options=([
@@ -353,4 +352,6 @@ col1.selectbox(label="model", options=([
     "DeepST (identify spatial domains)"
     ]), key='sb_model_selection')
 
-change_model()
+change_model(adata_model)
+
+show_preview()

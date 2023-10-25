@@ -1,3 +1,4 @@
+import pickle
 import streamlit as st
 import scanpy as sc
 import squidpy as sq
@@ -5,6 +6,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import threading
 import numpy as np
+
+from models.AdataModel import AdataModel
+from components.sidebar import *
 
 st.set_page_config(layout="wide")
 
@@ -147,9 +151,19 @@ class Spatial_Transcriptomics:
                 st.error(e)
                 
 
-adata = st.session_state.adata
+try:
+    adata_model: AdataModel = st.session_state["adata"]
+    show_sidebar(adata_model)
+except KeyError as ke:
+    print('Key Not Found in Employee Dictionary:', ke)
 
-spatial_t = Spatial_Transcriptomics(adata)
+
+adata_bytes = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+st.session_state["current_adata"] = pickle.loads(adata_bytes)
+
+spatial_t = Spatial_Transcriptomics(adata=st.session_state.current_adata)
 
 spatial_t.draw_page()
+
+show_preview()
 

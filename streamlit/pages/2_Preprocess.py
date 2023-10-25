@@ -3,6 +3,10 @@ import scanpy as sc
 import pickle
 import pandas as pd
 import warnings
+from tkinter import filedialog
+
+from models.AdataModel import AdataModel
+from components.sidebar import *
 
 warnings.filterwarnings("ignore")
 
@@ -23,7 +27,11 @@ with open('css/common.css') as f:
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
-adata = st.session_state["adata"]
+try:
+    adata_model: AdataModel = st.session_state["adata"]
+    show_sidebar(adata_model)
+except KeyError as ke:
+    print('Key Not Found in Employee Dictionary:', ke)
 
 
 class Preprocess:
@@ -32,14 +40,9 @@ class Preprocess:
         self.adata_raw = adata
 
         st.title("Preprocess")
+        
 
-    def show_preview(self):
-        with st.sidebar:
-            with st.expander(label="Show Preview"):
-                st.subheader("Anndata preview")
-                with st.container():
-                    st.markdown(f"<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata}</p>", unsafe_allow_html=True)
-                    #st.code(st.session_state.adata)
+    
                     
 
     def filter_highest_expr_genes(self):
@@ -82,6 +85,13 @@ class Preprocess:
                 btn = st.download_button (label="Download image", data=img, file_name=fn, mime="application/pdf")
 
 
+    def save_adata_to_session(self, name):
+        for i, adata in enumerate(st.session_state.adata):
+            if adata.name == name:
+                st.session_state.adata[i] = AdataModel(id=i, name=name, adata=pickle.dumps(self.adata))
+                return
+        st.session_state.adata.append(AdataModel(id=len(st.session_state.adata), name=name, adata=pickle.dumps(self.adata)))
+
     def filter_cells(self):
         st.subheader("Filter Cells")
         subcol1, subcol2 = st.columns(2)
@@ -99,7 +109,7 @@ class Preprocess:
                 sc.pp.filter_cells(self.adata_filter_cells, max_genes=st.session_state.filter_cell_max_genes)
 
             self.adata = self.adata_filter_cells
-            st.session_state.adata = self.adata_filter_cells
+            self.save_adata_to_session(name="adata_pp")
             st.toast("Filtered cells")
 
         with subcol1:
@@ -128,7 +138,7 @@ class Preprocess:
                 sc.pp.filter_genes(self.adata_filter_genes, max_cells=st.session_state.filter_gene_max_cells)
 
             self.adata = self.adata_filter_genes
-            st.session_state.adata = self.adata_filter_genes
+            self.save_adata_to_session(name="adata_pp")
             st.toast("Filtered genes")
 
         subcol1, subcol2 = st.columns(2)
@@ -157,6 +167,7 @@ class Preprocess:
                 st.error("Recipe not found")
             
             self.adata = adata_copy
+            self.save_adata_to_session(name="adata_pp")
             st.toast(f"Applied recipe: {st.session_state.sb_pp_recipe}", icon='✅')
 
 
@@ -184,12 +195,12 @@ class Preprocess:
 
         def filter_mt_count():
             self.adata = self.adata[self.adata.obs.pct_counts_mt < st.session_state.ni_pct_counts_mt, :]
-            st.session_state["adata"] = self.adata
+            self.save_adata_to_session(name="adata_pp")
 
         st.number_input(label="max pct_counts_mt", key="ni_pct_counts_mt", min_value=0)
         st.button(label="Apply filter", key="btn_annotate_mt_filter", on_click=filter_mt_count)
 
-        st.session_state["adata"] = self.adata
+        self.save_adata_to_session(name="adata_pp")
 
     def annotate_ribo(self):
         st.subheader("Annotate Ribosomal Genes", help="Filter ribosomal gene counts. All ribosomal genes \
@@ -214,24 +225,17 @@ class Preprocess:
 
         def filter_ribo_count():
             self.adata = self.adata[self.adata.obs.pct_counts_ribo < st.session_state.ni_pct_counts_ribo, :]
-            st.session_state["adata"] = self.adata
+            self.save_adata_to_session(name="adata_pp")
 
         st.number_input(label="max pct_counts_ribo", key="ni_pct_counts_ribo", min_value=0)
         st.button(label="Apply filter", key="btn_annotate_ribo_filter", on_click=filter_ribo_count)
 
-        st.session_state["adata"] = self.adata
+        self.save_adata_to_session(name="adata_pp")
 
 
-def add_experiment():
-    print("add")
-
-
-with st.sidebar:
-    st.session_state['adata_selection'] = ["adata_raw"]
-    st.selectbox(label="Current Experiment:", options=st.session_state['adata_selection'], key="sb_adata_selection")
-    st.button(label="Add experiment", on_click=add_experiment, use_container_width=True)
-
-preprocess = Preprocess(adata)
+adata_bytes = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+st.session_state["current_adata"] = pickle.loads(adata_bytes)
+preprocess = Preprocess(adata=st.session_state.current_adata)
 
 col1, col2, col3 = st.columns(3, gap="large")
 
@@ -252,4 +256,4 @@ with col3:
     st.divider()
     preprocess.annotate_ribo()
 
-preprocess.show_preview()
+show_preview()

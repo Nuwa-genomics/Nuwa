@@ -1,9 +1,13 @@
+import pickle
 import scanpy as sc
 import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
+
+from models.AdataModel import AdataModel
+from components.sidebar import *
 
 st.set_page_config(layout="wide")
 
@@ -120,7 +124,7 @@ class Trajectory_Inference:
             for ipath, (descr, path) in enumerate(paths):
                 
                 _, data = sc.pl.paga_path(
-                    adata, path, gene_names,                         
+                    self.adata, path, gene_names,                         
                     show_node_names=False,
                     ax=axs[ipath],
                     ytick_fontsize=12,
@@ -140,9 +144,18 @@ class Trajectory_Inference:
                 
 
 
-adata = st.session_state.adata
+try:
+    adata_model: AdataModel = st.session_state["adata"]
+    show_sidebar(adata_model)
+except KeyError as ke:
+    print('Key Not Found in Employee Dictionary:', ke)
 
-tji = Trajectory_Inference(adata)
+adata_bytes = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+st.session_state["current_adata"] = pickle.loads(adata_bytes)
+
+tji = Trajectory_Inference(adata=st.session_state.current_adata)
 
 tji.draw_page()
+
+show_preview()
 
