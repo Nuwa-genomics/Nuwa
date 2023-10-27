@@ -9,3 +9,4 @@ streamlit/uploads
 streamlit/volume
 streamlit/ml/DeepST/data
 streamlit/ml/DeepST/Results
+__pycache__
