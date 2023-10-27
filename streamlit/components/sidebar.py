@@ -14,9 +14,10 @@ def show_preview():
 
 def get_adata(adataList, name) -> AdataModel:
     for adata in adataList:
-        if adata.name == name:
+        if adata.adata_name == name:
             return adata
     return 0
+
 
 def show_sidebar(adataList):
     with st.sidebar:
@@ -30,9 +31,9 @@ def show_sidebar(adataList):
             if not selected_adata:
                 st.toast("Couldn't find selected adata to save")
             else:
-                sc.write(filename=f"downloads/{selected_adata.name}.h5ad", adata=pickle.loads(selected_adata.adata))
+                sc.write(filename=f"downloads/{selected_adata.adata_name}.h5ad", adata=pickle.loads(selected_adata.adata))
                 st.toast("Downloaded file", icon='✅')
-        options=[item.name for item in adataList]
-        st.selectbox(label="Current Experiment:", options=options, key="sb_adata_selection", on_change=set_adata)
+        options=[item.adata_name for item in adataList]
+        st.selectbox(label="Current Experiment:", options=reversed(options), key="sb_adata_selection", on_change=set_adata)
         st.button(label="Download adata file", on_click=save_file, use_container_width=True, key="btn_save_adata")
         st.button(label="Add experiment", on_click=add_experiment, use_container_width=True, key="btn_add_adata")

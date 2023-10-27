@@ -1,30 +1,41 @@
-.st-emotion-cache-19rxjzo {
-    text-align: center;
-    border: 1px solid transparent;
-    padding: 1rem;
-    padding-top: 2rem;
-    width: 100%;
-    border-radius: 16px;
-    box-shadow: 3px 5px 8px #000;
-    height: 9rem;
-    margin-bottom: 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: #202528;
-    gap: 1rem;
+.st-emotion-cache-19rxjzo, .st-emotion-cache-1ts31n5 {
+    width: 240px;
+    font-size: 48px;
+    font-weight: 800;
+    color: #fff;
+    cursor: pointer;
+    margin: 20px;
+    height: 200px;
+    text-align:center;
+    border: none;
+    background-size: 200% 150%;
+
+    background-image: url(https://github.githubassets.com/images/modules/dashboard/universe23/bg.png);
+    box-shadow: 0 4px 15px 0 #000;
+
+    border-radius: 10px;
+    moz-transition: all .8s ease-in-out;
+    -o-transition: all .8s ease-in-out;
+    -webkit-transition: all .8s ease-in-out;
+    transition: all .8s ease-in-out;
 }
 
-.fa-solid {
-    text-align: center;
-    font-size: 6rem;
-    margin: 0;
-    color: white;
-}
 
-.st-emotion-cache-19rxjzo:hover {
-    transition: .1s all ease-in-out;
+.st-emotion-cache-19rxjzo:hover, .st-emotion-cache-1ts31n5:hover {
+    
+    background-position: 10% 0;
+    moz-transition: all .8s ease-in-out;
+    -o-transition: all .8s ease-in-out;
+    -webkit-transition: all .8s ease-in-out;
+    transition: all .8s ease-in-out;
+
     box-shadow: 3px 5px 20px #000;
+    border: rgba(255,255,255,0.7) 1px solid;
+    color: #fff;
+}
+
+.st-emotion-cache-19rxjzo:focus, .st-emotion-cache-1ts31n5:focus {
+    outline: none;
 }
 
 .block-container {
@@ -37,29 +48,6 @@ h1 {
     margin-bottom: 2rem;
 }
 
-/**********Workspace grid*************/
 
-.workspace {
-    display: grid;
-    
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1rem;
-}
-
-/**********responsive layout tablet***********/
-
-@media (max-width: 1200px) {
-    .workspace {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-/*********responsive layout mobile***********/
-
-@media (max-width: 400px) {
-    .workspace {
-        grid-template-columns: 1fr;
-    }
-}
 
 

@@ -23,10 +23,14 @@ st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
 common_style = """
     <style>
+    footer {visibility: hidden;}
     .st-emotion-cache-1cypcdb {background: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%); box-shadow: 1px 0 10px -2px #000;}
     </style>
 """
 st.markdown(common_style, unsafe_allow_html=True)
+
+with open('css/cluster.css') as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 
 class Analysis:
@@ -62,6 +66,9 @@ class Analysis:
 
                     if isinstance(trained_model, CiteAutoencoder):
 
+                        sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
+                        sc.tl.leiden(self.adata)
+
                         encodings = get_encodings(trained_model, test_dl, device)
                         encodings = encodings.cpu().numpy()
                         metadata_df = self.adata.obs
@@ -72,6 +79,7 @@ class Analysis:
                         plot_df["UMAP1"] = embedding[:, 0]
                         plot_df["UMAP2"] = embedding[:, 1]
 
+                        
                         colors_var = self.adata.obs.columns
 
                         def update_autoencoder_colors():
@@ -163,10 +171,10 @@ except KeyError as ke:
     print('Key Not Found in Employee Dictionary:', ke)
 
 
-adata_bytes = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-st.session_state["current_adata"] = pickle.loads(adata_bytes)
+adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+st.session_state["current_adata"] = adata
 
-analysis = Analysis(adata=st.session_state.current_adata)
+analysis = Analysis(adata)
 
 analysis.autoencoder_cluster_plot()
 analysis.pca_graph()

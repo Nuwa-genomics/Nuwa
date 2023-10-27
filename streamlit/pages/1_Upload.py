@@ -33,7 +33,13 @@ def show_anndata(adata):
 
     #store adata in session storage
     try:
-        adata_model = AdataModel(id=0, name="adata_raw", adata=pickle.dumps(adata))
+        adata_model = AdataModel(
+            work_id=st.session_state.current_workspace.id, 
+            id=0, 
+            adata_name="adata_raw", 
+            filename="adata_raw.h5ad",
+            adata=adata
+        )
         st.session_state["adata"] = [adata_model]
     except ValidationError as e:
         st.error(e)

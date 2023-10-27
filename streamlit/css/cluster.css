@@ -1,0 +1,35 @@
+st-emotion-cache-oooxyj
+
+footer {visibility: hidden;}
+.st-emotion-cache-1cypcdb {background: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%); box-shadow: 1px 0 10px -2px #000;}
+.st-emotion-cache-86cver {color: rgba(250, 250, 250, 0.6)}
+            .st-emotion-cache-oooxyj {
+                border-radius: 0.5rem;
+                background: #004dcf;
+                color: #fff;
+                border: 1px solid #004dcf;
+                padding: 0.25rem 0.75rem;
+            }
+
+            .st-emotion-cache-oooxyj:hover {
+                background: transparent;
+                color: #004dcf;
+                transition: all 0.1s ease-in-out;
+                border: 1px solid #004dcf;
+            }
+
+            .st-emotion-cache-oooxyj:focus {
+                border: 1px solid #004dcf;
+                color: #004dcf;
+            }
+
+            .st-emotion-cache-oooxyj:active {
+                border: 1px solid #004dcf;
+                color: #004dcf;
+            }
+
+            .st-emotion-cache-oooxyj:visited {
+                border: 1px solid #004dcf;
+                color: #004dcf;
+            }
+

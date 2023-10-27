@@ -1,9 +1,18 @@
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, ValidationError
-from datetime import datetime
+from anndata import AnnData
+from datetime import date
+import pydantic
+from pydantic import BaseModel as PydanticBaseModel
+
+class BaseModel(PydanticBaseModel):
+    class Config:
+        arbitrary_types_allowed = True
 
 class AdataModel(BaseModel):
+    work_id: int
     id: int
-    name: str
-    adata: bytes
-    created: Optional[datetime]
+    adata_name: str
+    filename: str
+    adata: Optional[AnnData]
+    notes: Optional[str]
+    created: Optional[date]

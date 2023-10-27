@@ -3,10 +3,17 @@ import scanpy as sc
 import pickle
 import pandas as pd
 import warnings
-from tkinter import filedialog
 
 from models.AdataModel import AdataModel
 from components.sidebar import *
+from SQL.Adata import *
+from datetime import datetime
+
+from database.database import SessionLocal
+from sqlalchemy.orm import Session
+
+from database.schemas import schemas
+
 
 warnings.filterwarnings("ignore")
 
@@ -38,12 +45,9 @@ class Preprocess:
     def __init__(self, adata):
         self.adata = adata
         self.adata_raw = adata
-
+        self.conn: Session = SessionLocal()
         st.title("Preprocess")
-        
-
-    
-                    
+         
 
     def filter_highest_expr_genes(self):
         st.subheader("Show highest expressed genes")
@@ -54,8 +58,8 @@ class Preprocess:
                 sc.pl.highest_expr_genes(self.adata, n_top=st.session_state.n_top_genes, save=True)
                 ax = sc.pl.highest_expr_genes(self.adata, n_top=st.session_state.n_top_genes)
                 st.pyplot(ax)
-
-            btn = st.download_button (label="Download image", data=img, file_name=fn, mime="application/pdf", use_container_width=True)
+            subcol1, subcol2 = st.columns(2)
+            btn = subcol1.download_button (label="Download image", data=img, file_name=fn, mime="application/pdf", use_container_width=True)
 
 
     def filter_highly_variable_genes(self):
@@ -80,17 +84,29 @@ class Preprocess:
                     self.adata = self.adata_hvg
                     st.toast(body="Filtered variable genes")
 
-                btn = st.button(label="Apply filter", key="btn_filter_highly_variable", use_container_width=True, on_click=filter_variable_callback)
-            with subcol2:
-                btn = st.download_button (label="Download image", data=img, file_name=fn, mime="application/pdf")
+                #btn = st.button(label="Apply", key="btn_filter_highly_variable", use_container_width=True, on_click=filter_variable_callback)
+                btn = st.download_button (label="Download image", data=img, file_name=fn, mime="application/pdf", use_container_width=True)
 
 
     def save_adata_to_session(self, name):
         for i, adata in enumerate(st.session_state.adata):
-            if adata.name == name:
-                st.session_state.adata[i] = AdataModel(id=i, name=name, adata=pickle.dumps(self.adata))
+            if adata.adata_name == name:
+                st.session_state.adata[i] = AdataModel(work_id=st.session_state.current_workspace.id, id=i, adata_name=name, filename=f"{name}.h5ad", adata=self.adata)
                 return
-        st.session_state.adata.append(AdataModel(id=len(st.session_state.adata), name=name, adata=pickle.dumps(self.adata)))
+        st.session_state.adata.append(AdataModel(work_id=st.session_state.current_workspace.id, id=len(st.session_state.adata), adata_name=name, filename=f"{name}.h5ad", adata=self.adata))
+        
+
+    def save_adata_to_db(self):
+        new_adata = schemas.Adata(
+            work_id=int(st.session_state.current_workspace.id),
+            id=st.session_state.current_workspace.id,
+            adata_name="adata_raw",
+            filename=f"adata_raw.h5ad",
+            notes="notes"
+        )
+        self.conn.add(new_adata)
+        self.conn.commit()
+        self.conn.refresh(new_adata)
 
     def filter_cells(self):
         st.subheader("Filter Cells")
@@ -120,7 +136,8 @@ class Preprocess:
             st.number_input(label="Max count", min_value=1, value=None, key="filter_cell_max_count")
             st.number_input(label="max genes for cell", min_value=1, value=None, key="filter_cell_max_genes")
         
-        btn = st.button(label="Apply filter", key="btn_filter_cells", on_click=filter_cells_callback)
+        subcol1, _, _, _ = st.columns(4)
+        btn = subcol1.button(label="Apply", key="btn_filter_cells", on_click=filter_cells_callback, use_container_width=True)
 
 
     def filter_genes(self):
@@ -149,8 +166,8 @@ class Preprocess:
         with subcol2:
             st.number_input(label="Max count", min_value=1, value=None, key="filter_gene_max_count")
             st.number_input(label="max cells for gene", min_value=1, value=None, key="filter_gene_max_cells")
-        
-        btn = st.button(label="Apply filter", key="btn_filter_genes", on_click=filter_genes_callback)
+        subcol1, _, _, _ = st.columns(4)
+        btn = subcol1.button(label="Apply", key="btn_filter_genes", on_click=filter_genes_callback, use_container_width=True)
 
 
     def recipes(self):
@@ -172,12 +189,13 @@ class Preprocess:
 
 
         st.selectbox(label="Recipe", key="sb_pp_recipe", options=(['Seurat', 'Weinreb17', 'Zheng17']))
-        st.button(label='Apply', key='btn_apply_recipe', on_click=pp_recipe)
+        subcol1, _, _, _ = st.columns(4)
+        subcol1.button(label='Apply', key='btn_apply_recipe', on_click=pp_recipe, use_container_width=True)
 
     
     
     def annotate_mito(self):
-        st.subheader("Mitochondrial Genes", help="Filter mitochrondrial gene counts. All mitochrondrial genes \
+        st.subheader("Annotate Mitochondrial Genes", help="Filter mitochrondrial gene counts. All mitochrondrial genes \
                      are by default annotated and placed in the 'mt' variable.")
         self.adata.var['mt'] = self.adata.var_names.str.startswith(('MT-', 'mt-'))
         sc.pp.calculate_qc_metrics(self.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
@@ -198,7 +216,8 @@ class Preprocess:
             self.save_adata_to_session(name="adata_pp")
 
         st.number_input(label="max pct_counts_mt", key="ni_pct_counts_mt", min_value=0)
-        st.button(label="Apply filter", key="btn_annotate_mt_filter", on_click=filter_mt_count)
+        subcol1, _, _, _ = st.columns(4)
+        subcol1.button(label="Apply", key="btn_annotate_mt_filter", on_click=filter_mt_count, use_container_width=True)
 
         self.save_adata_to_session(name="adata_pp")
 
@@ -228,14 +247,15 @@ class Preprocess:
             self.save_adata_to_session(name="adata_pp")
 
         st.number_input(label="max pct_counts_ribo", key="ni_pct_counts_ribo", min_value=0)
-        st.button(label="Apply filter", key="btn_annotate_ribo_filter", on_click=filter_ribo_count)
+        subcol1, _, _, _ = st.columns(4)
+        subcol1.button(label="Apply", key="btn_annotate_ribo_filter", on_click=filter_ribo_count, use_container_width=True)
 
         self.save_adata_to_session(name="adata_pp")
 
 
-adata_bytes = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-st.session_state["current_adata"] = pickle.loads(adata_bytes)
-preprocess = Preprocess(adata=st.session_state.current_adata)
+adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+st.session_state["current_adata"] = adata
+preprocess = Preprocess(adata)
 
 col1, col2, col3 = st.columns(3, gap="large")
 
@@ -257,3 +277,5 @@ with col3:
     preprocess.annotate_ribo()
 
 show_preview()
+
+preprocess.save_adata_to_db()

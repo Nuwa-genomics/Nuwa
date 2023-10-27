@@ -30,8 +30,8 @@ except KeyError as ke:
     print('Key Not Found in Employee Dictionary:', ke)
 
 
-adata_bytes = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-st.session_state["current_adata"] = pickle.loads(adata_bytes)
+adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+st.session_state["current_adata"] = adata
 
 
 class CreateCiteSeqModel:
@@ -333,7 +333,7 @@ def create_deepst(adata):
     st.json(st.session_state.model_obj, expanded=False)
 
 
-def change_model(adata_model):
+def change_model():
     adata = st.session_state["current_adata"]
     if st.session_state.sb_model_selection == 'Citeseq (dimensionality reduction)':
         create_citeseq(adata)
@@ -352,6 +352,6 @@ col1.selectbox(label="model", options=([
     "DeepST (identify spatial domains)"
     ]), key='sb_model_selection')
 
-change_model(adata_model)
+change_model()
 
 show_preview()

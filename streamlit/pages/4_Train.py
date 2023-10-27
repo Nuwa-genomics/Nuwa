@@ -110,12 +110,12 @@ try:
 except KeyError as ke:
     print('Key Not Found in Employee Dictionary:', ke)
 
-adata_bytes = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-st.session_state["current_adata"] = pickle.loads(adata_bytes)
+adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+st.session_state["current_adata"] = adata
 
 show_preview()
 
-train = Train(adata=st.session_state.current_adata)
+train = Train(adata)
 
 train.draw_animation()
 

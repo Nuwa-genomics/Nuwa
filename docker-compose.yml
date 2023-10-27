@@ -9,6 +9,12 @@ services:
       - "80:8501"
     volumes:
       - ./streamlit/.streamlit:/root/.streamlit
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
     deploy:
       resources:
         reservations:

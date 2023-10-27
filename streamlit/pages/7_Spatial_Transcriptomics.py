@@ -158,10 +158,10 @@ except KeyError as ke:
     print('Key Not Found in Employee Dictionary:', ke)
 
 
-adata_bytes = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-st.session_state["current_adata"] = pickle.loads(adata_bytes)
+adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+st.session_state["current_adata"] = adata
 
-spatial_t = Spatial_Transcriptomics(adata=st.session_state.current_adata)
+spatial_t = Spatial_Transcriptomics(adata)
 
 spatial_t.draw_page()
 
