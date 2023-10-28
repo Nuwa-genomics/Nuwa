@@ -5,10 +5,14 @@ services:
     build:
       context: ./streamlit
       dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    restart: on-failure
     ports:
       - "80:8501"
     volumes:
       - ./streamlit/.streamlit:/root/.streamlit
+      - ./streamlit-volume:/streamlit-volume
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=pass
@@ -27,6 +31,7 @@ services:
     build: 
       context: ./postgresql
       dockerfile: Dockerfile
+    restart: on-failure
     ports:
       - "5432:5432"
     environment:

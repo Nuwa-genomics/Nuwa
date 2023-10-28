@@ -6,6 +6,7 @@ from SQL.Workspace import *
 from database.database import *
 from database.schemas import schemas
 from sqlalchemy.orm import Session
+from hashlib import sha256
 
 #create databases if not already present
 Base.metadata.create_all(engine)
@@ -36,10 +37,15 @@ class Dashboard:
 
     def write_workspace_to_db(self):
         try:
+            #create workspace dir
+            dir = sha256(st.session_state.ti_new_workspace_name.encode('utf-8')).hexdigest()[:16]
+            path = f"/streamlit-volume/{dir}"
+            os.mkdir(path)
+            os.environ['WORKDIR'] = path # set dir
             new_workspace = schemas.Workspaces(
                 workspace_name = st.session_state.ti_new_workspace_name,
                 description = st.session_state.ti_new_workspace_desc,
-                data_dir = "dir"
+                data_dir = dir
             )
             self.conn.add(new_workspace)
             self.conn.commit()

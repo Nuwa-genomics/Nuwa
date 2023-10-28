@@ -14,7 +14,7 @@ git clone https://github.com/ch1ru/Nuwa.git && cd Nuwa
 
 The easiest way to get started is using docker compose:
 ```bash
-docker-compose up --build
+docker-compose up -d --build
 ```
 You can also use [docker desktop](https://www.docker.com/products/docker-desktop/)
 
