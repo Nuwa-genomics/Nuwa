@@ -3,18 +3,22 @@ import scanpy as sc
 
 class solo_model():
     
-    def __init__(self, adata):
+    def __init__(self, adata, epochs=400, lr=1e-3, train_size=0.9, use_gpu=True):
         self.adata = adata
+        self.epochs = epochs
+        self.lr = lr
+        self.train_size = train_size
+        self.use_gpu=use_gpu
         self.adata.var_names_make_unique()
 
     def train_vae(self):
         scvi.model.SCVI.setup_anndata(self.adata)
         self.vae = scvi.model.SCVI(self.adata)
-        self.vae.train(max_epochs=400, use_gpu=True)
+        self.vae.train(max_epochs=self.epochs, use_gpu=self.use_gpu, train_size=self.train_size)
 
     def train_solo(self):
         self.solo = scvi.external.SOLO.from_scvi_model(self.vae)
-        self.solo.train(max_epochs=400, use_gpu=True)
+        self.solo.train(max_epochs=self.epochs, lr=self.lr, use_gpu=self.use_gpu, train_size=self.train_size)
 
     def predict_solo(self):
         df = self.solo.predict()

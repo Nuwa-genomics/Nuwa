@@ -34,13 +34,6 @@ with open('css/common.css') as f:
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
-try:
-    adata_model: AdataModel = st.session_state["adata"]
-    show_sidebar(adata_model)
-except KeyError as ke:
-    print('Key Not Found in Employee Dictionary:', ke)
-
-
 class Preprocess:
     def __init__(self, adata):
         self.adata = adata
@@ -86,7 +79,7 @@ class Preprocess:
     def normalize_counts(self):
         with st.form(key="form_normalize"):
             st.subheader("Normalization")
-            target_sum = st.number_input(label="Target sum")
+            target_sum = st.number_input(label="Target sum", value=1)
             exclude_high_expr = st.checkbox(label="Exclude highly expressed", value=False)
 
             subcol1, _, _ = st.columns(3)
@@ -140,7 +133,7 @@ class Preprocess:
             if submit_btn:
                 sc.pp.filter_cells(self.adata, max_genes=max_genes, min_genes=min_genes, max_counts=max_count, min_counts=min_count)
                 self.save_adata(name="adata_pp")
-                st.toast("Filtered cells")
+                st.toast("Filtered cells", icon='✅')
 
 
     def filter_genes(self):
@@ -159,7 +152,7 @@ class Preprocess:
             if submit_btn:
                 sc.pp.filter_genes(self.adata, max_cells=max_cells, min_cells=min_cells, max_counts=max_count, min_counts=min_count)
                 self.save_adata(name="adata_pp")
-                st.toast("Filtered genes")
+                st.toast("Filtered genes", icon='✅')
 
 
     def recipes(self):
@@ -243,27 +236,39 @@ class Preprocess:
                 self.adata = self.adata[self.adata.obs.pct_counts_ribo < max_pct_counts_ribo, :]
 
             
-        
+
+try:
+    adata_model: AdataModel = st.session_state["adata"]
+    show_sidebar(adata_model)
+
+    adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+    st.session_state["current_adata"] = adata
+    preprocess = Preprocess(adata)
+
+    col1, col2, col3 = st.columns(3, gap="medium")
+
+    with col1:
+        preprocess.filter_highest_expr_genes()
+        preprocess.filter_highly_variable_genes()
+        preprocess.normalize_counts()
+
+    with col2:
+        preprocess.recipes()
+        preprocess.filter_cells()
+        preprocess.filter_genes()
+            
+    with col3:
+        preprocess.annotate_mito()
+        preprocess.annotate_ribo()
+
+    show_preview()
+
+except KeyError as ke:
+    print("KeyError: ", ke)
+    st.error("Couldn't find adata object in session, have you uploaded one?")
+except Exception as e:
+    print('Error: ', e)
+    st.error(e)
 
 
-adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-st.session_state["current_adata"] = adata
-preprocess = Preprocess(adata)
 
-col1, col2, col3 = st.columns(3, gap="medium")
-
-with col1:
-    preprocess.filter_highest_expr_genes()
-    preprocess.filter_highly_variable_genes()
-    preprocess.normalize_counts()
-
-with col2:
-    preprocess.recipes()
-    preprocess.filter_cells()
-    preprocess.filter_genes()
-        
-with col3:
-    preprocess.annotate_mito()
-    preprocess.annotate_ribo()
-
-show_preview()

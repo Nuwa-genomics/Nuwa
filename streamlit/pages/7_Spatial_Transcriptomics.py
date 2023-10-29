@@ -154,16 +154,15 @@ class Spatial_Transcriptomics:
 try:
     adata_model: AdataModel = st.session_state["adata"]
     show_sidebar(adata_model)
+
+    adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+    st.session_state["current_adata"] = adata
+
+    spatial_t = Spatial_Transcriptomics(adata)
+    spatial_t.draw_page()
+    show_preview()
+
 except KeyError as ke:
-    print('Key Not Found in Employee Dictionary:', ke)
-
-
-adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-st.session_state["current_adata"] = adata
-
-spatial_t = Spatial_Transcriptomics(adata)
-
-spatial_t.draw_page()
-
-show_preview()
+    print("KeyError: ", ke)
+    st.error("Couldn't find adata object in session, have you uploaded one?")
 

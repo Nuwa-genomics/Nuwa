@@ -4,6 +4,7 @@ import scanpy as sc
 import pickle
 import os
 from models.AdataModel import AdataModel
+from models.WorkspaceModel import WorkspaceModel
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬')
 
@@ -75,20 +76,30 @@ def show_h5ad_file_info(f):
 def show_csv_file_info():
     st.text("This is a csv file")
 
-if uploaded_f is not None:
-    #create uploads dir
-    if not os.path.exists('./uploads'):
-        os.mkdir('./uploads')
 
-    for f in uploaded_f:
-        bytes_data = f.read()
-        path = './uploads/' + f.name
-        with open(path, 'wb') as file:
-            file.write(bytes_data)
+try:
 
-        file_type = f.name.split(".")[-1]
+    workspace_model: WorkspaceModel = st.session_state["current_workspace"]
 
-        if file_type == "mtx":
-            show_mtx_file_info('./uploads')
-        if file_type == "h5ad":
-            show_h5ad_file_info(f)
+    if uploaded_f is not None:
+        #create uploads dir
+        upload_path = f'{workspace_model.data_dir}/uploads/'
+        if not os.path.exists(upload_path):
+            os.mkdir(upload_path)
+
+        for f in uploaded_f:
+            bytes_data = f.read()
+            path = upload_path + f.name
+            with open(path, 'wb') as file:
+                file.write(bytes_data)
+
+            file_type = f.name.split(".")[-1]
+
+            if file_type == "mtx":
+                show_mtx_file_info(upload_path)
+            if file_type == "h5ad":
+                show_h5ad_file_info(f)
+
+except KeyError as ke:
+    print("KeyError: ", ke)
+    st.error("Couldn't find workspace in session, have you selected one?")

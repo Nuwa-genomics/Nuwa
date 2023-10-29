@@ -88,9 +88,9 @@ class Dashboard:
                                             st.write(f"{workspace.description}")
                                             st.write(f"{workspace.created.ctime()}")
                                             st.divider()
-                                            
-                                
-                            
+        else:
+            st.markdown("""<p style='font-size: 20px;'>You don't have any workspaces yet 🧪</p>""", unsafe_allow_html=True)
+
 
         with st.sidebar:
             st.button(label="New workspace", on_click=self.new_workspace, key="btn_new_workspace", use_container_width=True)

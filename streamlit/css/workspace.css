@@ -1,4 +1,4 @@
-.st-emotion-cache-19rxjzo, .st-emotion-cache-1ts31n5 {
+.st-emotion-cache-1qcb9zv, .st-emotion-cache-1ts31n5 {
     width: 240px;
     font-size: 48px;
     font-weight: 800;
@@ -21,7 +21,7 @@
 }
 
 
-.st-emotion-cache-19rxjzo:hover, .st-emotion-cache-1ts31n5:hover {
+.st-emotion-cache-1qcb9zv:hover, .st-emotion-cache-1ts31n5:hover {
     
     background-position: 10% 0;
     moz-transition: all .8s ease-in-out;
@@ -34,8 +34,8 @@
     color: #fff;
 }
 
-.st-emotion-cache-19rxjzo:focus, .st-emotion-cache-1ts31n5:focus {
-    outline: none;
+.st-emotion-cache-1qcb9zv:focus, .st-emotion-cache-1ts31n5:focus {
+    border: rgba(255,255,255,0.8) 2px solid;
 }
 
 .block-container {

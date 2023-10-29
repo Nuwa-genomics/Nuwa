@@ -8,7 +8,7 @@ toolbarMode = "viewer"
 showPyplotGlobalUse = false
 
 [theme]
-primaryColor="#F63366"
+primaryColor="#1976d2"
 backgroundColor="#181a1e"
 secondaryBackgroundColor="linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%)"
 textColor="#fff"

@@ -26,12 +26,13 @@ with open('css/common.css') as f:
 try:
     adata_model = st.session_state["adata"]
     show_sidebar(adata_model)
+
+    adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+    st.session_state["current_adata"] = adata
 except KeyError as ke:
-    print('Key Not Found in Dictionary', ke)
+    print("KeyError: ", ke)
+    st.error("Couldn't find adata object in session, have you uploaded one?")
 
-
-adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-st.session_state["current_adata"] = adata
 
 
 class CreateCiteSeqModel:
@@ -171,10 +172,10 @@ class CreateSoloModel:
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("Model parameters")
-            st.number_input(label="Epochs", min_value=1, value=400, key="ni_vae_epochs")
-            st.number_input(label="Learning rate", min_value=1e-4, max_value=10.0, value=1e-3, format='%.4f', key="ni_solo_lr")
-            st.subheader("Train/test split")
-            st.slider(label=f"Train data %", min_value=1, max_value=99, value=90, key="input_train_test_split_solo_vae")
+            st.number_input(label="Epochs", min_value=1, value=400, key="ni_vae_epochs", on_change=self.change_hyperparams)
+            st.number_input(label="Learning rate", min_value=1e-4, max_value=10.0, value=1e-3, format='%.4f', key="ni_solo_lr", on_change=self.change_hyperparams)
+            st.subheader("Train size")
+            st.slider(label=f"Train data %", min_value=1, max_value=99, value=90, key="input_train_size_solo_vae", on_change=self.change_hyperparams)
 
     def init_device(self):
         #init devices if not already exists
@@ -191,28 +192,32 @@ class CreateSoloModel:
         st.session_state.device = self.device
 
     def set_device(self):
-        
         self.device = "cpu" if st.session_state["sb_select_device_solo"] == "CPU" else "cuda"
         st.session_state["device"] = self.device
 
-    def init_model(self):
+    def init_model(self, epochs, lr, train_size):
         #initialize model object
         self.model_dict = {
             "model": None,
-            "n_epochs": 400,
-            "test_split": 0.1,
-            "lr": 1e-3,
+            "n_epochs": epochs,
+            "train_size": train_size,
+            "lr": lr,
+            "device": self.device
         }
 
         st.session_state['model_obj'] = self.model_dict
 
-    def build_model(self, adata):
-        model = solo_model(adata)
+    def build_model(self, epochs, lr, train_size):
+        model = solo_model(adata=self.adata, epochs=epochs, lr=lr, train_size=train_size, use_gpu=(self.device == "cuda"))
         st.session_state.model_obj["model"] = model
 
     def change_hyperparams(self):
-        st.session_state.model_obj["lr"] = 1e-3
-        st.session_state.model_obj["n_epochs"] = 400
+        epochs = st.session_state.ni_vae_epochs
+        lr = st.session_state.ni_solo_lr
+        train_size = (100 - st.session_state.input_train_size_solo_vae) / 100
+        self.init_model(lr=lr, epochs=epochs, train_size=train_size)
+        self.build_model(epochs=epochs, lr=lr, train_size=train_size)
+
 
 class CreateDeepSTModel:
     def __init__(self, adata):
@@ -311,9 +316,11 @@ def create_solo(adata):
 
     create_model.draw_page()
 
-    create_model.init_model()
+    create_model.init_model(lr=st.session_state.ni_solo_lr, epochs=st.session_state.ni_vae_epochs, 
+                            train_size=(100 - st.session_state.input_train_size_solo_vae) / 100)
 
-    create_model.build_model(adata)
+    create_model.build_model(lr=st.session_state.ni_solo_lr, epochs=st.session_state.ni_vae_epochs, 
+                             train_size=(100 - st.session_state.input_train_size_solo_vae) / 100)
 
     st.subheader("Model summary")
     st.json(st.session_state.model_obj, expanded=False)
@@ -342,16 +349,22 @@ def change_model():
     elif st.session_state.sb_model_selection == 'DeepST (identify spatial domains)':
         create_deepst(adata)
 
-st.title("Create Model")
 
 
-col1, _, _, _ = st.columns(4)
-col1.selectbox(label="model", options=([
-    "Citeseq (dimensionality reduction)", 
-    "Solo (doublet removal)",
-    "DeepST (identify spatial domains)"
-    ]), key='sb_model_selection')
+try:
+    st.title("Create Model")
 
-change_model()
 
-show_preview()
+    col1, _, _, _ = st.columns(4)
+    col1.selectbox(label="model", options=([
+        "Citeseq (dimensionality reduction)", 
+        "Solo (doublet removal)",
+        "DeepST (identify spatial domains)"
+        ]), key='sb_model_selection')
+
+    change_model()
+
+    show_preview()
+
+except Exception as e:
+    st.error(e)
