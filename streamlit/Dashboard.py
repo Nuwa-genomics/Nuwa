@@ -45,7 +45,7 @@ class Dashboard:
             new_workspace = schemas.Workspaces(
                 workspace_name = st.session_state.ti_new_workspace_name,
                 description = st.session_state.ti_new_workspace_desc,
-                data_dir = dir
+                data_dir = path
             )
             self.conn.add(new_workspace)
             self.conn.commit()

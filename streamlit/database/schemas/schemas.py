@@ -16,9 +16,9 @@ class Workspaces(Base):
 class Adata(Base):
     __tablename__ = "adata"
 
-    work_id = Column(Integer, ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False, primary_key=True)
+    work_id = Column(Integer, ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False)
     id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
-    adata_name = Column(String, nullable=False, unique=True)
+    adata_name = Column(String, nullable=False)
     filename = Column(String, nullable=False, unique=True) 
     notes = Column(String, nullable=True)
     created = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
