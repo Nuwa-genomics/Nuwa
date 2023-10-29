@@ -108,10 +108,9 @@ class Analysis:
             st.multiselect(label="Gene", options=self.columns, default=(self.columns[0], self.columns[1]), key="ms_pca_gene", max_selections=24)
             sc.tl.pca(self.adata, svd_solver='arpack')
             ax_pca = sc.pl.pca(self.adata, color=st.session_state.ms_pca_gene or self.columns[0])
-            sc.pl.pca(self.adata, color=st.session_state.ms_pca_gene or self.columns[0], save=True)
             with st.expander(label="Show Figure"):
                 st.pyplot(ax_pca)
-            st.button(label="Save figure", key="btn_pca")
+            st.divider()
 
 
     def variance_ratio_graph(self):
@@ -119,13 +118,11 @@ class Analysis:
             st.markdown("### Variance ratio")
             plt.style.use('default')
             ax_variance_ratio = sc.pl.pca_variance_ratio(self.adata, log=True)
-            self.save_figure_variance_ratio = lambda: sc.pl.pca_variance_ratio(self.adata, log=True, save=True)
-            subcol1, subcol2 = st.columns(2)
+            subcol1, _ = st.columns(2)
             with subcol1:
                 with st.expander(label="Show Figure"):
                     st.pyplot(ax_variance_ratio)
-            with subcol2:
-                st.button(label="Save figure", key="btn_variance_ratio", on_click=self.save_figure_variance_ratio)
+            st.divider()
 
 
     def neighbourhood_graph(self):
@@ -148,9 +145,6 @@ class Analysis:
                 with st.expander(label="Show Figure"):
                     st.pyplot(ax_umap)
 
-            self.save_neighbourhood_graph = lambda: sc.pl.umap(self.adata, color=st.session_state.ms_umap_select_gene or 'leiden', save=True)
-            st.button(label="Save figure", key="btn_neighbours", on_click=self.save_neighbourhood_graph)
-
 
     def find_marker_genes(self):
         with self.col1:
@@ -161,7 +155,6 @@ class Analysis:
                     sc.tl.rank_genes_groups(self.adata, groupby='leiden', method = str.lower(st.session_state.rb_algo))
                     ax = sc.pl.rank_genes_groups(self.adata, n_genes=25, sharey=False)
                     st.pyplot(ax)
-            st.button(label="Save figure", key="btn_marker_gene")
 
 
 try:

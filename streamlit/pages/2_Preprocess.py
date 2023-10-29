@@ -60,7 +60,6 @@ class Preprocess:
             if submit_btn:
                 with open(fn, "rb") as img:
                     with st.expander(label="Show figure"):
-                        sc.pl.highest_expr_genes(self.adata, n_top=num_genes, save=True)
                         ax = sc.pl.highest_expr_genes(self.adata, n_top=num_genes)
                         st.pyplot(ax)
 
@@ -81,7 +80,6 @@ class Preprocess:
                         sc.pp.log1p(self.adata)
                         #TODO:Add more params as input
                         sc.pp.highly_variable_genes(self.adata, min_mean=min_mean, max_mean=max_mean, min_disp=0.5)
-                        sc.pl.highly_variable_genes(self.adata, save=True)
                         ax = sc.pl.highly_variable_genes(self.adata)
                         st.pyplot(ax)
 

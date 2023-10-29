@@ -12,9 +12,6 @@ SQLALCHEMY_DATABASE_URL = f"postgresql://\
 {os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/\
 {os.getenv('POSTGRES_DB')}"
 
-#development
-#SQLALCHEMY_DATABASE_URL = "postgresql://user:pass@0.0.0.0:5432/postgres"
-
 # Dependency
 def get_db():
     db = SessionLocal()

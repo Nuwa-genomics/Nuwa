@@ -27,7 +27,7 @@ try:
     adata_model = st.session_state["adata"]
     show_sidebar(adata_model)
 except KeyError as ke:
-    print('Key Not Found in Employee Dictionary:', ke)
+    print('Key Not Found in Dictionary', ke)
 
 
 adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
