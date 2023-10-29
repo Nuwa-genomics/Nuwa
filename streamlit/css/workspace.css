@@ -10,7 +10,7 @@
     border: none;
     background-size: 200% 150%;
 
-    background-image: url(https://github.githubassets.com/images/modules/dashboard/universe23/bg.png);
+    background-image: url('/app/streamlit/css/img/bg.png');
     box-shadow: 0 4px 15px 0 #000;
 
     border-radius: 10px;

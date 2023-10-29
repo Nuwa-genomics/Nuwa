@@ -6,7 +6,6 @@ import warnings
 
 from models.AdataModel import AdataModel
 from components.sidebar import *
-from SQL.Adata import *
 from datetime import datetime
 
 from database.database import SessionLocal
@@ -238,10 +237,10 @@ class Preprocess:
             
 
 try:
-    adata_model: AdataModel = st.session_state["adata"]
-    show_sidebar(adata_model)
+    adata_models: [AdataModel] = st.session_state["adata"]
+    show_sidebar(adata_models)
 
-    adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
+    adata = get_adata(adataList=adata_models, name=st.session_state.sb_adata_selection).adata
     st.session_state["current_adata"] = adata
     preprocess = Preprocess(adata)
 

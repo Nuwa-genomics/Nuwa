@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from models.WorkspaceModel import WorkspaceModel
 from datetime import datetime
-from SQL.Workspace import *
 from database.database import *
 from database.schemas import schemas
 from sqlalchemy.orm import Session

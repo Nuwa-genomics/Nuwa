@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
+import time
 
 from ml.citeseq.dataset import TabularDataset
 from ml.citeseq.train import get_encodings
@@ -17,6 +18,7 @@ import umap.umap_ as umap
 
 from components.sidebar import *
 from models.AdataModel import AdataModel
+from database.schemas import schemas
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -43,6 +45,33 @@ class Analysis:
         self.adata = adata
         
         self.columns = adata.to_df().columns
+
+
+    def save_adata(self, name):
+        self.save_adata_to_session(name)
+        self.save_adata_to_db(name)
+
+    def save_adata_to_session(self, name):
+        for i, adata in enumerate(st.session_state.adata):
+            if adata.adata_name == name:
+                st.session_state.adata[i] = AdataModel(work_id=st.session_state.current_workspace.id, id=i, adata_name=name, filename=f"{name}.h5ad", adata=self.adata)
+                return
+        st.session_state.adata.append(AdataModel(work_id=st.session_state.current_workspace.id, id=len(st.session_state.adata), adata_name=name, filename=f"{name}.h5ad", adata=self.adata))
+            
+
+    def save_adata_to_db(self, name):
+        try:
+            new_adata = schemas.Adata(
+                work_id=int(st.session_state.current_workspace.id),
+                adata_name=f"{name}",
+                filename=f"/streamlit-volume/{st.session_state.current_workspace.id}/{name}.h5ad",
+                notes="noteeesss"
+            )
+            self.conn.add(new_adata)
+            self.conn.commit()
+            self.conn.refresh(new_adata)
+        except Exception as e:
+            print(e)
         
 
     def autoencoder_cluster_plot(self):
@@ -90,8 +119,21 @@ class Analysis:
                             st.scatter_chart(plot_df, x="UMAP1", y="UMAP2", color=st.session_state['sb_auto_colors'])
 
                         elif(isinstance(trained_model, solo_model)):
-                            ax = trained_model.get_umap_plt()
-                            st.pyplot(ax)
+
+                            def filter_out_doublets():
+                                self.adata = self.adata[self.adata.obs.prediction == 'singlet']
+                                self.save_adata(name="adata_solo")
+
+
+                            #matplotlib
+                            #ax = trained_model.get_umap_plt()
+                            #st.pyplot(ax)
+                            
+                            df_solo = pd.DataFrame({'umap1': self.adata.obsm['X_umap'][:,0], 'umap2': self.adata.obsm['X_umap'][:,1], 'color': self.adata.obs['prediction']})
+                          
+                            st.scatter_chart(data=df_solo, x='umap1', y='umap2', color='color', size=18)
+                            st.button(label="Filter out doublets", key="btn_filter_doublets", on_click=filter_out_doublets)
+                            st.divider()
 
                         elif(isinstance(trained_model, DeepSTModel)):
                             ax_df = trained_model.get_adata_df()
