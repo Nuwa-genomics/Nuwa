@@ -123,11 +123,7 @@ class Analysis:
                             def filter_out_doublets():
                                 self.adata = self.adata[self.adata.obs.prediction == 'singlet']
                                 self.save_adata(name="adata_solo")
-
-
-                            #matplotlib
-                            #ax = trained_model.get_umap_plt()
-                            #st.pyplot(ax)
+                                st.toast("Removed doublet predictions", icon='✅')
                             
                             df_solo = pd.DataFrame({'umap1': self.adata.obsm['X_umap'][:,0], 'umap2': self.adata.obsm['X_umap'][:,1], 'color': self.adata.obs['prediction']})
                           
