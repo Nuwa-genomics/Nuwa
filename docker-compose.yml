@@ -21,6 +21,8 @@ services:
       - POSTGRES_PORT=5432
     deploy:
       resources:
+        limits:
+          memory: 6G
         reservations:
           devices:
             - driver: nvidia

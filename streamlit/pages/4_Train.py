@@ -59,11 +59,11 @@ class Train:
                     complete_animation = json.load(source)
                     st_lottie(complete_animation, width=700, height=200, loop=False, speed=1.2)
 
-                    subcol1, subcol2 = st.columns(2, gap="medium")
+                    subcol1, subcol2, subcol3, subcol4, subcol5 = st.columns(5, gap="medium")
                     
-                    with subcol1:
-                        st.metric(label="Train loss", value=round(train_loss, 4))
                     with subcol2:
+                        st.metric(label="Train loss", value=round(train_loss, 4))
+                    with subcol4:
                         st.metric(label="Validation loss", value=round(valid_loss, 4))
 
     def train_pgb_non_specific(self, percent, text):

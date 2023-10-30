@@ -73,18 +73,6 @@ def show_anndata(adata):
         st.text("No var to show")
 
 
-def show_mtx_file_info(p):
-    with st.spinner(text="Loading data files"):
-        adata = sc.read_10x_mtx(p, var_names='gene_symbols', cache=True)
-        show_anndata(adata)
-        
-def show_h5ad_file_info(f):
-    with st.spinner(text="Loading data files"):
-        adata = sc.read_h5ad(f)
-        show_anndata(adata)
-
-
-
 try:
 
     workspace_model: WorkspaceModel = st.session_state["current_workspace"]
@@ -107,9 +95,13 @@ try:
             file_type = f.name.split(".")[-1]
 
             if file_type == "mtx":
-                show_mtx_file_info(upload_path)
+                adata = sc.read_10x_mtx(upload_path, var_names='gene_symbols', cache=True)
+                show_anndata(adata)
             if file_type == "h5ad":
-                show_h5ad_file_info(f)
+                adata = sc.read_h5ad(f)
+                show_anndata(adata)
+
+        
 
 except KeyError as ke:
     print("KeyError: ", ke)

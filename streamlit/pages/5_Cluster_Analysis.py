@@ -115,13 +115,13 @@ class Analysis:
                             plot_df["UMAP2"] = embedding[:, 1]
 
                             
-                            colors_var = self.adata.obs.columns
+                            colors_var = reversed(self.adata.obs.columns)
 
                             def update_autoencoder_colors():
                                 st.session_state.update()
                             
                             st.selectbox(label="Colour", options=(colors_var), key="sb_auto_colors", on_change=update_autoencoder_colors)
-                            st.scatter_chart(plot_df, x="UMAP1", y="UMAP2", color=st.session_state['sb_auto_colors'])
+                            st.scatter_chart(plot_df, x="UMAP1", y="UMAP2", color=st.session_state['sb_auto_colors'], size=18)
 
                         elif(isinstance(trained_model, solo_model)):
 
