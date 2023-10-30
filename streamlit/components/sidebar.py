@@ -59,7 +59,7 @@ def show_sidebar(adataList):
             if not selected_adata:
                 st.toast("Couldn't find selected adata to save")
             else:
-                sc.write(filename=f"{st.session_state.current_workspace.data_dir}/downloads/{selected_adata.adata_name}.h5ad", adata=st.session_state.current_adata.adata)
+                sc.write(filename=f"{os.getenv('WORKDIR')}/downloads/{selected_adata.adata_name}.h5ad", adata=st.session_state.current_adata)
                 st.toast("Downloaded file", icon='✅')
         options=[item.adata_name for item in adataList]
         st.selectbox(label="Current Experiment:", options=reversed(options), key="sb_adata_selection", on_change=set_adata)

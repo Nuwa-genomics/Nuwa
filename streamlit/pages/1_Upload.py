@@ -50,6 +50,8 @@ def show_anndata(adata):
         adatas = conn.query(schemas.Adata).all()
         st.session_state["adata"] = adatas
         st.session_state["adata"].append(adata_model)
+        #upload raw adata
+        sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'uploads/', "adata_raw.h5ad"), adata=adata)
     except ValidationError as e:
         st.error(e)
 
@@ -88,10 +90,13 @@ try:
     workspace_model: WorkspaceModel = st.session_state["current_workspace"]
 
     if uploaded_f is not None:
-        #create uploads dir
+        #create uploads and download dir
         upload_path = f'{workspace_model.data_dir}/uploads/'
+        download_path = f'{workspace_model.data_dir}/downloads/'
         if not os.path.exists(upload_path):
             os.mkdir(upload_path)
+        if not os.path.exists(download_path):
+            os.mkdir(download_path)
 
         for f in uploaded_f:
             bytes_data = f.read()
