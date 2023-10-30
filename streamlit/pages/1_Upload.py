@@ -5,6 +5,9 @@ import pickle
 import os
 from models.AdataModel import AdataModel
 from models.WorkspaceModel import WorkspaceModel
+from database.database import SessionLocal
+from sqlalchemy.orm import Session
+from database.schemas import schemas
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬')
 
@@ -41,7 +44,12 @@ def show_anndata(adata):
             filename="adata_raw.h5ad",
             adata=adata
         )
-        st.session_state["adata"] = [adata_model]
+        
+        #fetch from db
+        conn: Session = SessionLocal()
+        adatas = conn.query(schemas.Adata).all()
+        st.session_state["adata"] = adatas
+        st.session_state["adata"].append(adata_model)
     except ValidationError as e:
         st.error(e)
 
@@ -73,8 +81,6 @@ def show_h5ad_file_info(f):
         adata = sc.read_h5ad(f)
         show_anndata(adata)
 
-def show_csv_file_info():
-    st.text("This is a csv file")
 
 
 try:

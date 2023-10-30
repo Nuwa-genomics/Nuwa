@@ -1,8 +1,12 @@
+import os
 import streamlit as st
 import scanpy as sc
-import pickle
+from database.schemas import schemas
 
 from models.AdataModel import AdataModel
+from database.database import SessionLocal
+
+sidebar_conn: SessionLocal = SessionLocal()
 
 def show_preview():
         with st.sidebar:
@@ -19,13 +23,37 @@ def get_adata(adataList, name) -> AdataModel:
     return 0
 
 
+def write_adata_to_db():
+    name = st.session_state.ti_new_adata_name
+    new_adata = schemas.Adata(
+        work_id = st.session_state.current_workspace.id,
+        adata_name = name,
+        filename = os.path.join(os.getenv('WORKDIR'), name),
+        notes = st.session_state.ti_new_adata_notes
+    )
+    sidebar_conn.add(new_adata)
+    sidebar_conn.commit()
+    sidebar_conn.refresh(new_adata)
+    st.toast("Created new adata", icon="✅")
+
+
+def add_experiment():
+    with st.sidebar:
+        try:
+            with st.form(key="new_workspace_form"):
+                st.subheader("Create New Adata")
+                st.text_input(label="Name", key="ti_new_adata_name")
+                st.text_input(label="Notes", key="ti_new_adata_notes")
+                st.form_submit_button(label="Save", on_click=write_adata_to_db)
+        except Exception as e:
+            print("Error: ", e)
+            st.error(e)
+
 def show_sidebar(adataList):
     with st.sidebar:
-        def add_experiment():
-            print("hi")
         def set_adata():
-            adata_bytes = get_adata(adataList, name=st.session_state.sb_adata_selection).adata
-            st.session_state["current_adata"] = pickle.loads(adata_bytes)
+            adata = get_adata(adataList, name=st.session_state.sb_adata_selection).adata
+            st.session_state["current_adata"] = adata
         def save_file():
             selected_adata = get_adata(adataList, name=st.session_state.sb_adata_selection)
             if not selected_adata:

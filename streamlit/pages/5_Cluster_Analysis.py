@@ -19,9 +19,15 @@ import umap.umap_ as umap
 from components.sidebar import *
 from models.AdataModel import AdataModel
 from database.schemas import schemas
+from database.database import SessionLocal
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
+with open('css/cluster.css') as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+with open('css/common.css') as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 common_style = """
     <style>
@@ -30,9 +36,6 @@ common_style = """
     </style>
 """
 st.markdown(common_style, unsafe_allow_html=True)
-
-with open('css/cluster.css') as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 
 class Analysis:
@@ -46,6 +49,8 @@ class Analysis:
         
         self.columns = adata.to_df().columns
 
+        self.conn: SessionLocal = SessionLocal()
+
 
     def save_adata(self, name):
         self.save_adata_to_session(name)
@@ -57,7 +62,7 @@ class Analysis:
                 st.session_state.adata[i] = AdataModel(work_id=st.session_state.current_workspace.id, id=i, adata_name=name, filename=f"{name}.h5ad", adata=self.adata)
                 return
         st.session_state.adata.append(AdataModel(work_id=st.session_state.current_workspace.id, id=len(st.session_state.adata), adata_name=name, filename=f"{name}.h5ad", adata=self.adata))
-            
+        
 
     def save_adata_to_db(self, name):
         try:
@@ -72,7 +77,7 @@ class Analysis:
             self.conn.refresh(new_adata)
         except Exception as e:
             print(e)
-        
+
 
     def autoencoder_cluster_plot(self):
         with self.col1:

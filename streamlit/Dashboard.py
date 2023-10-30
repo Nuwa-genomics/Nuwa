@@ -38,7 +38,7 @@ class Dashboard:
         try:
             #create workspace dir
             dir = sha256(st.session_state.ti_new_workspace_name.encode('utf-8')).hexdigest()[:16]
-            path = f"/streamlit-volume/{dir}"
+            path = f"/streamlit-volume/{dir}/"
             os.mkdir(path)
             os.environ['WORKDIR'] = path # set dir
             new_workspace = schemas.Workspaces(
@@ -82,6 +82,7 @@ class Dashboard:
                                 for workspace in st.session_state.workspaces:
                                     if workspace.id == int(work_id):
                                         st.session_state["current_workspace"] = workspace
+                                        os.environ['WORKDIR'] = workspace.data_dir #set wd
                                         with st.sidebar:
                                             st.subheader(f"{workspace.workspace_name}")
                                             st.write(f"{workspace.description}")
