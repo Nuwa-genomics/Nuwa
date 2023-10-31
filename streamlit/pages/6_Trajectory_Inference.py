@@ -106,16 +106,25 @@ class Trajectory_Inference:
             try:
                 st.subheader("Diffusion Pseudotime")
                 st.selectbox(label='Root cell', options=(self.adata.obs['louvain'].unique()), key='sb_root_cell')
-                with st.expander(label="Show figure", expanded=True):
-                    self.adata.uns['iroot'] = np.flatnonzero(self.adata.obs['louvain']  == st.session_state.sb_root_cell)[0]
+                self.adata.uns['iroot'] = np.flatnonzero(self.adata.obs['louvain']  == st.session_state.sb_root_cell)[0]
                     
-                    adata_raw = self.adata.copy()
-                    sc.tl.dpt(adata_raw)
-                    sc.pp.log1p(adata_raw)
-                    sc.pp.scale(adata_raw)
+                adata_raw = self.adata.copy()
+                sc.tl.dpt(adata_raw)
+                sc.pp.log1p(adata_raw)
+                sc.pp.scale(adata_raw)
 
-                    ax = sc.pl.draw_graph(adata_raw, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')
-                    st.pyplot(ax)
+                with st.expander(label="Show figure", expanded=True):
+                    ax1 = sc.pl.draw_graph(adata_raw, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')
+                    st.pyplot(ax1)
+
+                # with st.expander(label="Show Figure"):
+                #     sc.tl.dpt(adata_raw, n_branchings=1, n_dcs=10)
+                #     adata_raw.obs.dpt_groups = adata_raw.obs.dpt_groups[:60]
+                #     ax2 = sc.pl.dpt_timeseries(adata_raw)
+                #     st.pyplot(ax2)
+                    
+
+
 
             except Exception as e:
                 st.error(e)

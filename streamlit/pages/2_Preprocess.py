@@ -76,17 +76,30 @@ class Preprocess:
                         st.pyplot(ax)
 
     def normalize_counts(self):
-        with st.form(key="form_normalize"):
-            st.subheader("Normalization")
-            target_sum = st.number_input(label="Target sum", value=1)
-            exclude_high_expr = st.checkbox(label="Exclude highly expressed", value=False)
+        st.subheader("Normalization")
+        tab_total, tab_per_cell = st.tabs(['Total', 'Per cell'])
 
-            subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+        with tab_total:
+            with st.form(key="form_normalize_total"):
+                target_sum = st.number_input(label="Target sum", value=1)
+                exclude_high_expr = st.checkbox(label="Exclude highly expressed", value=False)
 
-            if submit_btn:
-                sc.pp.normalize_total(self.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr)
-                st.toast("Normalized data")
+                subcol1, _, _ = st.columns(3)
+                submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+
+                if submit_btn:
+                    sc.pp.normalize_total(self.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr)
+                    st.toast("Normalized data")
+        with tab_per_cell:
+            with st.form(key="form_normalize_per_cell"):
+                counts_per_cell_after = st.number_input(label="Counts per cell after")
+
+                subcol1, _, _ = st.columns(3)
+                submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+
+                if submit_btn:
+                    sc.pp.normalize_per_cell(self.adata, counts_per_cell_after=counts_per_cell_after)
+                    st.toast("Normalized data")
 
     def save_adata(self, name):
         self.save_adata_to_session(name)
