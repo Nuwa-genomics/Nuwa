@@ -108,13 +108,12 @@ class Trajectory_Inference:
                 st.selectbox(label='Root cell', options=(self.adata.obs['louvain'].unique()), key='sb_root_cell')
                 self.adata.uns['iroot'] = np.flatnonzero(self.adata.obs['louvain']  == st.session_state.sb_root_cell)[0]
                     
-                adata_raw = self.adata.copy()
-                sc.tl.dpt(adata_raw)
-                sc.pp.log1p(adata_raw)
-                sc.pp.scale(adata_raw)
+                sc.tl.dpt(self.adata)
+                sc.pp.log1p(self.adata)
+                sc.pp.scale(self.adata)
 
                 with st.expander(label="Show figure", expanded=True):
-                    ax1 = sc.pl.draw_graph(adata_raw, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')
+                    ax1 = sc.pl.draw_graph(self.adata, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')
                     st.pyplot(ax1)
 
                 # with st.expander(label="Show Figure"):
@@ -122,9 +121,6 @@ class Trajectory_Inference:
                 #     adata_raw.obs.dpt_groups = adata_raw.obs.dpt_groups[:60]
                 #     ax2 = sc.pl.dpt_timeseries(adata_raw)
                 #     st.pyplot(ax2)
-                    
-
-
 
             except Exception as e:
                 st.error(e)
@@ -134,26 +130,28 @@ class Trajectory_Inference:
             try:
                 st.subheader("Paths")
 
+
                 paths = [('erythrocytes', [16, 12, 7, 13, 18, 6, 5, 10]),
                         ('neutrophils', [16, 0, 4, 2, 14, 19]),
                         ('monocytes', [16, 0, 4, 11, 1, 9, 24])]
-                
+
+
                 self.adata.obs['distance'] = self.adata.obs['dpt_pseudotime']
                 self.adata.obs['clusters'] = self.adata.obs['louvain']  # just a cosmetic change
                 self.adata.uns['clusters_colors'] = self.adata.uns['louvain_colors']
-
-                _, axs = plt.subplots(ncols=3, figsize=(6, 2.5), gridspec_kw={'wspace': 0.05, 'left': 0.12})
-                plt.subplots_adjust(left=0.05, right=0.98, top=0.82, bottom=0.2)
 
                 gene_names = ['Gata2', 'Gata1', 'Klf1', 'Epor', 'Hba-a2',  # erythroid
                 'Elane', 'Cebpe', 'Gfi1',                    # neutrophil
                 'Irf8', 'Csf1r', 'Ctsg'] 
 
         
+                _, axs = plt.subplots(ncols=3, figsize=(6, 2.5), gridspec_kw={'wspace': 0.05, 'left': 0.12})
+                plt.subplots_adjust(left=0.05, right=0.98, top=0.82, bottom=0.2)
+
+
                 for ipath, (descr, path) in enumerate(paths):
-                    
-                    _, data = sc.pl.paga_path(
-                        self.adata, path, gene_names,                         
+                    ax = sc.pl.paga_path(
+                        adata, path, gene_names,
                         show_node_names=False,
                         ax=axs[ipath],
                         ytick_fontsize=12,
@@ -168,8 +166,10 @@ class Trajectory_Inference:
                         title='{} path'.format(descr),
                         return_data=True,
                         show=False)
-                    
+                    #data.to_csv('./write/paga_path_{}.csv'.format(descr))
+                
                 st.pyplot(axs)
+                plt.savefig('./figures/paga_path_paul15.pdf')
 
             except Exception as e:
                 st.error(e)

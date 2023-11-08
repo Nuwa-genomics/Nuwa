@@ -12,6 +12,7 @@ from database.database import SessionLocal
 from sqlalchemy.orm import Session
 
 from database.schemas import schemas
+from time import sleep
 
 
 warnings.filterwarnings("ignore")
@@ -247,6 +248,20 @@ class Preprocess:
             if submit_btn:
                 self.adata = self.adata[self.adata.obs.pct_counts_ribo < max_pct_counts_ribo, :]
 
+    def run_scrublet(self):
+        with st.form(key="scrublet_form"):
+            st.subheader("Doublet Prediction")
+            st.write("Use Scrublet to remove cells predicted to be doublets.")
+            sim_doublet_ratio = st.number_input(label="Sim doublet ratio", value=2)
+            expected_doublet_rate = st.number_input(label="Expected doublet rate", value=0.05)
+            scrublet_submit = st.form_submit_button(label="Filter")
+
+            if scrublet_submit:
+                with st.spinner("Running scrublet"):
+                    adata_scrublet = sc.external.pp.scrublet(self.adata, sim_doublet_ratio=sim_doublet_ratio, expected_doublet_rate=expected_doublet_rate)
+                    self.adata = adata_scrublet #TODO: only temporary, change to saving separately
+                self.save_adata(name="adata_scrublet")
+
             
 
 try:
@@ -272,6 +287,7 @@ try:
     with col3:
         preprocess.annotate_mito()
         preprocess.annotate_ribo()
+        preprocess.run_scrublet()
 
     show_preview()
 

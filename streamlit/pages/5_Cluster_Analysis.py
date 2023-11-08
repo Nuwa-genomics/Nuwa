@@ -82,7 +82,6 @@ class Analysis:
     def autoencoder_cluster_plot(self):
         with self.col1:
             try:
-                st.subheader("Cluster plot")
                 with st.spinner(text='Preparing data from model'):
 
                     rna_df_original = self.adata.to_df()
@@ -100,7 +99,7 @@ class Analysis:
                         device = st.session_state["device"]
 
                         if isinstance(trained_model, CiteAutoencoder):
-
+                            st.subheader("Autoencoder Clusters")
                             sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
                             sc.tl.leiden(self.adata)
 
@@ -124,7 +123,7 @@ class Analysis:
                             st.scatter_chart(plot_df, x="UMAP1", y="UMAP2", color=st.session_state['sb_auto_colors'], size=18)
 
                         elif(isinstance(trained_model, solo_model)):
-
+                            st.subheader("Doublet prediction")
                             def filter_out_doublets():
                                 self.adata = self.adata[self.adata.obs.prediction == 'singlet']
                                 self.save_adata(name="adata_solo")
@@ -137,6 +136,7 @@ class Analysis:
                             st.divider()
 
                         elif(isinstance(trained_model, DeepSTModel)):
+                            st.subheader("DeepST model")
                             ax_df = trained_model.get_adata_df()
                             st.scatter_chart(ax_df, x='fr1', y='fr2', color='color', height=600)
 
@@ -158,6 +158,22 @@ class Analysis:
                 ax_pca = sc.pl.pca(self.adata, color=st.session_state.ms_pca_gene or self.columns[0])
                 with st.expander(label="Show Figure"):
                     st.pyplot(ax_pca)
+                st.divider()
+            except Exception as e:
+                st.error(e)
+
+
+    def tsne_graph(self):
+        with self.col2:
+            try:
+                st.subheader("tSNE")
+                with st.spinner(text="Running tSNE"):
+                    perplexity = st.slider(label="Perplexity", min_value=1, max_value=100, value=30)
+                    sc.tl.tsne(self.adata, perplexity=perplexity)
+                    colors_var = reversed(self.adata.obs.columns)
+                    tsne_color = st.selectbox(label="Colour", options=(colors_var), key="sb_tsne_colors")
+                    df_tsne = pd.DataFrame({'tsne1': self.adata.obsm['X_tsne'][:,0], 'tsne2': self.adata.obsm['X_tsne'][:,1], 'color': self.adata.obs[f'{tsne_color}']})  
+                    st.scatter_chart(data=df_tsne, x='tsne1', y='tsne2', color='color', size=18)
                 st.divider()
             except Exception as e:
                 st.error(e)
@@ -228,9 +244,10 @@ try:
     analysis = Analysis(adata)
 
     analysis.autoencoder_cluster_plot()
+    analysis.neighbourhood_graph()
+    analysis.tsne_graph()
     analysis.pca_graph()
     analysis.variance_ratio_graph()
-    analysis.neighbourhood_graph()
     analysis.find_marker_genes()
 
     show_preview()
