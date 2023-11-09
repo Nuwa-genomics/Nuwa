@@ -51,7 +51,7 @@ class Preprocess:
             submit_btn = subcol1.form_submit_button(label="Filter", use_container_width=True)
 
             if submit_btn:
-                with open(fn, "rb") as img:
+                with st.spinner(text="Calculating highest expressed genes"):
                     with st.expander(label="Show figure"):
                         ax = sc.pl.highest_expr_genes(self.adata, n_top=num_genes)
                         st.pyplot(ax)
@@ -67,7 +67,7 @@ class Preprocess:
             submit_btn = subcol1.form_submit_button(label="Filter", use_container_width=True)
 
             if submit_btn:
-                with open(fn, "rb") as img:
+                with st.spinner(text="Calculating highly variable genes"):
                     with st.expander(label="Show figure"):
                         sc.pp.normalize_total(self.adata, target_sum=1e4)
                         sc.pp.log1p(self.adata)

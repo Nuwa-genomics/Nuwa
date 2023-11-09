@@ -14,7 +14,11 @@ def show_preview():
                 st.subheader("Anndata preview")
                 with st.container():
                     st.markdown(f"<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.current_adata}</p>", unsafe_allow_html=True)
-                    #st.code(st.session_state.adata)
+
+def show_notes(name):
+    with st.sidebar:
+        curr_adata = sidebar_conn.query(schemas.Adata).filter(schemas.Adata.adata_name == name).all()
+        st.text_area(label="Notes", placeholder="Notes", key="ta_notes")
 
 def get_adata(adataList, name) -> AdataModel:
     for adata in adataList:
@@ -65,3 +69,6 @@ def show_sidebar(adataList):
         st.selectbox(label="Current Experiment:", options=reversed(options), key="sb_adata_selection", on_change=set_adata)
         st.button(label="Download adata file", on_click=save_file, use_container_width=True, key="btn_save_adata")
         st.button(label="Add experiment", on_click=add_experiment, use_container_width=True, key="btn_add_adata")
+        show_notes(name=st.session_state.sb_adata_selection)
+
+        

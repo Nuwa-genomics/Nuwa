@@ -35,8 +35,9 @@ else:
 
 def show_anndata(adata):
 
-    #store adata in session storage
+    
     try:
+        #store adata in session storage
         adata_model = AdataModel(
             work_id=st.session_state.current_workspace.id, 
             id=0, 
@@ -78,16 +79,20 @@ try:
     workspace_model: WorkspaceModel = st.session_state["current_workspace"]
 
     if uploaded_f is not None:
-        #create uploads and download dir
+        #create workspace dirs
         upload_path = f'{workspace_model.data_dir}/uploads/'
         download_path = f'{workspace_model.data_dir}/downloads/'
+        adata_path = f'{workspace_model.data_dir}/adata/'
         if not os.path.exists(upload_path):
             os.mkdir(upload_path)
         if not os.path.exists(download_path):
             os.mkdir(download_path)
+        if not os.path.exists(adata_path):
+            os.mkdir(adata_path)
 
         for f in uploaded_f:
             bytes_data = f.read()
+            #add to uploads dir
             path = upload_path + f.name
             with open(path, 'wb') as file:
                 file.write(bytes_data)
@@ -96,9 +101,11 @@ try:
 
             if file_type == "mtx":
                 adata = sc.read_10x_mtx(upload_path, var_names='gene_symbols', cache=True)
+                sc.write(filename=f"{adata_path}/adata_raw", adata=adata) #write to adata file
                 show_anndata(adata)
             if file_type == "h5ad":
                 adata = sc.read_h5ad(f)
+                sc.write(filename=f"{adata_path}/adata_raw", adata=adata) #write to adata file
                 show_anndata(adata)
 
         
