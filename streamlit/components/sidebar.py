@@ -71,4 +71,4 @@ def show_sidebar(adataList):
         st.button(label="Add experiment", on_click=add_experiment, use_container_width=True, key="btn_add_adata")
         show_notes(name=st.session_state.sb_adata_selection)
 
-        st.markdown("""<img src='https://raw.githubusercontent.com/ch1ru/Nuwa/main/streamlit/img/icon.svg' width='50' height='50' />""", unsafe_allow_html=True)
+        st.markdown("""<img src='https://raw.githubusercontent.com/ch1ru/Nuwa/main/streamlit/img/contour.svg' width='50' height='50' />""", unsafe_allow_html=True)
