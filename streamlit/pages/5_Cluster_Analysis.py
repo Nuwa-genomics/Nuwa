@@ -19,6 +19,7 @@ import umap.umap_ as umap
 from components.sidebar import *
 from models.AdataModel import AdataModel
 from database.schemas import schemas
+from utils.AdataState import AdataState
 from database.database import SessionLocal
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
@@ -235,13 +236,14 @@ class Analysis:
 
 
 try:
-    adata_model: AdataModel = st.session_state["adata"]
-    show_sidebar(adata_model)
+    adata_state = AdataState(workspace_id=st.session_state.current_workspace.id)
 
-    adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-    st.session_state["current_adata"] = adata
+    sidebar = Sidebar(adata_state)
+    sidebar.show()
 
-    analysis = Analysis(adata)
+    st.session_state["current_adata"] = adata_state.current.adata
+
+    analysis = Analysis(adata_state.current.adata)
 
     analysis.autoencoder_cluster_plot()
     analysis.neighbourhood_graph()
@@ -250,7 +252,7 @@ try:
     analysis.variance_ratio_graph()
     analysis.find_marker_genes()
 
-    show_preview()
+    sidebar.show_preview()
 
 except KeyError as ke:
     print("KeyError: ", ke)

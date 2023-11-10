@@ -9,6 +9,7 @@ import numpy as np
 
 from models.AdataModel import AdataModel
 from components.sidebar import *
+from utils.AdataState import AdataState
 
 st.set_page_config(layout="wide")
 
@@ -152,15 +153,15 @@ class Spatial_Transcriptomics:
                 
 
 try:
-    adata_model: AdataModel = st.session_state["adata"]
-    show_sidebar(adata_model)
+    adata_state = AdataState(workspace_id=st.session_state.current_workspace.id)
+    sidebar = Sidebar(adata_state)
+    sidebar.show()
 
-    adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-    st.session_state["current_adata"] = adata
+    st.session_state["current_adata"] = adata_state.current.adata
 
-    spatial_t = Spatial_Transcriptomics(adata)
+    spatial_t = Spatial_Transcriptomics(adata_state.current.adata)
     spatial_t.draw_page()
-    show_preview()
+    sidebar.show_preview()
 
 except KeyError as ke:
     print("KeyError: ", ke)

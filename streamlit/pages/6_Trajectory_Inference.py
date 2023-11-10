@@ -151,7 +151,7 @@ class Trajectory_Inference:
 
                 for ipath, (descr, path) in enumerate(paths):
                     ax = sc.pl.paga_path(
-                        adata, path, gene_names,
+                        self.adata, path, gene_names,
                         show_node_names=False,
                         ax=axs[ipath],
                         ytick_fontsize=12,
@@ -176,15 +176,17 @@ class Trajectory_Inference:
                 
 
 try:
-    adata_model: AdataModel = st.session_state["adata"]
-    show_sidebar(adata_model)
-    adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-    st.session_state["current_adata"] = adata
-    tji = Trajectory_Inference(adata)
+    adata_state = AdataState(workspace_id=st.session_state.current_workspace.id)
+    sidebar = Sidebar(adata_state)
+
+    sidebar.show()
+
+    st.session_state["current_adata"] = adata_state.current.adata
+    tji = Trajectory_Inference(adata_state.current.adata)
 
     tji.draw_page()
 
-    show_preview()
+    sidebar.show_preview()
 
 except KeyError as ke:
     print("KeyError: ", ke)

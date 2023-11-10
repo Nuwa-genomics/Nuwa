@@ -11,7 +11,7 @@ from ml.DeepST.deepst.main import *
 import torch
 from components.sidebar import *
 from models.AdataModel import AdataModel
-
+from utils.AdataState import AdataState
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -22,16 +22,6 @@ with open('css/common.css') as f:
                 </style>
                 """
     st.markdown(common_style, unsafe_allow_html=True)
-
-try:
-    adata_model = st.session_state["adata"]
-    show_sidebar(adata_model)
-
-    adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-    st.session_state["current_adata"] = adata
-except KeyError as ke:
-    print("KeyError: ", ke)
-    st.error("Couldn't find adata object in session, have you uploaded one?")
 
 
 
@@ -350,10 +340,13 @@ def change_model():
         create_deepst(adata)
 
 
-
 try:
-    st.title("Create Model")
+    sidebar = Sidebar()
+    sidebar.show()
 
+    st.session_state["current_adata"] = st.session_state.adata_state.current.adata
+
+    st.title("Create Model")
 
     col1, _, _, _ = st.columns(4)
     col1.selectbox(label="model", options=([
@@ -364,7 +357,10 @@ try:
 
     change_model()
 
-    show_preview()
-
+    sidebar.show_preview()
+except KeyError as ke:
+    print("KeyError: ", ke)
+    st.error("Couldn't find adata object in session, have you uploaded one?")
 except Exception as e:
+    print("Error: ", e)
     st.error(e)

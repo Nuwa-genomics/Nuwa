@@ -10,7 +10,7 @@ class BaseModel(PydanticBaseModel):
 
 class AdataModel(BaseModel):
     work_id: int
-    id: int
+    id: Optional[int] #Uses autoincrement when not included
     adata_name: str
     filename: str
     adata: Optional[AnnData]

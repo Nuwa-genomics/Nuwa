@@ -12,12 +12,9 @@ from database.database import SessionLocal
 from sqlalchemy.orm import Session
 
 from database.schemas import schemas
+from utils.AdataState import AdataState
 from time import sleep
 
-
-warnings.filterwarnings("ignore")
-
-sc.settings.verbosity = 3
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -102,32 +99,6 @@ class Preprocess:
                     sc.pp.normalize_per_cell(self.adata, counts_per_cell_after=counts_per_cell_after)
                     st.toast("Normalized data")
 
-    def save_adata(self, name):
-        self.save_adata_to_session(name)
-        self.save_adata_to_db(name)
-
-    def save_adata_to_session(self, name):
-        for i, adata in enumerate(st.session_state.adata):
-            if adata.adata_name == name:
-                st.session_state.adata[i] = AdataModel(work_id=st.session_state.current_workspace.id, id=i, adata_name=name, filename=f"{name}.h5ad", adata=self.adata)
-                return
-        st.session_state.adata.append(AdataModel(work_id=st.session_state.current_workspace.id, id=len(st.session_state.adata), adata_name=name, filename=f"{name}.h5ad", adata=self.adata))
-        
-
-    def save_adata_to_db(self, name):
-        try:
-            new_adata = schemas.Adata(
-                work_id=int(st.session_state.current_workspace.id),
-                adata_name=f"{name}",
-                filename=f"/streamlit-volume/{st.session_state.current_workspace.id}/{name}.h5ad",
-                notes="noteeesss"
-            )
-            self.conn.add(new_adata)
-            self.conn.commit()
-            self.conn.refresh(new_adata)
-        except Exception as e:
-            print(e)
-
     def filter_cells(self):
         with st.form(key="form_filter_cells"):
             st.subheader("Filter Cells")
@@ -145,7 +116,6 @@ class Preprocess:
 
             if submit_btn:
                 sc.pp.filter_cells(self.adata, max_genes=max_genes, min_genes=min_genes, max_counts=max_count, min_counts=min_count)
-                self.save_adata(name="adata_pp")
                 st.toast("Filtered cells", icon='✅')
 
 
@@ -164,7 +134,6 @@ class Preprocess:
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if submit_btn:
                 sc.pp.filter_genes(self.adata, max_cells=max_cells, min_cells=min_cells, max_counts=max_count, min_counts=min_count)
-                self.save_adata(name="adata_pp")
                 st.toast("Filtered genes", icon='✅')
 
 
@@ -185,7 +154,6 @@ class Preprocess:
                 else:
                     st.error("Recipe not found")
 
-                self.save_adata(name="adata_pp")
                 st.toast(f"Applied recipe: {st.session_state.sb_pp_recipe}", icon='✅')
 
     
@@ -260,17 +228,17 @@ class Preprocess:
                 with st.spinner("Running scrublet"):
                     adata_scrublet = sc.external.pp.scrublet(self.adata, sim_doublet_ratio=sim_doublet_ratio, expected_doublet_rate=expected_doublet_rate)
                     self.adata = adata_scrublet #TODO: only temporary, change to saving separately
-                self.save_adata(name="adata_scrublet")
 
             
 
 try:
-    adata_models: [AdataModel] = st.session_state["adata"]
-    show_sidebar(adata_models)
+    st.session_state["adata_state"] = st.session_state.adata_state
+    sidebar = Sidebar()
 
-    adata = get_adata(adataList=adata_models, name=st.session_state.sb_adata_selection).adata
-    st.session_state["current_adata"] = adata
-    preprocess = Preprocess(adata)
+    sidebar.show()
+
+    st.session_state["current_adata"] = st.session_state.adata_state.current.adata
+    preprocess = Preprocess(st.session_state.adata_state.current.adata)
 
     col1, col2, col3 = st.columns(3, gap="medium")
 
@@ -289,7 +257,7 @@ try:
         preprocess.annotate_ribo()
         preprocess.run_scrublet()
 
-    show_preview()
+    sidebar.show_preview()
 
 except KeyError as ke:
     print("KeyError: ", ke)

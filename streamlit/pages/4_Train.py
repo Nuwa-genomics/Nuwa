@@ -9,6 +9,7 @@ from ml.solo_scvi.solo_model import solo_model
 from ml.DeepST.deepst.main import *
 from models.AdataModel import AdataModel
 from components.sidebar import *
+from utils.AdataState import AdataState
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬', layout="centered")
 
@@ -105,15 +106,17 @@ class Train:
             st.session_state["trained_model"] = self.model['model'].run(callback=self.train_pgb_non_specific)
 
 try:
-    adata_model: AdataModel = st.session_state["adata"]
-    show_sidebar(adata_model)
+    adata_state = AdataState(workspace_id=st.session_state.current_workspace.id)
 
-    adata = get_adata(adataList=adata_model, name=st.session_state.sb_adata_selection).adata
-    st.session_state["current_adata"] = adata
+    sidebar = Sidebar(adata_state)
 
-    show_preview()
+    sidebar.show()
 
-    train = Train(adata)
+    st.session_state["current_adata"] = adata_state.current.adata
+
+    sidebar.show_preview()
+
+    train = Train(adata_state.current.adata)
 
     train.draw_animation()
 
