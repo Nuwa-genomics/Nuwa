@@ -77,6 +77,14 @@ View expression profiles while retaining spatial information. Currently includes
 
 ![Spatial transcriptomics](screenshots/spatial.png "Spatial transcriptomics screenshot")
 
+## Running Tests
+
+Unit tests can be run using the tests dockerfile:
+
+```
+docker-compose -f tests.docker-compose.yml up --build
+```
+
 ## Future work
 
 - Improve error logging
