@@ -115,7 +115,7 @@ try:
     st.session_state["current_adata"] = adata_state.current.adata
 
     sidebar.show_preview()
-
+    
     train = Train(adata_state.current.adata)
 
     train.draw_animation()

@@ -19,6 +19,13 @@ class Sidebar:
                     with st.container():
                         st.markdown(f"<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.current_adata}</p>", unsafe_allow_html=True)
 
+    def delete_experiment_btn(self):
+        with st.sidebar:
+            delete_btn = st.button(label="🗑️ Delete Experiment", use_container_width=True)
+            if delete_btn:
+                st.session_state.adata_state.delete_record()
+
+
     def show_notes(self):
         with st.sidebar:
             notes = st.session_state.adata_state.current.notes
@@ -39,7 +46,6 @@ class Sidebar:
 
     def write_adata(self):
         try:
-            #write to db
             name = st.session_state.ti_new_adata_name
             new_adata = schemas.Adata(
                 work_id = st.session_state.current_workspace.id,
@@ -47,14 +53,14 @@ class Sidebar:
                 filename = os.path.join(os.getenv('WORKDIR'), "adata", f"{name}.h5ad"),
                 notes = st.session_state.adata_state.current.notes
             )
-            #write to local session
+
             st.session_state.adata_state.add_adata(AdataModel(
                 work_id=new_adata.work_id,
                 adata_name=new_adata.adata_name,
                 filename=new_adata.filename,
                 notes=new_adata.notes,
             ))
-            st.toast("Created new adata", icon="✅")
+            
         except Exception as e:
             st.error(e)
             print("Error: ", e)

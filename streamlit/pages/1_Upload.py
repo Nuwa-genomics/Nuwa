@@ -31,7 +31,6 @@ if not uploaded_f:
     st.text("No File uploaded 🧬")
     
 
-
 def show_anndata(adata):
     try:
         st.session_state["adata_state"] = AdataState(workspace_id=st.session_state.current_workspace.id)

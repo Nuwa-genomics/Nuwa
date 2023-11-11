@@ -258,6 +258,7 @@ try:
         preprocess.run_scrublet()
 
     sidebar.show_preview()
+    sidebar.delete_experiment_btn()
 
 except KeyError as ke:
     print("KeyError: ", ke)
