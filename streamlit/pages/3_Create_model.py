@@ -358,6 +358,8 @@ try:
     change_model()
 
     sidebar.show_preview()
+    sidebar.delete_experiment_btn()
+    
 except KeyError as ke:
     print("KeyError: ", ke)
     st.error("Couldn't find adata object in session, have you uploaded one?")

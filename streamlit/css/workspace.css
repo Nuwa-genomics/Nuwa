@@ -9,7 +9,7 @@
     text-align:center;
     border: none;
     background-size: 200% 150%;
-    background-image: url(https://github.com/ch1ru/Nuwa/blob/main/streamlit/css/img/bg.png?raw=true);
+    background-image: url('/app/streamlit/css/img/bg.png');
     box-shadow: 0 4px 15px 0 #000;
 
     border-radius: 10px;

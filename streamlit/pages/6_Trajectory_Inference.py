@@ -187,6 +187,7 @@ try:
     tji.draw_page()
 
     sidebar.show_preview()
+    sidebar.delete_experiment_btn()
 
 except KeyError as ke:
     print("KeyError: ", ke)

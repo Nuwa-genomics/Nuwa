@@ -115,6 +115,7 @@ try:
     st.session_state["current_adata"] = adata_state.current.adata
 
     sidebar.show_preview()
+    sidebar.delete_experiment_btn()
     
     train = Train(adata_state.current.adata)
 

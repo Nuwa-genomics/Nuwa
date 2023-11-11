@@ -162,6 +162,7 @@ try:
     spatial_t = Spatial_Transcriptomics(adata_state.current.adata)
     spatial_t.draw_page()
     sidebar.show_preview()
+    sidebar.delete_experiment_btn()
 
 except KeyError as ke:
     print("KeyError: ", ke)

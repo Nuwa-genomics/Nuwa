@@ -253,6 +253,7 @@ try:
     analysis.find_marker_genes()
 
     sidebar.show_preview()
+    sidebar.delete_experiment_btn()
 
 except KeyError as ke:
     print("KeyError: ", ke)
