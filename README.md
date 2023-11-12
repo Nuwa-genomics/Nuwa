@@ -79,7 +79,7 @@ View expression profiles while retaining spatial information. Currently includes
 
 ## Running Tests
 
-Unit tests can be run using the tests dockerfile:
+Unit tests can be run using the tests docker compose file:
 
 ```
 docker-compose -f tests.docker-compose.yml up --build

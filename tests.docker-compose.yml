@@ -3,15 +3,15 @@ services:
   streamlit:
     container_name: streamlit
     build:
-      context: ./streamlit
+      context: ./app
       dockerfile: tests.Dockerfile
     depends_on:
       - postgres
-    restart: on-failure
+    restart: unless-stopped
     ports:
       - "80:8501"
     volumes:
-      - ./streamlit/.streamlit:/root/.streamlit
+      - ./app/.streamlit:/root/.streamlit
       - ./streamlit-volume:/streamlit-volume
     environment:
       - POSTGRES_USER=user
