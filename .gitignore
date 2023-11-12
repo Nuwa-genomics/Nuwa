@@ -11,3 +11,4 @@ streamlit/ml/DeepST/data
 streamlit/ml/DeepST/Results
 __pycache__
 streamlit-volume
+.pytest_cache
