@@ -1,14 +1,8 @@
 bin
 .vscode
 postgresql/data
-streamlit/cache
-streamlit/figures
-streamlit/results
-streamlit/tmp
-streamlit/uploads
-streamlit/volume
-streamlit/ml/DeepST/data
-streamlit/ml/DeepST/Results
+app/ml/DeepST/data
+app/ml/DeepST/Results
 __pycache__
 streamlit-volume
 .pytest_cache
