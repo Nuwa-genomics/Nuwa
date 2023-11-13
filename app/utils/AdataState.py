@@ -24,6 +24,9 @@ class AdataState:
 
     def load_adata(self, workspace_id):
         adatas = self.conn.query(schemas.Adata).filter(schemas.Adata.work_id == workspace_id).all()
+        if len(adatas) == 0:
+            return []
+        
         for adata in adatas:
             new_adata = AdataModel(
                 work_id=adata.work_id,
@@ -39,8 +42,16 @@ class AdataState:
         
 
     def add_adata(self, adata: AdataModel):
-        adata.adata = self.current.adata.copy() #adata doesn't come from sender, so add it here
-        self.insert_record(adata)
+        try:
+            if not adata.adata:
+                if self.current == None:
+                    raise Exception
+                adata.adata = self.current.adata.copy() #adata doesn't come from sender, so add it here
+            
+            self.insert_record(adata)
+        except Exception as e:
+            st.error(e)
+            print("Error: ", e)
         
 
     def insert_record(self, adata: AdataModel = None):
@@ -90,6 +101,9 @@ class AdataState:
 
             self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == adata.adata_name).delete()
             self.conn.commit()
+            for i, _ in enumerate(self.adata_list):
+                if self.adata_list[i].adata_name == adata.adata_name:
+                    del self.adata_list[i]
             st.toast("Deleted Experiment", icon="✅")
         except Exception as e:
             print("Error: ", e)
@@ -103,6 +117,7 @@ class AdataState:
         for adata in self.adata_list:
             if adata.adata_name == adata_name:
                 return adata
+        return None
 
     
 

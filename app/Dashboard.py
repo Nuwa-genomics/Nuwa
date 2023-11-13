@@ -6,6 +6,7 @@ from database.database import *
 from database.schemas import schemas
 from sqlalchemy.orm import Session
 from hashlib import sha256
+import time
 
 #create databases if not already present
 Base.metadata.create_all(engine)
@@ -77,7 +78,7 @@ class Dashboard:
                     if button:
                         for i in st.session_state.items():
                             if i[1] and (i[0].__contains__("btn_workspace")):
-                                work_id = i[0][-1]
+                                work_id = i[0].split(sep='_')[-1]
 
                                 for workspace in st.session_state.workspaces:
                                     if workspace.id == int(work_id):

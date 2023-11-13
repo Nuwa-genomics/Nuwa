@@ -37,6 +37,10 @@ def show_anndata(adata):
 
         #upload raw adata
         sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'uploads/', "adata_raw.h5ad"), adata=adata)
+
+        st.session_state.adata_state.add_adata(
+            AdataModel(work_id=st.session_state.current_workspace.id, adata_name="adata_raw", 
+                filename=os.path.join(os.getenv('WORKDIR'), "adata/", "adata_raw.h5ad"), adata=adata, notes=""))
     except ValidationError as e:
         st.error(e)
 
@@ -65,6 +69,7 @@ try:
     workspace_model: WorkspaceModel = st.session_state["current_workspace"]
 
     if uploaded_f is not None:
+        
 
         with st.spinner(text="Loading Data"):
             #create workspace dirs
@@ -89,11 +94,9 @@ try:
 
                 if file_type == "mtx":
                     adata = sc.read_10x_mtx(upload_path, var_names='gene_symbols', cache=True)
-                    sc.write(filename=f"{adata_path}/adata_raw", adata=adata) #write to adata file
                     show_anndata(adata)
                 if file_type == "h5ad":
                     adata = sc.read_h5ad(f)
-                    sc.write(filename=f"{adata_path}/adata_raw", adata=adata) #write to adata file
                     show_anndata(adata)
 
 except KeyError as ke:

@@ -34,7 +34,6 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 class Preprocess:
     def __init__(self, adata):
         self.adata = adata
-        self.adata_raw = adata
         self.conn: Session = SessionLocal()
         st.title("Preprocess")
          

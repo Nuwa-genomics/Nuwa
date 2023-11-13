@@ -238,7 +238,7 @@ class Analysis:
 try:
     adata_state = AdataState(workspace_id=st.session_state.current_workspace.id)
 
-    sidebar = Sidebar(adata_state)
+    sidebar = Sidebar()
     sidebar.show()
 
     st.session_state["current_adata"] = adata_state.current.adata

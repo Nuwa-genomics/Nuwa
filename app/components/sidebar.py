@@ -26,10 +26,12 @@ class Sidebar:
                 st.session_state.adata_state.delete_record()
 
 
+
     def show_notes(self):
         with st.sidebar:
             notes = st.session_state.adata_state.current.notes
-            notes_ta = st.text_area(label="Notes", placeholder="Notes", value=notes)
+            display_notes = notes if notes != None else ""
+            notes_ta = st.text_area(label="Notes", placeholder="Notes", value=display_notes)
             try:
                 st.session_state.adata_state.current.notes = notes_ta
                 st.session_state.adata_state.update_record()
@@ -90,7 +92,7 @@ class Sidebar:
                     sc.write(filename=f"{os.getenv('WORKDIR')}/downloads/{selected_adata.adata_name}.h5ad", adata=st.session_state.current_adata)
                     st.toast("Downloaded file", icon='✅')
             options=[item.adata_name for item in st.session_state.adata_state.adata_list]
-            st.selectbox(label="Current Experiment:", options=reversed(options), key="sb_adata_selection", on_change=set_adata)
+            st.selectbox(label="Current Experiment:", options=options, key="sb_adata_selection", on_change=set_adata)
             st.button(label="Download adata file", on_click=save_file, use_container_width=True, key="btn_save_adata")
             st.button(label="Add experiment", on_click=self.add_experiment, use_container_width=True, key="btn_add_adata")
             self.show_notes()
