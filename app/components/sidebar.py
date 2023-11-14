@@ -17,7 +17,7 @@ class Sidebar:
                 with st.expander(label="Show Preview"):
                     st.subheader("Anndata preview")
                     with st.container():
-                        st.markdown(f"<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.current_adata}</p>", unsafe_allow_html=True)
+                        st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.current_adata}</p>""", unsafe_allow_html=True)
 
     def delete_experiment_btn(self):
         with st.sidebar:
@@ -49,18 +49,12 @@ class Sidebar:
     def write_adata(self):
         try:
             name = st.session_state.ti_new_adata_name
-            new_adata = schemas.Adata(
-                work_id = st.session_state.current_workspace.id,
-                adata_name = name,
-                filename = os.path.join(os.getenv('WORKDIR'), "adata", f"{name}.h5ad"),
-                notes = st.session_state.adata_state.current.notes
-            )
 
             st.session_state.adata_state.add_adata(AdataModel(
-                work_id=new_adata.work_id,
-                adata_name=new_adata.adata_name,
-                filename=new_adata.filename,
-                notes=new_adata.notes,
+                work_id=st.session_state.current_workspace.id,
+                adata_name=name,
+                filename=os.path.join(os.getenv('WORKDIR'), "adata", f"{name}.h5ad"),
+                notes=st.session_state.adata_state.current.notes,
             ))
             
         except Exception as e:
@@ -91,7 +85,7 @@ class Sidebar:
                 else:
                     sc.write(filename=f"{os.getenv('WORKDIR')}/downloads/{selected_adata.adata_name}.h5ad", adata=st.session_state.current_adata)
                     st.toast("Downloaded file", icon='✅')
-            options=[item.adata_name for item in st.session_state.adata_state.adata_list]
+            options=[item.adata_name for item in st.session_state.adata_state.load_adata(st.session_state.current_workspace.id)]
             st.selectbox(label="Current Experiment:", options=options, key="sb_adata_selection", on_change=set_adata)
             st.button(label="Download adata file", on_click=save_file, use_container_width=True, key="btn_save_adata")
             st.button(label="Add experiment", on_click=self.add_experiment, use_container_width=True, key="btn_add_adata")

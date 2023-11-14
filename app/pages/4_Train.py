@@ -57,6 +57,7 @@ class Train:
             with self.placeholder.container():
                 st.markdown("<h3 style='text-align: center; margin-bottom: 2rem'>Training Complete</h3>", unsafe_allow_html=True)
                 with open("animations/tick.json") as source:
+                    
                     complete_animation = json.load(source)
                     st_lottie(complete_animation, width=700, height=200, loop=False, speed=1.2)
 
@@ -66,6 +67,8 @@ class Train:
                         st.metric(label="Train loss", value=round(train_loss, 4))
                     with subcol4:
                         st.metric(label="Validation loss", value=round(valid_loss, 4))
+                    
+                    
 
     def train_pgb_non_specific(self, percent, text):
         n_epochs = self.model['n_epochs']
@@ -100,6 +103,7 @@ class Train:
 
             st.session_state["losses"] = losses #save losses
             st.session_state["trained_model"] = trained_model #save model to local session
+       
         elif(isinstance(self.model['model'], solo_model)):
             st.session_state["trained_model"] = self.model['model'].train(callback=self.train_pgb_non_specific)
         elif(isinstance(self.model['model'], DeepSTModel)):
@@ -123,12 +127,17 @@ try:
 
     train.train()
 
+    
+  
+
 except KeyError as ke:
     print("KeyError: ", ke)
     st.error("Couldn't find adata object in session, have you uploaded one?")
     
 except Exception as e:
+    print("Error: ")
     st.error(e)
+
 
 
 

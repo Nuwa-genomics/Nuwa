@@ -11,9 +11,26 @@ import os
 class AdataState:
     def __init__(self, workspace_id, active="adata_raw"):
         self.conn: Session = SessionLocal()
-        self.adata_list: list(AdataModel) = []
+        raw = self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == "adata_raw").filter(schemas.Adata.work_id == workspace_id).first()
+        raw_filename = os.path.join(os.getenv('WORKDIR'), "adata", "adata_raw.h5ad")
+        if not raw:
+            #create new record
+            new_adata = schemas.Adata(
+                work_id=workspace_id,
+                adata_name="adata_raw",
+                filename=raw_filename,
+                notes=""
+            )
+            self.conn.add(new_adata)
+            self.conn.commit()
+            self.conn.refresh(new_adata)
+        
+        raw = self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == "adata_raw").filter(schemas.Adata.work_id == workspace_id).first()
+        self.raw: AdataModel = AdataModel(work_id=raw.work_id, id=raw.id, filename=raw.filename, notes=raw.notes, 
+            adata=sc.read_h5ad(raw_filename), created=raw.created, adata_name=raw.adata_name)
+        self.adata_list: list(AdataModel) = [self.raw]
         self.load_adata(workspace_id)
-        self.current: AdataModel = self.get_adata(active)
+        self.current: AdataModel = self.raw if self.get_adata(active) is None else self.get_adata(active)
 
     def __iter__(self):
         for adata in self.adata_list:
@@ -24,21 +41,7 @@ class AdataState:
 
     def load_adata(self, workspace_id):
         adatas = self.conn.query(schemas.Adata).filter(schemas.Adata.work_id == workspace_id).all()
-        if len(adatas) == 0:
-            return []
-        
-        for adata in adatas:
-            new_adata = AdataModel(
-                work_id=adata.work_id,
-                id=adata.id,
-                adata_name=adata.adata_name,
-                filename=adata.filename,
-                created=adata.created,
-                notes=adata.notes,
-                adata=sc.read_h5ad(adata.filename)
-            )
-            self.adata_list.append(new_adata)
-        return self.adata_list
+        return [AdataModel(work_id=adata.work_id, id=adata.id, filename=adata.filename, notes=adata.notes, created=adata.created, adata_name=adata.adata_name) for adata in adatas]
         
 
     def add_adata(self, adata: AdataModel):
@@ -65,10 +68,9 @@ class AdataState:
                 filename=adata.filename,
                 notes=adata.notes
             )
-            
 
-            #write adata to file
             sc.write(filename=adata.filename, adata=adata.adata)
+            
             
             if os.path.exists(adata.filename):
                 self.conn.add(new_adata)
@@ -77,6 +79,7 @@ class AdataState:
                 self.adata_list.append(adata)
                 st.toast("Created new adata", icon="✅")
             else:
+                print("Error: file doesn't exist")
                 raise Exception
         except Exception as e:
             print("Error: ", e)
@@ -87,7 +90,7 @@ class AdataState:
             adata = self.current
 
         update_query = self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == adata.adata_name)
-        update_query.update({'notes': adata.notes, 'filename': adata.filename, 'work_id': adata.work_id, 'id': adata.id, 'created': adata.created, 'adata_name': adata.adata_name})
+        update_query.update({'notes': adata.notes, 'work_id': adata.work_id, 'created': adata.created, 'adata_name': adata.adata_name})
         self.conn.commit()
 
     def delete_record(self, adata: AdataModel = None):

@@ -15,43 +15,82 @@ from models.WorkspaceModel import WorkspaceModel
 import os
 from random import randrange
 import shutil
+import time
 
-conn: Session = SessionLocal()
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
-workspace_name = f"test_workspace_{randrange(1, 1000000)}"
-dashboard_test = Test_Dashboard(workspace_name=workspace_name)
-dashboard_state = dashboard_test.get_final_session_state()
+try:
 
-upload_test = Test_Upload(session_state=dashboard_state)
-upload_state = upload_test.get_final_session_state()
+    conn: Session = SessionLocal()
 
-# pp_test = Test_Preprocess(session_state=upload_state)
-# pp_state = pp_test.get_final_session_state()
+    print("\n===============Testing Dashboard===============")
+    workspace_name = f"test_workspace_{randrange(1, 1000000)}"
+    dashboard_test = Test_Dashboard(workspace_name=workspace_name)
+    dashboard_state = dashboard_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-# create_model_test = Test_Create_Model(session_state=pp_state)
-# create_model_state = create_model_test.get_final_session_state()
+    print("\n===============Testing Upload===============")
+    upload_test = Test_Upload(session_state=dashboard_state)
+    upload_state = upload_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-# train_test = Test_Train(session_state=create_model_state)
-# train_state = train_test.get_final_session_state()
+    print("\n===============Testing Preprocess===============")
+    pp_test = Test_Preprocess(session_state=upload_state)
+    pp_state = pp_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-# cluster_analysis_test = Test_Cluster_Analysis(session_state=train_state)
-# cluster_analysis_state = cluster_analysis_test.get_final_session_state()
+    print("\n===============Testing Create Model===============")
+    create_model_test = Test_Create_Model(session_state=pp_state)
+    create_model_state = create_model_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-# trajectory_inference_test = Test_Trajectory_Inference(session_state=pp_state)
-# trajectory_inference_state = trajectory_inference_test.get_final_session_state()
+    print("\n===============Testing Train===============")
+    train_test = Test_Train(session_state=create_model_state)
+    train_state = train_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-# spatial_transcriptomics_test = Test_Spatial_Transcriptomics(session_state=pp_state)
-# spatial_transcriptomics_state = spatial_transcriptomics_test.get_final_session_state()
+    print("\n===============Testing Cluster Analysis===============")
+    cluster_analysis_test = Test_Cluster_Analysis(session_state=train_state)
+    cluster_analysis_state = cluster_analysis_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-#tear down
+    print("\n===============Testing Trajectory Inference===============")
+    #trajectory_inference_test = Test_Trajectory_Inference(session_state=pp_state)
+    #trajectory_inference_state = trajectory_inference_test.get_final_session_state()
 
-#remove test records from db
-conn.query(schemas.Workspaces).filter(schemas.Workspaces.workspace_name == workspace_name).delete()
-conn.commit()
+    # spatial_transcriptomics_test = Test_Spatial_Transcriptomics(session_state=pp_state)
+    # spatial_transcriptomics_state = spatial_transcriptomics_test.get_final_session_state()
 
-#remove files
-workspace_dir = os.getenv('WORKDIR')
-shutil.rmtree(workspace_dir, ignore_errors=True)
+except Exception as e:
+    print()
+    print(f"{bcolors.FAIL}TEST FAILED{bcolors.ENDC}")
+    print(e)
+
+finally:
+
+    #tear down
+
+    #remove test records from db
+    conn.query(schemas.Workspaces).filter(schemas.Workspaces.workspace_name == workspace_name).delete()
+    conn.commit()
+
+    #remove files
+    workspace_dir = os.getenv('WORKDIR')
+    shutil.rmtree(workspace_dir, ignore_errors=True)
 
 
 

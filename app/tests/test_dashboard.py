@@ -8,7 +8,7 @@ class Test_Dashboard:
         self.at = AppTest.from_file("Dashboard.py")
         if session_state is not None:
             self.at.session_state = session_state
-        self.at.run()
+        self.at.run(timeout=100)
         self.test_create_new_workspace()
         self.test_select_created_workspace()
         assert not self.at.exception

@@ -33,14 +33,12 @@ if not uploaded_f:
 
 def show_anndata(adata):
     try:
+        #upload raw adata
+        sc.write(filename=f"{os.getenv('WORKDIR')}uploads/adata_raw.h5ad", adata=adata)
+        sc.write(filename=f"{os.getenv('WORKDIR')}adata/adata_raw.h5ad", adata=adata)
+
         st.session_state["adata_state"] = AdataState(workspace_id=st.session_state.current_workspace.id)
 
-        #upload raw adata
-        sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'uploads/', "adata_raw.h5ad"), adata=adata)
-
-        st.session_state.adata_state.add_adata(
-            AdataModel(work_id=st.session_state.current_workspace.id, adata_name="adata_raw", 
-                filename=os.path.join(os.getenv('WORKDIR'), "adata/", "adata_raw.h5ad"), adata=adata, notes=""))
     except ValidationError as e:
         st.error(e)
 
@@ -73,9 +71,9 @@ try:
 
         with st.spinner(text="Loading Data"):
             #create workspace dirs
-            upload_path = f'{workspace_model.data_dir}/uploads/'
-            download_path = f'{workspace_model.data_dir}/downloads/'
-            adata_path = f'{workspace_model.data_dir}/adata/'
+            upload_path = os.path.join(workspace_model.data_dir, "uploads")
+            download_path = os.path.join(workspace_model.data_dir, "downloads")
+            adata_path = os.path.join(workspace_model.data_dir, "adata")
             if not os.path.exists(upload_path):
                 os.mkdir(upload_path)
             if not os.path.exists(download_path):

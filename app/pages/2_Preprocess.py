@@ -256,7 +256,7 @@ try:
         preprocess.annotate_ribo()
         preprocess.run_scrublet()
 
-    sidebar.show_preview()
+    #sidebar.show_preview()
     sidebar.delete_experiment_btn()
 
 except KeyError as ke:

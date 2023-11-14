@@ -87,12 +87,10 @@ docker-compose -f tests.docker-compose.yml up --build
 
 ## Future work
 
-- Improve error logging
 - Add other models
 - Transfer learning, saving and loading models
-- support other 10x file types
+- support other file types
 - Add other analysis scores/graphs
-- Unit testing
 
 ## Citations
 

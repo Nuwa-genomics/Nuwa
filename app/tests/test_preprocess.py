@@ -9,13 +9,14 @@ class Test_Preprocess:
         self.at = AppTest.from_file("pages/2_Preprocess.py")
         if session_state is not None:
             self.at.session_state = session_state
+            
+        self.at.run(timeout=100)
         
-    
-        self.at.run()
         assert not self.at.exception
 
     def get_final_session_state(self):
         return self.at.session_state
+
 
 
 
