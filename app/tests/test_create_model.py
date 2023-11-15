@@ -13,13 +13,16 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 class Test_Create_Model:
-    def __init__(self, session_state = None):
+    def __init__(self, session_state = None, model=None):
         print(f"{bcolors.OKBLUE}Initialising page...{bcolors.ENDC}")
         self.at = AppTest.from_file("pages/3_Create_model.py")
         if session_state is not None:
             self.at.session_state = session_state
 
         self.at.run(timeout=100)
+        
+        if model != None:
+            self.at.selectbox(key="sb_model_selection").select(model).run()
         assert not self.at.exception
         
 
