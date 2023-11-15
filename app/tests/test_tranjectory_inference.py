@@ -1,14 +1,25 @@
 from streamlit.testing.v1 import AppTest
 from utils.AdataState import AdataState
 import time
+import scanpy as sc
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 class Test_Trajectory_Inference:
-    def __init__(self, workspace_name, session_state = None):
-        self.workspace_name = workspace_name
+    def __init__(self, session_state = None):
+        print(f"{bcolors.OKBLUE}Initialising page...{bcolors.ENDC}")
         self.at = AppTest.from_file("pages/6_Trajectory_Inference.py")
         if session_state is not None:
             self.at.session_state = session_state
-        self.at.run()
+        self.at.run(timeout=1000)
         assert not self.at.exception
         
 

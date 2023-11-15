@@ -3,7 +3,6 @@ import json
 from streamlit_lottie import st_lottie
 from ml.citeseq.model import CiteAutoencoder
 from ml.citeseq.train import train_model
-import pickle
 from ml.citeseq.train import train_model
 from ml.solo_scvi.solo_model import solo_model
 from ml.DeepST.deepst.main import *

@@ -15,7 +15,7 @@ from models.WorkspaceModel import WorkspaceModel
 import os
 from random import randrange
 import shutil
-import time
+from datetime import datetime, date
 
 class bcolors:
     HEADER = '\033[95m'
@@ -31,49 +31,69 @@ try:
 
     conn: Session = SessionLocal()
 
-    print("\n===============Testing Dashboard===============")
+    print()
+    print(f"{bcolors.BOLD}===============Testing Dashboard===============")
     workspace_name = f"test_workspace_{randrange(1, 1000000)}"
     dashboard_test = Test_Dashboard(workspace_name=workspace_name)
     dashboard_state = dashboard_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-    print("\n===============Testing Upload===============")
+    print()
+    print(f"{bcolors.BOLD}===============Testing Upload===============")
     upload_test = Test_Upload(session_state=dashboard_state)
     upload_state = upload_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-    print("\n===============Testing Preprocess===============")
+    print()
+    print(f"{bcolors.BOLD}===============Testing Preprocess===============")
     pp_test = Test_Preprocess(session_state=upload_state)
     pp_state = pp_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-    print("\n===============Testing Create Model===============")
+    print()
+    print(f"{bcolors.BOLD}===============Testing Create Model===============")
     create_model_test = Test_Create_Model(session_state=pp_state)
     create_model_state = create_model_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-    print("\n===============Testing Train===============")
+    print()
+    print(f"{bcolors.BOLD}===============Testing Train===============")
     train_test = Test_Train(session_state=create_model_state)
     train_state = train_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-    print("\n===============Testing Cluster Analysis===============")
+    print()
+    print(f"{bcolors.BOLD}===============Testing Cluster Analysis===============")
     cluster_analysis_test = Test_Cluster_Analysis(session_state=train_state)
     cluster_analysis_state = cluster_analysis_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-    print("\n===============Testing Trajectory Inference===============")
-    #trajectory_inference_test = Test_Trajectory_Inference(session_state=pp_state)
-    #trajectory_inference_state = trajectory_inference_test.get_final_session_state()
+    print()
+    print(f"{bcolors.BOLD}===============Testing Trajectory Inference===============")
+    trajectory_inference_test = Test_Trajectory_Inference(session_state=pp_state)
+    trajectory_inference_state = trajectory_inference_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
-    # spatial_transcriptomics_test = Test_Spatial_Transcriptomics(session_state=pp_state)
-    # spatial_transcriptomics_state = spatial_transcriptomics_test.get_final_session_state()
+    print()
+    print(f"{bcolors.BOLD}===============Testing Spatial Transcriptomics===============")
+    spatial_transcriptomics_test = Test_Spatial_Transcriptomics(session_state=pp_state)
+    spatial_transcriptomics_state = spatial_transcriptomics_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
+    
+    print()
+    print("----------------------------------------------")
+    print(f"Tests completed: {date.today().strftime('%B %d, %Y')} at {datetime.now().strftime('%H:%M:%S')}\n")
+    print(f"{bcolors.BOLD}ALL TESTS SUCCESSFUL.{bcolors.ENDC}")
+    print()
+    print(f"Removing test data...{bcolors.ENDC}")
 
 except Exception as e:
     print()
@@ -91,6 +111,10 @@ finally:
     #remove files
     workspace_dir = os.getenv('WORKDIR')
     shutil.rmtree(workspace_dir, ignore_errors=True)
+    
+    print()
+    print(f"{bcolors.BOLD}Tests Complete!{bcolors.ENDC}")
+    print("----------------------------------------------")
 
 
 

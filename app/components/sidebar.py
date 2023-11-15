@@ -16,8 +16,7 @@ class Sidebar:
             with st.sidebar:
                 with st.expander(label="Show Preview"):
                     st.subheader("Anndata preview")
-                    with st.container():
-                        st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.current_adata}</p>""", unsafe_allow_html=True)
+                    st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.current_adata}</p>""", unsafe_allow_html=True)
 
     def delete_experiment_btn(self):
         with st.sidebar:
