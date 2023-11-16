@@ -178,9 +178,9 @@ class Preprocess:
             max_pct_counts_mt = st.number_input(label="max pct_counts_mt", key="ni_pct_counts_mt", min_value=0)
 
             subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+            mito_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
-            if submit_btn:
+            if mito_annot_submit_btn:
                 self.adata = self.adata[self.adata.obs.pct_counts_mt < max_pct_counts_mt, :]
 
             
@@ -210,17 +210,17 @@ class Preprocess:
             max_pct_counts_ribo = st.number_input(label="max pct_counts_ribo", key="ni_pct_counts_ribo", min_value=0)
 
             subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+            ribo_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
-            if submit_btn:
+            if ribo_annot_submit_btn:
                 self.adata = self.adata[self.adata.obs.pct_counts_ribo < max_pct_counts_ribo, :]
 
     def run_scrublet(self):
         with st.form(key="scrublet_form"):
             st.subheader("Doublet Prediction")
             st.write("Use Scrublet to remove cells predicted to be doublets.")
-            sim_doublet_ratio = st.number_input(label="Sim doublet ratio", value=2)
-            expected_doublet_rate = st.number_input(label="Expected doublet rate", value=0.05)
+            sim_doublet_ratio = st.number_input(label="Sim doublet ratio", value=2, key="ni_sim_doublet_ratio")
+            expected_doublet_rate = st.number_input(label="Expected doublet rate", value=0.05, key="ni_expected_doublet_rate")
             scrublet_submit = st.form_submit_button(label="Filter")
 
             if scrublet_submit:

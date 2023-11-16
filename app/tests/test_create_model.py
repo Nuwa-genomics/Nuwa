@@ -14,7 +14,7 @@ class bcolors:
 
 class Test_Create_Model:
     def __init__(self, session_state = None, model=None):
-        print(f"{bcolors.OKBLUE}Initialising page...{bcolors.ENDC}")
+        print(f"{bcolors.OKBLUE}Initialising page... {bcolors.ENDC}", end="")
         self.at = AppTest.from_file("pages/3_Create_model.py")
         if session_state is not None:
             self.at.session_state = session_state
@@ -24,6 +24,7 @@ class Test_Create_Model:
         if model != None:
             self.at.selectbox(key="sb_model_selection").select(model).run()
         assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
 
     def get_final_session_state(self):

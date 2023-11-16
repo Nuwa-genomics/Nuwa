@@ -20,7 +20,7 @@ class Sidebar:
 
     def delete_experiment_btn(self):
         with st.sidebar:
-            delete_btn = st.button(label="🗑️ Delete Experiment", use_container_width=True)
+            delete_btn = st.button(label="🗑️ Delete Experiment", use_container_width=True, key="btn_delete_adata")
             if delete_btn:
                 st.session_state.adata_state.delete_record()
 
@@ -48,12 +48,13 @@ class Sidebar:
     def write_adata(self):
         try:
             name = st.session_state.ti_new_adata_name
+            notes = st.session_state.ti_new_adata_notes
 
             st.session_state.adata_state.add_adata(AdataModel(
                 work_id=st.session_state.current_workspace.id,
                 adata_name=name,
                 filename=os.path.join(os.getenv('WORKDIR'), "adata", f"{name}.h5ad"),
-                notes=st.session_state.adata_state.current.notes,
+                notes=notes,
             ))
             
         except Exception as e:
@@ -64,7 +65,7 @@ class Sidebar:
     def add_experiment(self):
         with st.sidebar:
             try:
-                with st.form(key="new_workspace_form"):
+                with st.form(key="new_adata_form"):
                     st.subheader("Create New Adata")
                     st.text_input(label="Name", key="ti_new_adata_name")
                     st.text_input(label="Notes", key="ti_new_adata_notes")
@@ -76,7 +77,8 @@ class Sidebar:
     def show(self):
         with st.sidebar:
             def set_adata():
-                st.session_state.adata_state.switch_adata(st.session_state.sb_adata_selection)
+                if st.session_state.adata_state.switch_adata(st.session_state.sb_adata_selection) == -1:
+                    st.error("Couldn't switch adata")
             def save_file():
                 selected_adata = st.session_state.adata_state.get_adata(adata_name=st.session_state.sb_adata_selection)
                 if not selected_adata:

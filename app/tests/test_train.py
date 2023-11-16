@@ -18,16 +18,18 @@ class Test_Train:
 
         #TODO: Figure out why this fails on exit ??
         try:
-            print(f"{bcolors.OKBLUE}Initialising page...{bcolors.ENDC}")
+            print(f"{bcolors.OKBLUE}Initialising page... {bcolors.ENDC}", end="")
             self.at = AppTest.from_file("pages/4_Train.py")
             if session_state is not None:
                 self.at.session_state = session_state
 
             self.at.run(timeout=1000)
+            
         except Exception as e:
             print("Error: ", e)
         finally:
             assert not self.at.exception
+            print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         
     def get_final_session_state(self):
