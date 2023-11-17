@@ -22,15 +22,15 @@ class Sidebar:
         with st.sidebar:
             delete_btn = st.button(label="🗑️ Delete Experiment", use_container_width=True, key="btn_delete_adata")
             if delete_btn:
-                st.session_state.adata_state.delete_record()
+                st.session_state.adata_state.delete_record(adata_name=st.session_state.sb_adata_selection)
 
 
 
     def show_notes(self):
         with st.sidebar:
-            notes = st.session_state.adata_state.current.notes
+            notes = st.session_state.adata_state.load_adata(workspace_id=st.session_state.current_workspace.id, adata_name=st.session_state.sb_adata_selection).notes
             display_notes = notes if notes != None else ""
-            notes_ta = st.text_area(label="Notes", placeholder="Notes", value=display_notes)
+            notes_ta = st.text_area(label="Notes", placeholder="Notes", value=display_notes, key="sidebar_notes")
             try:
                 st.session_state.adata_state.current.notes = notes_ta
                 st.session_state.adata_state.update_record()
@@ -87,7 +87,7 @@ class Sidebar:
                     sc.write(filename=f"{os.getenv('WORKDIR')}/downloads/{selected_adata.adata_name}.h5ad", adata=st.session_state.current_adata)
                     st.toast("Downloaded file", icon='✅')
             options=[item.adata_name for item in st.session_state.adata_state.load_adata(st.session_state.current_workspace.id)]
-            st.selectbox(label="Current Experiment:", options=options, key="sb_adata_selection", on_change=set_adata)
+            st.selectbox(label="Current Experiment:", options=options, key="sb_adata_selection", on_change=set_adata, index=(len(options) - 1))
             st.button(label="Download adata file", on_click=save_file, use_container_width=True, key="btn_save_adata")
             st.button(label="Add experiment", on_click=self.add_experiment, use_container_width=True, key="btn_add_adata")
             self.show_notes()

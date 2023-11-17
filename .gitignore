@@ -1,7 +1,6 @@
 bin
 .vscode
 postgresql/data
-app/ml/DeepST/data
 app/ml/DeepST/Results
 __pycache__
 streamlit-volume

@@ -22,7 +22,19 @@ class Test_Create_Model:
         self.at.run(timeout=100)
         
         if model != None:
-            self.at.selectbox(key="sb_model_selection").select(model).run()
+            self.at.selectbox(key="sb_model_selection").select(model).run(timeout=100)
+            #reduce epochs for quick testing
+            if model == "Citeseq (dimensionality reduction)":
+                self.at.number_input(key="ni_citeseq_epochs").set_value(10).run(timeout=100)
+            elif model == "Solo (doublet removal)":
+                self.at.number_input(key="ni_vae_epochs").set_value(10).run(timeout=100)
+            elif model == "DeepST (identify spatial domains)":
+                self.at.number_input(key="ni_deepst_epochs").set_value(10).run(timeout=100)
+                self.at.number_input(key="ni_deepst_preepochs").set_value(10).run(timeout=100)
+            else:
+                print("Error: Unknown model")
+                assert self.at.exception
+            
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         

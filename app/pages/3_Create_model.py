@@ -106,12 +106,12 @@ class CreateCiteSeqModel:
     
     def change_hyperparams(self):
         st.session_state.model_obj["lr"] = st.session_state.input_lr
-        st.session_state.model_obj["n_epochs"] = st.session_state.input_nepochs
+        st.session_state.model_obj["n_epochs"] = st.session_state.ni_citeseq_epochs
         st.session_state.model_obj["optim"] = st.session_state.input_optim
 
     def set_hyperparams(self):
         st.subheader("Set model hyperparameters")
-        st.number_input(label="Epochs", min_value=1, key="input_nepochs", value=100, on_change=self.change_hyperparams)
+        st.number_input(label="Epochs", min_value=1, key="ni_citeseq_epochs", value=100, on_change=self.change_hyperparams)
         st.number_input(label="Learning rate", min_value=1e-4, max_value=1.0, value=1e-3, key="input_lr", step=1e-3, format='%.4f', on_change=self.change_hyperparams)
         st.selectbox(label="Optimizer", options=(["Adam", "SGD", "RMSProp"]), key="input_optim", on_change=self.change_hyperparams)
 

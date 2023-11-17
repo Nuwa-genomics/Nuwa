@@ -38,6 +38,10 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
+        self.test_notes()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
         self.test_filter_highest_expressed()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
@@ -62,39 +66,52 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
+        self.test_annot_mito()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_annot_ribo()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_normalize_data()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
         
     def test_add_and_delete_adata(self):
         print(f"{bcolors.OKBLUE}test_add_and_delete_data {bcolors.ENDC}", end="")
-        self.at.button(key="btn_add_adata").click().run()
+        self.at.button(key="btn_add_adata").click().run(timeout=100)
         self.at.text_input(key="ti_new_adata_name").input("adata_test")
         self.at.text_input(key="ti_new_adata_notes").input("test_note")
-        self.at.button(key="FormSubmitter:new_adata_form-Save").click().run()
+        self.at.button(key="FormSubmitter:new_adata_form-Save").click().run(timeout=100)
         #test added to db
         assert self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == "adata_test") \
         .filter(schemas.Adata.notes == "test_note") \
         .filter(schemas.Adata.work_id == self.at.session_state.current_workspace.id).count() == 1
+        #switch adata
+        self.at.selectbox(key="sb_adata_selection").select("adata_test").run(timeout=100)
+        #test notes
+        assert self.at.text_area(key="sidebar_notes").value == "test_note"
         #test delete adata
-        self.at.selectbox(key="sb_adata_selection").select("adata_test").run()
         self.at.button(key="btn_delete_adata").click().run()
         assert self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == "adata_test") \
         .filter(schemas.Adata.notes == "test_note") \
         .filter(schemas.Adata.work_id == self.at.session_state.current_workspace.id).count() == 0
-        #select original raw
-        self.at.selectbox(key="sb_adata_selection").select("adata_raw").run()
+        #Select original raw
+        self.at.selectbox(key="sb_adata_selection").select("adata_raw").run(timeout=100)
         
     def test_filter_highest_expressed(self):
         print(f"{bcolors.OKBLUE}test_filter_highest_expressed {bcolors.ENDC}", end="")
         self.at.number_input(key="n_top_genes").increment() #increase to 21
-        self.at.button(key="FormSubmitter:form_highest_expr-Filter").click().run()
+        self.at.button(key="FormSubmitter:form_highest_expr-Filter").click().run(timeout=100)
         #TODO: Find a way to test if top genes are correct
         
     def test_highest_variable_genes(self):
         print(f"{bcolors.OKBLUE}test_highest_variable_genes {bcolors.ENDC}", end="")
-        self.at.number_input(key="input_highly_variable_min_mean").increment()
-        self.at.number_input(key="input_highly_variable_min_mean").decrement()
-        self.at.number_input(key="input_highly_variable_max_mean").increment()
-        self.at.number_input(key="input_highly_variable_max_mean").decrement()
-        self.at.button(key="FormSubmitter:form_highly_variable-Filter").click().run()
+        self.at.number_input(key="input_highly_variable_min_mean").set_value(0.0125)
+        self.at.number_input(key="input_highly_variable_max_mean").set_value(3.00)
+        self.at.button(key="FormSubmitter:form_highly_variable-Filter").click().run(timeout=100)
         #TODO: add test to check adata
         
     def test_filter_cells(self):
@@ -117,8 +134,31 @@ class Test_Preprocess:
         print(f"{bcolors.OKBLUE}test_doublet_prediction {bcolors.ENDC}", end="")
         self.at.number_input(key="ni_sim_doublet_ratio").set_value(2)
         self.at.number_input(key="ni_expected_doublet_rate").set_value(0.05)
-        self.at.button(key="FormSubmitter:scrublet_form-Filter").click().run()
+        self.at.button(key="FormSubmitter:scrublet_form-Filter").click().run(timeout=100)
         
+    def test_annot_mito(self):
+        print(f"{bcolors.OKBLUE}test_annot_mito {bcolors.ENDC}", end="")
+        self.at.number_input(key="ni_pct_counts_mt").set_value(5)
+        self.at.button(key="FormSubmitter:form_annotate_mito-Apply").click().run()
+        
+    def test_annot_ribo(self):
+        print(f"{bcolors.OKBLUE}test_annot_ribo {bcolors.ENDC}", end="")
+        self.at.number_input(key="ni_pct_counts_ribo").set_value(5)
+        self.at.button(key="FormSubmitter:form_annotate_ribo-Apply").click().run()
+        
+    def test_normalize_data(self):
+        print(f"{bcolors.OKBLUE}test_normalize_data {bcolors.ENDC}", end="")
+        self.at.number_input(key="ni_target_sum").set_value(1)
+        self.at.button(key="FormSubmitter:form_normalize_total-Apply").click().run()
+        
+    def test_notes(self):
+        print(f"{bcolors.OKBLUE}test_notes {bcolors.ENDC}", end="")
+        self.at.selectbox(key="sb_adata_selection").select("adata_raw").run()
+        self.at.text_area(key="sidebar_notes").input("Important notes").run()
+        adata = self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == "adata_raw") \
+        .filter(schemas.Adata.work_id == self.at.session_state.current_workspace.id).first()
+        assert adata.notes == "Important notes"
+        assert self.at.text_area(key="sidebar_notes").value == "Important notes"
 
     def get_final_session_state(self):
         return self.at.session_state

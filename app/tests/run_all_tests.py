@@ -94,6 +94,27 @@ try:
     cluster_analysis_state = cluster_analysis_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
+    
+    print()
+    print(f"{bcolors.BOLD}===============Testing Create DeepST Model===============")
+    create_model_test = Test_Create_Model(session_state=pp_state, model="DeepST (identify spatial domains)")
+    create_model_state = create_model_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
+
+    print()
+    print(f"{bcolors.BOLD}===============Testing Train DeepST Model===============")
+    train_test = Test_Train(session_state=create_model_state)
+    train_state = train_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
+
+    print()
+    print(f"{bcolors.BOLD}===============Testing DeepST Cluster Analysis===============")
+    cluster_analysis_test = Test_Cluster_Analysis(session_state=train_state)
+    cluster_analysis_state = cluster_analysis_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
     print()
     print(f"{bcolors.BOLD}===============Testing Trajectory Inference===============")

@@ -78,7 +78,7 @@ class Preprocess:
 
         with tab_total:
             with st.form(key="form_normalize_total"):
-                target_sum = st.number_input(label="Target sum", value=1)
+                target_sum = st.number_input(label="Target sum", value=1, key="ni_target_sum")
                 exclude_high_expr = st.checkbox(label="Exclude highly expressed", value=False)
 
                 subcol1, _, _ = st.columns(3)
