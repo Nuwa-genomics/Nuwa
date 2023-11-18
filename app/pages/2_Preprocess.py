@@ -70,6 +70,11 @@ class Preprocess:
                         sc.pp.log1p(self.adata)
                         #TODO:Add more params as input
                         sc.pp.highly_variable_genes(self.adata, min_mean=min_mean, max_mean=max_mean, min_disp=0.5)
+                        #make adata
+                        st.session_state.adata_state.add_adata(AdataModel(
+                            work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                            filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+                        st.session_state.adata_state.switch_adata(adata_name="adata_pp")
                         ax = sc.pl.highly_variable_genes(self.adata)
                         st.pyplot(ax)
 
@@ -87,6 +92,11 @@ class Preprocess:
 
                 if submit_btn:
                     sc.pp.normalize_total(self.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr)
+                    #make adata
+                    st.session_state.adata_state.add_adata(AdataModel(
+                        work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                        filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+                    st.session_state.adata_state.switch_adata(adata_name="adata_pp")
                     st.toast("Normalized data", icon='✅')
         with tab_per_cell:
             with st.form(key="form_normalize_per_cell"):
@@ -97,6 +107,11 @@ class Preprocess:
 
                 if submit_btn:
                     sc.pp.normalize_per_cell(self.adata, counts_per_cell_after=counts_per_cell_after)
+                    #make adata
+                    st.session_state.adata_state.add_adata(AdataModel(
+                        work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                        filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+                    st.session_state.adata_state.switch_adata(adata_name="adata_pp")
                     st.toast("Normalized data", icon='✅')
 
     def filter_cells(self):
@@ -164,6 +179,11 @@ class Preprocess:
                 else:
                     st.error("Recipe not found")
 
+                #make adata
+                st.session_state.adata_state.add_adata(AdataModel(
+                    work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                    filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+                st.session_state.adata_state.switch_adata(adata_name="adata_pp")
                 st.toast(f"Applied recipe: {st.session_state.sb_pp_recipe}", icon='✅')
 
     
@@ -174,6 +194,12 @@ class Preprocess:
             
             self.adata.var['mt'] = self.adata.var_names.str.startswith(('MT-', 'mt-'))
             sc.pp.calculate_qc_metrics(self.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
+            #make adata
+            st.session_state.adata_state.add_adata(AdataModel(
+                work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+            st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                
             st.text(f"Found {self.adata.var.mt.sum()} mitochondrial genes")
             subcol1, subcol2, subcol3 = st.columns(3, gap="small")
             with subcol1:
@@ -193,6 +219,11 @@ class Preprocess:
 
             if mito_annot_submit_btn:
                 self.adata = self.adata[self.adata.obs.pct_counts_mt < max_pct_counts_mt, :]
+                #make adata
+                st.session_state.adata_state.add_adata(AdataModel(
+                    work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                    filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+                st.session_state.adata_state.switch_adata(adata_name="adata_pp")
 
             
 
@@ -205,6 +236,12 @@ class Preprocess:
                 ribo_genes = pd.read_table(ribo_url, skiprows=2, header=None)
                 self.adata.var['ribo'] = self.adata.var_names.isin(ribo_genes[0].values)
                 sc.pp.calculate_qc_metrics(self.adata, qc_vars=['ribo'], percent_top=None, log1p=False, inplace=True)
+                #make adata
+                st.session_state.adata_state.add_adata(AdataModel(
+                    work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                    filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+                st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                
                 st.text(f"Found {self.adata.var['ribo'].sum()} ribosomal genes")
 
                 subcol1, subcol2, subcol3 = st.columns(3, gap="small")
@@ -225,6 +262,11 @@ class Preprocess:
 
             if ribo_annot_submit_btn:
                 self.adata = self.adata[self.adata.obs.pct_counts_ribo < max_pct_counts_ribo, :]
+                #make adata
+                st.session_state.adata_state.add_adata(AdataModel(
+                    work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                    filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+                st.session_state.adata_state.switch_adata(adata_name="adata_pp")
 
     def run_scrublet(self):
         with st.form(key="scrublet_form"):
@@ -238,6 +280,11 @@ class Preprocess:
                 with st.spinner("Running scrublet"):
                     adata_scrublet = sc.external.pp.scrublet(self.adata, sim_doublet_ratio=sim_doublet_ratio, expected_doublet_rate=expected_doublet_rate)
                     self.adata = adata_scrublet #TODO: only temporary, change to saving separately
+                    #make adata
+                    st.session_state.adata_state.add_adata(AdataModel(
+                        work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                        filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+                    st.session_state.adata_state.switch_adata(adata_name="adata_pp")
 
             
 

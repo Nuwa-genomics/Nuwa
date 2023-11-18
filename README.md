@@ -77,6 +77,16 @@ View expression profiles while retaining spatial information. Currently includes
 
 ![Spatial transcriptomics](screenshots/spatial.png "Spatial transcriptomics screenshot")
 
+## Run on mobile
+
+For security reasons the web server is only accessible over a local interface. To disable this run:
+```
+SERVER_ADDR=0.0.0.0 docker-compose up --build
+```
+The app can then be accessed on http://IP_ADDRESS_OF_COMPUTER in your phone's browser.
+
+The host's filesysystem will not be accessible to others however PLEASE BE AWARE THIS WILL ALLOW ANYONE IN YOUR LOCAL NETWORK TO ACCESS THE WEB SERVER AND HENCE YOUR COMPUTER'S RESOUCES, DOCKER ENVIRONMENT.. ETC. 
+
 ## Running Tests
 
 Unit tests can be run using the tests docker compose file:
