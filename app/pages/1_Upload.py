@@ -80,20 +80,21 @@ class Upload:
         dataset_options = ['none', 'krumsiek11', 'moignard15', 'pbmc3k', 'pbmc3k_processed', 'pbmc68k_reduced', 'paul15', 'visium_sge']   
         scanpy_ds = st.selectbox(label="Dataset", options=dataset_options, key="sb_sc_datasets")
         if scanpy_ds != 'none':
-            if(st.session_state.sb_sc_datasets == 'krumsiek11'):
-                self.adata = sc.datasets.krumsiek11()
-            if(st.session_state.sb_sc_datasets == 'moignard15'):
-                self.adata = sc.datasets.moignard15()
-            if(st.session_state.sb_sc_datasets == 'pbmc3k'):
-                self.adata = sc.datasets.pbmc3k()
-            if(st.session_state.sb_sc_datasets == 'pbmc3k_processed'):
-                self.adata = sc.datasets.pbmc3k_processed()
-            if(st.session_state.sb_sc_datasets == 'pbmc68k_reduced'):
-                self.adata = sc.datasets.pbmc68k_reduced()
-            if(st.session_state.sb_sc_datasets == 'paul15'):
-                self.adata = sc.datasets.paul15()
-            if(st.session_state.sb_sc_datasets == 'visium_sge'):
-                self.adata = sc.datasets.visium_sge()
+            with st.spinner(text="Loading dataset"):
+                if(st.session_state.sb_sc_datasets == 'krumsiek11'):
+                    self.adata = sc.datasets.krumsiek11()
+                if(st.session_state.sb_sc_datasets == 'moignard15'):
+                    self.adata = sc.datasets.moignard15()
+                if(st.session_state.sb_sc_datasets == 'pbmc3k'):
+                    self.adata = sc.datasets.pbmc3k()
+                if(st.session_state.sb_sc_datasets == 'pbmc3k_processed'):
+                    self.adata = sc.datasets.pbmc3k_processed()
+                if(st.session_state.sb_sc_datasets == 'pbmc68k_reduced'):
+                    self.adata = sc.datasets.pbmc68k_reduced()
+                if(st.session_state.sb_sc_datasets == 'paul15'):
+                    self.adata = sc.datasets.paul15()
+                if(st.session_state.sb_sc_datasets == 'visium_sge'):
+                    self.adata = sc.datasets.visium_sge()
             
             self.show_anndata(self.adata)
         

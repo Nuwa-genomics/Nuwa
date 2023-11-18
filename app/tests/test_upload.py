@@ -35,7 +35,7 @@ class Test_Upload:
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         print(f"{bcolors.OKBLUE}Testing select dataset... {bcolors.ENDC}", end="")
-        self.at.selectbox(key="sb_sc_datasets").select("pbmc3k").run()
+        self.at.selectbox(key="sb_sc_datasets").select("pbmc3k").run(timeout=100)
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
 

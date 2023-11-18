@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from database.schemas import schemas
 from utils.AdataState import AdataState
 from time import sleep
+import os
 
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
@@ -86,7 +87,7 @@ class Preprocess:
 
                 if submit_btn:
                     sc.pp.normalize_total(self.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr)
-                    st.toast("Normalized data")
+                    st.toast("Normalized data", icon='✅')
         with tab_per_cell:
             with st.form(key="form_normalize_per_cell"):
                 counts_per_cell_after = st.number_input(label="Counts per cell after")
@@ -96,7 +97,7 @@ class Preprocess:
 
                 if submit_btn:
                     sc.pp.normalize_per_cell(self.adata, counts_per_cell_after=counts_per_cell_after)
-                    st.toast("Normalized data")
+                    st.toast("Normalized data", icon='✅')
 
     def filter_cells(self):
         with st.form(key="form_filter_cells"):
@@ -115,6 +116,11 @@ class Preprocess:
 
             if submit_btn:
                 sc.pp.filter_cells(self.adata, max_genes=max_genes, min_genes=min_genes, max_counts=max_count, min_counts=min_count)
+                #make adata
+                st.session_state.adata_state.add_adata(AdataModel(
+                    work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                    filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+                st.session_state.adata_state.switch_adata(adata_name="adata_pp")
                 st.toast("Filtered cells", icon='✅')
 
 
@@ -133,6 +139,11 @@ class Preprocess:
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if submit_btn:
                 sc.pp.filter_genes(self.adata, max_cells=max_cells, min_cells=min_cells, max_counts=max_count, min_counts=min_count)
+                #make adata
+                st.session_state.adata_state.add_adata(AdataModel(
+                    work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                    filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+                st.session_state.adata_state.switch_adata(adata_name="adata_pp")
                 st.toast("Filtered genes", icon='✅')
 
 
@@ -231,7 +242,6 @@ class Preprocess:
             
 
 try:
-    st.session_state["adata_state"] = st.session_state.adata_state
     sidebar = Sidebar()
 
     sidebar.show()

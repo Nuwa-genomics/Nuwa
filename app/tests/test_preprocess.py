@@ -12,6 +12,8 @@ from sqlalchemy.orm import Session
 from database.schemas import schemas
 from utils.AdataState import AdataState
 
+import scanpy as sc
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -94,7 +96,7 @@ class Test_Preprocess:
         #test notes
         assert self.at.text_area(key="sidebar_notes").value == "test_note"
         #test delete adata
-        self.at.button(key="btn_delete_adata").click().run()
+        self.at.button(key="btn_delete_adata").click().run(timeout=100)
         assert self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == "adata_test") \
         .filter(schemas.Adata.notes == "test_note") \
         .filter(schemas.Adata.work_id == self.at.session_state.current_workspace.id).count() == 0
@@ -116,19 +118,33 @@ class Test_Preprocess:
         
     def test_filter_cells(self):
         print(f"{bcolors.OKBLUE}test_filter_cells {bcolors.ENDC}", end="")
-        self.at.number_input(key="filter_cell_min_genes").set_value(3)
+        self.at.number_input(key="filter_cell_min_genes").set_value(300)
         #TODO: add other inputs
-        self.at.button(key="FormSubmitter:form_filter_cells-Apply").click().run()
+        self.at.button(key="FormSubmitter:form_filter_cells-Apply").click().run(timeout=100)
+        #test filter
+        adata = sc.datasets.pbmc3k()
+        sc.pp.filter_cells(adata, min_genes=300)
+        assert len(self.at.session_state.current_adata.obs) == len(adata.obs) #2685
+        assert len(self.at.session_state.current_adata.var) == len(adata.var) #32738
+        from_file_adata = sc.read(self.at.session_state.adata_state.current.filename)
+        assert len(from_file_adata.var) == len(adata.var)
+        assert len(from_file_adata.obs) == len(adata.obs)
         
     def test_filter_genes(self):
         print(f"{bcolors.OKBLUE}test_filter_genes {bcolors.ENDC}", end="")
-        self.at.number_input(key="filter_gene_min_cells").set_value(100)
-        self.at.button(key="FormSubmitter:form_filter_genes-Apply").click().run()
+        self.at.number_input(key="filter_gene_min_cells").set_value(3)
+        self.at.button(key="FormSubmitter:form_filter_genes-Apply").click().run(timeout=100)
+        #use values from last filter
+        assert len(self.at.session_state.current_adata.obs) == 2685 
+        assert len(self.at.session_state.current_adata.var) == 13708
+        from_file_adata = sc.read(self.at.session_state.adata_state.current.filename)
+        assert len(from_file_adata.var) == 13708
+        assert len(from_file_adata.obs) == 2685
         
     def test_pp_recipe(self):
         print(f"{bcolors.OKBLUE}test_pp_recipe {bcolors.ENDC}", end="")
         self.at.selectbox(key="sb_pp_recipe").select("Seurat")
-        self.at.button(key="FormSubmitter:form_recipes-Apply").click().run()
+        self.at.button(key="FormSubmitter:form_recipes-Apply").click().run(timeout=100)
         
     def test_doublet_prediction(self):
         print(f"{bcolors.OKBLUE}test_doublet_prediction {bcolors.ENDC}", end="")
@@ -139,22 +155,22 @@ class Test_Preprocess:
     def test_annot_mito(self):
         print(f"{bcolors.OKBLUE}test_annot_mito {bcolors.ENDC}", end="")
         self.at.number_input(key="ni_pct_counts_mt").set_value(5)
-        self.at.button(key="FormSubmitter:form_annotate_mito-Apply").click().run()
+        self.at.button(key="FormSubmitter:form_annotate_mito-Apply").click().run(timeout=100)
         
     def test_annot_ribo(self):
         print(f"{bcolors.OKBLUE}test_annot_ribo {bcolors.ENDC}", end="")
         self.at.number_input(key="ni_pct_counts_ribo").set_value(5)
-        self.at.button(key="FormSubmitter:form_annotate_ribo-Apply").click().run()
+        self.at.button(key="FormSubmitter:form_annotate_ribo-Apply").click().run(timeout=100)
         
     def test_normalize_data(self):
         print(f"{bcolors.OKBLUE}test_normalize_data {bcolors.ENDC}", end="")
         self.at.number_input(key="ni_target_sum").set_value(1)
-        self.at.button(key="FormSubmitter:form_normalize_total-Apply").click().run()
+        self.at.button(key="FormSubmitter:form_normalize_total-Apply").click().run(timeout=100)
         
     def test_notes(self):
         print(f"{bcolors.OKBLUE}test_notes {bcolors.ENDC}", end="")
-        self.at.selectbox(key="sb_adata_selection").select("adata_raw").run()
-        self.at.text_area(key="sidebar_notes").input("Important notes").run()
+        self.at.selectbox(key="sb_adata_selection").select("adata_raw").run(timeout=150)
+        self.at.text_area(key="sidebar_notes").input("Important notes").run(timeout=150)
         adata = self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == "adata_raw") \
         .filter(schemas.Adata.work_id == self.at.session_state.current_workspace.id).first()
         assert adata.notes == "Important notes"

@@ -61,7 +61,7 @@ class AdataState:
             if not adata.adata:
                 if self.current == None:
                     raise Exception
-                adata.adata = self.current.adata.copy() #adata doesn't come from sender, so add it here
+                adata.adata = self.current.adata.copy() #if adata doesn't come from sender, add it here
             
             self.insert_record(adata)
         except Exception as e:
@@ -85,10 +85,11 @@ class AdataState:
             
             
             if os.path.exists(adata.filename):
-                self.conn.add(new_adata)
-                self.conn.commit()
-                self.conn.refresh(new_adata)
-                st.toast("Created new adata", icon="✅")
+                if self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == adata.adata_name).filter(schemas.Adata.work_id == adata.work_id).count() == 0:
+                    self.conn.add(new_adata)
+                    self.conn.commit()
+                    self.conn.refresh(new_adata)
+                    st.toast("Created new adata", icon="✅")
             else:
                 print("Error: file doesn't exist")
                 raise Exception
