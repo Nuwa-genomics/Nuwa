@@ -88,6 +88,14 @@ class Dashboard:
                                             st.subheader(f"{workspace.workspace_name}")
                                             st.write(f"{workspace.description}")
                                             st.write(f"{workspace.created.ctime()}")
+                                            def delete_workspace():
+                                                try:
+                                                    self.conn.query(schemas.Workspaces).filter(schemas.Workspaces.id == st.session_state.current_workspace.id).delete()
+                                                    self.conn.commit()
+                                                    st.toast("Successfully deleted workspace", icon="✅")
+                                                except Exception as e:
+                                                    st.toast("Failed to delete workspace", icon="❌")
+                                            st.button(label="🗑️ Delete workspace", on_click=delete_workspace, key="btn_delete_workspace")
                                             st.divider()
         else:
             st.markdown("""<p style='font-size: 20px;'>You don't have any workspaces yet 🧪</p>""", unsafe_allow_html=True)
