@@ -241,8 +241,6 @@ try:
     sidebar = Sidebar()
     sidebar.show()
 
-    st.session_state["current_adata"] = adata_state.current.adata
-
     analysis = Analysis(adata_state.current.adata)
 
     analysis.autoencoder_cluster_plot()

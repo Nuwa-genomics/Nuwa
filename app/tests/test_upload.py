@@ -22,7 +22,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 class Test_Upload:
-    def __init__(self, session_state = None):
+    def __init__(self, session_state = None, dataset="pbmc3k"):
         print(f"{bcolors.OKBLUE}Initialising page... {bcolors.ENDC}", end="")
         self.at = AppTest.from_file("pages/1_Upload.py")
         if session_state is not None:
@@ -35,7 +35,7 @@ class Test_Upload:
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         print(f"{bcolors.OKBLUE}Testing select dataset... {bcolors.ENDC}", end="")
-        self.at.selectbox(key="sb_sc_datasets").select("pbmc3k").run(timeout=100)
+        self.at.selectbox(key="sb_sc_datasets").select(dataset).run(timeout=100)
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
 

@@ -19,7 +19,8 @@ class Test_Trajectory_Inference:
         self.at = AppTest.from_file("pages/6_Trajectory_Inference.py")
         if session_state is not None:
             self.at.session_state = session_state
-        self.at.run(timeout=1000)
+            
+        self.at.run(timeout=100)
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         

@@ -181,7 +181,6 @@ try:
 
     sidebar.show()
 
-    st.session_state["current_adata"] = adata_state.current.adata
     tji = Trajectory_Inference(adata_state.current.adata)
 
     tji.draw_page()

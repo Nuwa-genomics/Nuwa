@@ -157,8 +157,6 @@ try:
     sidebar = Sidebar()
     sidebar.show()
 
-    st.session_state["current_adata"] = adata_state.current.adata
-
     spatial_t = Spatial_Transcriptomics(adata_state.current.adata)
     spatial_t.draw_page()
     sidebar.show_preview()

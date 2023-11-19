@@ -16,7 +16,7 @@ class Sidebar:
             with st.sidebar:
                 with st.expander(label="Show Preview"):
                     st.subheader("Anndata preview")
-                    st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.current_adata}</p>""", unsafe_allow_html=True)
+                    st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_state.current.adata}</p>""", unsafe_allow_html=True)
 
     def delete_experiment_btn(self):
         with st.sidebar:
@@ -84,10 +84,9 @@ class Sidebar:
                 if not selected_adata:
                     st.toast("Couldn't find selected adata to save")
                 else:
-                    sc.write(filename=f"{os.getenv('WORKDIR')}/downloads/{selected_adata.adata_name}.h5ad", adata=st.session_state.current_adata)
+                    sc.write(filename=f"{os.getenv('WORKDIR')}/downloads/{selected_adata.adata_name}.h5ad", adata=st.session_state.adata_state.current.adata)
                     st.toast("Downloaded file", icon='✅')
-            st.session_state['adata_options']=[item.adata_name for item in st.session_state.adata_state.load_adata(st.session_state.current_workspace.id)]
-            st.selectbox(label="Current Experiment:", options=st.session_state.adata_options, key="sb_adata_selection", on_change=set_adata, index=(len(st.session_state.adata_options) - 1))
+            st.selectbox(label="Current Experiment:", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection", on_change=set_adata, index=st.session_state.adata_state.get_index_of_current())
             st.button(label="Download adata file", on_click=save_file, use_container_width=True, key="btn_save_adata")
             st.button(label="Add experiment", on_click=self.add_experiment, use_container_width=True, key="btn_add_adata")
             self.show_notes()

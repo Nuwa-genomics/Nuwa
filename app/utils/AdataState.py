@@ -30,6 +30,7 @@ class AdataState:
         self.raw: AdataModel = AdataModel(work_id=raw.work_id, id=raw.id, filename=raw.filename, notes=raw.notes, 
             adata=sc.read_h5ad(raw_filename), created=raw.created, adata_name=raw.adata_name)
         self.current: AdataModel = self.raw
+        self.current_index = self.get_index_of_current()
 
     def __iter__(self):
         for adata in self.adata_list:
@@ -39,8 +40,18 @@ class AdataState:
         new_current = self.load_adata(workspace_id=self.workspace_id, adata_name=adata_name)
         if new_current != -1:
             self.current = new_current
+            self.current_index = self.get_index_of_current()
         else:
             return -1
+        
+    def get_adata_options(self):
+        return [item.adata_name for item in self.load_adata(self.workspace_id)]
+        
+    def get_index_of_current(self):
+        adata_list = self.load_adata(workspace_id=self.workspace_id)
+        for i, adata in enumerate(adata_list):
+            if adata.adata_name == self.current.adata_name:
+                return i
 
     def load_adata(self, workspace_id, adata_name = None):
         #if no adata is provided fetch all

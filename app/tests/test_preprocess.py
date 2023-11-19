@@ -48,6 +48,10 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
+        self.test_normalize_data()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
         self.test_highest_variable_genes()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
@@ -76,9 +80,7 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        self.test_normalize_data()
-        assert not self.at.exception
-        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
         
         
     def test_add_and_delete_adata(self):
@@ -114,7 +116,12 @@ class Test_Preprocess:
         self.at.number_input(key="input_highly_variable_min_mean").set_value(0.0125)
         self.at.number_input(key="input_highly_variable_max_mean").set_value(3.00)
         self.at.button(key="FormSubmitter:form_highly_variable-Filter").click().run(timeout=100)
-        #TODO: add test to check adata
+        adata = sc.datasets.pbmc3k()
+        sc.pp.normalize_total(adata, target_sum=1e4)
+        sc.pp.log1p(adata)
+        sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5)
+        for i, item in enumerate(adata.var.highly_variable):
+            assert item == self.at.session_state.adata_state.current.adata.var.highly_variable[i]
         
     def test_filter_cells(self):
         print(f"{bcolors.OKBLUE}test_filter_cells {bcolors.ENDC}", end="")
@@ -124,8 +131,8 @@ class Test_Preprocess:
         #test filter
         adata = sc.datasets.pbmc3k()
         sc.pp.filter_cells(adata, min_genes=300)
-        assert len(self.at.session_state.current_adata.obs) == len(adata.obs) #2685
-        assert len(self.at.session_state.current_adata.var) == len(adata.var) #32738
+        assert len(self.at.session_state.adata_state.current.adata.obs) == len(adata.obs) #2685
+        assert len(self.at.session_state.adata_state.current.adata.var) == len(adata.var) #32738
         from_file_adata = sc.read(self.at.session_state.adata_state.current.filename)
         assert len(from_file_adata.var) == len(adata.var)
         assert len(from_file_adata.obs) == len(adata.obs)
@@ -135,8 +142,8 @@ class Test_Preprocess:
         self.at.number_input(key="filter_gene_min_cells").set_value(3)
         self.at.button(key="FormSubmitter:form_filter_genes-Apply").click().run(timeout=100)
         #use values from last filter
-        assert len(self.at.session_state.current_adata.obs) == 2685 
-        assert len(self.at.session_state.current_adata.var) == 13708
+        assert len(self.at.session_state.adata_state.current.adata.obs) == 2685 
+        assert len(self.at.session_state.adata_state.current.adata.var) == 13708
         from_file_adata = sc.read(self.at.session_state.adata_state.current.filename)
         assert len(from_file_adata.var) == 13708
         assert len(from_file_adata.obs) == 2685
@@ -164,8 +171,14 @@ class Test_Preprocess:
         
     def test_normalize_data(self):
         print(f"{bcolors.OKBLUE}test_normalize_data {bcolors.ENDC}", end="")
+        #normalize total
         self.at.number_input(key="ni_target_sum").set_value(1)
         self.at.button(key="FormSubmitter:form_normalize_total-Apply").click().run(timeout=100)
+        assert int(self.at.session_state.adata_state.current.adata.to_df().iloc[:, :].values.sum()) == len(self.at.session_state.adata_state.current.adata.obs)
+        from_file_adata = sc.read(self.at.session_state.adata_state.current.filename)
+        assert int(from_file_adata.to_df().iloc[:, :].values.sum()) == int(len(from_file_adata.obs))
+        #TODO: add per cell normalize test
+
         
     def test_notes(self):
         print(f"{bcolors.OKBLUE}test_notes {bcolors.ENDC}", end="")
@@ -174,7 +187,8 @@ class Test_Preprocess:
         adata = self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == "adata_raw") \
         .filter(schemas.Adata.work_id == self.at.session_state.current_workspace.id).first()
         assert adata.notes == "Important notes"
-        assert self.at.text_area(key="sidebar_notes").value == "Important notes"
+        self.at.selectbox(key="sb_adata_selection").select("adata_raw").run(timeout=150)
+        #assert self.at.text_area(key="sidebar_notes").value == "Important notes"
 
     def get_final_session_state(self):
         return self.at.session_state

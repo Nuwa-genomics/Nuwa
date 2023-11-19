@@ -55,28 +55,30 @@ class Preprocess:
 
 
     def filter_highly_variable_genes(self):
-        with st.form(key="form_highly_variable"):
-            st.subheader("Show highly variable genes")
-            min_mean = st.number_input(label="min mean", value=0.0125, key="input_highly_variable_min_mean")
-            max_mean = st.number_input(label="max mean", value=3.0, key="input_highly_variable_max_mean")
-            fn = 'figures/filter_genes_dispersion.pdf'
-            subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Filter", use_container_width=True)
+        try:
+            with st.form(key="form_highly_variable"):
+                st.subheader("Show highly variable genes")
+                min_mean = st.number_input(label="min mean", value=0.0125, key="input_highly_variable_min_mean")
+                max_mean = st.number_input(label="max mean", value=3.0, key="input_highly_variable_max_mean")
+                fn = 'figures/filter_genes_dispersion.pdf'
+                subcol1, _, _ = st.columns(3)
+                submit_btn = subcol1.form_submit_button(label="Filter", use_container_width=True)
 
-            if submit_btn:
-                with st.spinner(text="Calculating highly variable genes"):
-                    with st.expander(label="Show figure"):
-                        sc.pp.normalize_total(self.adata, target_sum=1e4)
-                        sc.pp.log1p(self.adata)
-                        #TODO:Add more params as input
-                        sc.pp.highly_variable_genes(self.adata, min_mean=min_mean, max_mean=max_mean, min_disp=0.5)
-                        #make adata
-                        st.session_state.adata_state.add_adata(AdataModel(
-                            work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                            filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-                        st.session_state.adata_state.switch_adata(adata_name="adata_pp")
-                        ax = sc.pl.highly_variable_genes(self.adata)
-                        st.pyplot(ax)
+                if submit_btn:
+                    with st.spinner(text="Calculating highly variable genes"):
+                        with st.expander(label="Show figure"):
+                            sc.pp.normalize_total(self.adata, target_sum=1e4)
+                            sc.pp.log1p(self.adata)
+                            sc.pp.highly_variable_genes(self.adata, min_mean=min_mean, max_mean=max_mean, min_disp=0.5)
+                            #make adata
+                            st.session_state.adata_state.add_adata(AdataModel(
+                                work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                                filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+                            st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                            ax = sc.pl.highly_variable_genes(self.adata)
+                            st.pyplot(ax)
+        except Exception as e:
+            st.toast(f"Failed to normalize data: {e}", icon="❌")
 
     def normalize_counts(self):
         st.subheader("Normalization")
@@ -194,11 +196,6 @@ class Preprocess:
             
             self.adata.var['mt'] = self.adata.var_names.str.startswith(('MT-', 'mt-'))
             sc.pp.calculate_qc_metrics(self.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
-            #make adata
-            st.session_state.adata_state.add_adata(AdataModel(
-                work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-            st.session_state.adata_state.switch_adata(adata_name="adata_pp")
                 
             st.text(f"Found {self.adata.var.mt.sum()} mitochondrial genes")
             subcol1, subcol2, subcol3 = st.columns(3, gap="small")
@@ -236,11 +233,6 @@ class Preprocess:
                 ribo_genes = pd.read_table(ribo_url, skiprows=2, header=None)
                 self.adata.var['ribo'] = self.adata.var_names.isin(ribo_genes[0].values)
                 sc.pp.calculate_qc_metrics(self.adata, qc_vars=['ribo'], percent_top=None, log1p=False, inplace=True)
-                #make adata
-                st.session_state.adata_state.add_adata(AdataModel(
-                    work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                    filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-                st.session_state.adata_state.switch_adata(adata_name="adata_pp")
                 
                 st.text(f"Found {self.adata.var['ribo'].sum()} ribosomal genes")
 
@@ -294,7 +286,7 @@ try:
     sidebar.show()
 
     st.session_state["current_adata"] = st.session_state.adata_state.current.adata
-    preprocess = Preprocess(st.session_state.adata_state.current.adata)
+    preprocess = Preprocess(st.session_state.adata_state.current.adata.copy())
 
     col1, col2, col3 = st.columns(3, gap="medium")
 

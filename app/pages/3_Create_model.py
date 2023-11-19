@@ -331,7 +331,7 @@ def create_deepst(adata):
 
 
 def change_model():
-    adata = st.session_state["current_adata"]
+    adata = st.session_state.adata_state.current.adata
     if st.session_state.sb_model_selection == 'Citeseq (dimensionality reduction)':
         create_citeseq(adata)
     elif st.session_state.sb_model_selection == 'Solo (doublet removal)':
@@ -343,8 +343,6 @@ def change_model():
 try:
     sidebar = Sidebar()
     sidebar.show()
-
-    st.session_state["current_adata"] = st.session_state.adata_state.current.adata
 
     st.title("Create Model")
 
