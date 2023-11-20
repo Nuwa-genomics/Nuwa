@@ -67,22 +67,24 @@ class CreateCiteSeqModel:
         #initialize model object
         self.model_dict = {
             "model": None,
-            "lr": 1e-2,
-            "n_epochs": 100,
+            "lr": st.session_state.ni_citeseq_lr,
+            "n_epochs": st.session_state.ni_citeseq_epochs,
             "n_features": self.adata.to_df().shape[1],
-            "optim": 'Adam',
-            "test_split": 0.1,
+            "optim": st.session_state.sb_citeseq_optim,
+            "test_split": round(1 - (st.session_state.citeseq_train_test_split / 100), 2),
             "train_dl": None,
             "valid_dl": None
         }
 
         st.session_state['model_obj'] = self.model_dict
 
-    def create_datasets(self, df, test_size=None):
+    def create_datasets(self, test_size=None):
+ 
+        df = self.adata.to_df()
 
         if test_size == None:
             #get value from input
-            input_test_value = st.session_state["input_train_test_split"]
+            input_test_value = st.session_state["citeseq_train_test_split"]
             test_size = input_test_value / 100
 
             if test_size > 0.9:
@@ -105,15 +107,15 @@ class CreateCiteSeqModel:
         return train_dl, valid_dl
     
     def change_hyperparams(self):
-        st.session_state.model_obj["lr"] = st.session_state.input_lr
+        st.session_state.model_obj["lr"] = st.session_state.ni_citeseq_lr
         st.session_state.model_obj["n_epochs"] = st.session_state.ni_citeseq_epochs
-        st.session_state.model_obj["optim"] = st.session_state.input_optim
+        st.session_state.model_obj["optim"] = st.session_state.sb_citeseq_optim
 
     def set_hyperparams(self):
         st.subheader("Set model hyperparameters")
         st.number_input(label="Epochs", min_value=1, key="ni_citeseq_epochs", value=100, on_change=self.change_hyperparams)
-        st.number_input(label="Learning rate", min_value=1e-4, max_value=1.0, value=1e-3, key="input_lr", step=1e-3, format='%.4f', on_change=self.change_hyperparams)
-        st.selectbox(label="Optimizer", options=(["Adam", "SGD", "RMSProp"]), key="input_optim", on_change=self.change_hyperparams)
+        st.number_input(label="Learning rate", min_value=1e-4, max_value=1.0, value=1e-3, key="ni_citeseq_lr", step=1e-3, format='%.4f', on_change=self.change_hyperparams)
+        st.selectbox(label="Optimizer", options=(["Adam", "SGD", "RMSProp"]), key="sb_citeseq_optim", on_change=self.change_hyperparams)
 
     def set_autoencoder(self):
         st.subheader("Autoencoder")
@@ -122,7 +124,7 @@ class CreateCiteSeqModel:
 
     def set_train_test_split(self):
         st.subheader("Train/test split")
-        st.slider(label=f"Train data %", min_value=1, max_value=99, value=90, key="input_train_test_split", on_change=self.create_datasets)
+        st.slider(label=f"Train data %", min_value=1, max_value=99, value=90, key="citeseq_train_test_split", on_change=self.create_datasets)
 
     def build_model(self, df):
 
@@ -185,28 +187,28 @@ class CreateSoloModel:
         self.device = "cpu" if st.session_state["sb_select_device_solo"] == "CPU" else "cuda"
         st.session_state["device"] = self.device
 
-    def init_model(self, epochs, lr, train_size):
+    def init_model(self):
         #initialize model object
         self.model_dict = {
             "model": None,
-            "n_epochs": epochs,
-            "train_size": train_size,
-            "lr": lr,
+            "n_epochs": st.session_state.ni_vae_epochs,
+            "train_size": round((100 - st.session_state.input_train_size_solo_vae) / 100, 2),
+            "lr": st.session_state.ni_solo_lr,
             "device": self.device
         }
 
         st.session_state['model_obj'] = self.model_dict
 
-    def build_model(self, epochs, lr, train_size):
+    def build_model(self):
+        lr = st.session_state.ni_solo_lr
+        epochs = st.session_state.ni_vae_epochs
+        train_size = round((100 - st.session_state.input_train_size_solo_vae) / 100, 2)
         model = solo_model(adata=self.adata, epochs=epochs, lr=lr, train_size=train_size, use_gpu=(self.device == "cuda"))
         st.session_state.model_obj["model"] = model
 
     def change_hyperparams(self):
-        epochs = st.session_state.ni_vae_epochs
-        lr = st.session_state.ni_solo_lr
-        train_size = (100 - st.session_state.input_train_size_solo_vae) / 100
-        self.init_model(lr=lr, epochs=epochs, train_size=train_size)
-        self.build_model(epochs=epochs, lr=lr, train_size=train_size)
+        self.init_model()
+        self.build_model()
 
 
 class CreateDeepSTModel:
@@ -294,7 +296,7 @@ def create_citeseq(adata):
 
     create_model.build_model(adata.to_df())
 
-    create_model.create_datasets(adata.to_df(), test_size=st.session_state.model_obj["test_split"])
+    create_model.create_datasets(test_size=st.session_state.model_obj["test_split"])
 
     st.subheader("Model summary")
     st.json(st.session_state.model_obj, expanded=False)
@@ -306,11 +308,9 @@ def create_solo(adata):
 
     create_model.draw_page()
 
-    create_model.init_model(lr=st.session_state.ni_solo_lr, epochs=st.session_state.ni_vae_epochs, 
-                            train_size=(100 - st.session_state.input_train_size_solo_vae) / 100)
+    create_model.init_model()
 
-    create_model.build_model(lr=st.session_state.ni_solo_lr, epochs=st.session_state.ni_vae_epochs, 
-                             train_size=(100 - st.session_state.input_train_size_solo_vae) / 100)
+    create_model.build_model()
 
     st.subheader("Model summary")
     st.json(st.session_state.model_obj, expanded=False)

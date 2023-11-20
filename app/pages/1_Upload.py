@@ -109,6 +109,7 @@ class Upload:
             if ebi_form_btn:
                 with st.spinner(text="Fetching dataset"):
                     dataset = sc.datasets.ebi_expression_atlas(accession=accession_str)
+                    self.show_anndata(dataset)
 
 
     def show_anndata(self, adata, f = None):

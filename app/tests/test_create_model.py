@@ -26,8 +26,26 @@ class Test_Create_Model:
             #reduce epochs for quick testing
             if model == "Citeseq (dimensionality reduction)":
                 self.at.number_input(key="ni_citeseq_epochs").set_value(10).run(timeout=100)
+                self.at.number_input(key="ni_citeseq_lr").set_value(0.0015).run(timeout=100)
+                self.at.selectbox(key="sb_citeseq_optim").set_value("SGD").run(timeout=100)
+                self.at.selectbox(key="sb_citeseq_optim").set_value("Adam").run(timeout=100)
+                self.at.slider(key="citeseq_train_test_split").set_value(89).run(timeout=100)
+                
+                assert self.at.session_state.model_obj["lr"] == 0.0015
+                assert self.at.session_state.model_obj["n_epochs"] == 10
+                assert self.at.session_state.model_obj["test_split"] == 0.11
+                assert self.at.session_state.model_obj["optim"] == "Adam"
+                assert self.at.session_state.model_obj["n_features"] == self.at.session_state.adata_state.current.adata.to_df().shape[1]
+                
             elif model == "Solo (doublet removal)":
                 self.at.number_input(key="ni_vae_epochs").set_value(10).run(timeout=100)
+                self.at.number_input(key="ni_solo_lr").set_value(0.0015).run(timeout=100)
+                self.at.slider(key="input_train_size_solo_vae").set_value(89).run(timeout=100)
+                
+                assert self.at.session_state.model_obj["lr"] == 0.0015
+                assert self.at.session_state.model_obj["n_epochs"] == 10
+                assert self.at.session_state.model_obj["train_size"] == 0.11
+                
             elif model == "DeepST (identify spatial domains)":
                 self.at.number_input(key="ni_deepst_epochs").set_value(10).run(timeout=100)
                 self.at.number_input(key="ni_deepst_preepochs").set_value(10).run(timeout=100)
