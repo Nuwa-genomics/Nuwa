@@ -1,11 +1,12 @@
 from streamlit.testing.v1 import AppTest
 from utils.AdataState import AdataState
-import time
 
 from models.WorkspaceModel import WorkspaceModel
 from database.database import SessionLocal
 from sqlalchemy.orm import Session
 from database.schemas import schemas
+import shutil
+import os
 
 class bcolors:
     HEADER = '\033[95m'
@@ -18,9 +19,9 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 class Test_Dashboard:
-    def __init__(self, workspace_name, session_state = None):
+    def __init__(self, workspace_nonce, session_state = None):
         print(f"{bcolors.OKBLUE}Initialising page... {bcolors.ENDC}")
-        self.workspace_name = workspace_name
+        self.workspace_nonce = workspace_nonce
         self.conn: Session = SessionLocal()
         
         self.at = AppTest.from_file("Dashboard.py")
@@ -46,34 +47,39 @@ class Test_Dashboard:
 
     def test_create_new_workspace(self):
         print(f"{bcolors.OKBLUE}test_create_new_workspace... {bcolors.ENDC}")
+        workspace_name = f"workspace_name_{self.workspace_nonce}"
         self.at.button("btn_new_workspace").click().run(timeout=100)
-        self.at.text_input(key="ti_new_workspace_name").input(self.workspace_name)
+        self.at.text_input(key="ti_new_workspace_name").input(workspace_name)
         self.at.text_input(key="ti_new_workspace_desc").input("test description")
         self.at.button(key="FormSubmitter:new_workspace_form-Save").click().run(timeout=100)
-        assert self.conn.query(schemas.Workspaces).filter(schemas.Workspaces.workspace_name == self.workspace_name).count() == 1
+        assert self.conn.query(schemas.Workspaces).filter(schemas.Workspaces.workspace_name == workspace_name).count() == 1
         
 
     def test_select_created_workspace(self):
         print(f"{bcolors.OKBLUE}test_select_created_workspace... {bcolors.ENDC}")
+        workspace_name = f"workspace_name_{self.workspace_nonce}"
         for button in self.at.button:
-            if button.label == self.workspace_name:
+            if button.label == workspace_name:
                 button.click().run(timeout=100)
                 
     def test_delete_workspace(self):
         print(f"{bcolors.OKBLUE}test_delete_workspace... {bcolors.ENDC}")
         #create new workspace
+        workspace_name = f"test_delete_{self.workspace_nonce}"
         self.at.button("btn_new_workspace").click().run(timeout=100)
-        self.at.text_input(key="ti_new_workspace_name").input("test_delete")
-        self.at.text_input(key="ti_new_workspace_desc").input("test_delete")
+        self.at.text_input(key="ti_new_workspace_name").input(workspace_name)
+        self.at.text_input(key="ti_new_workspace_desc").input("test_delete_desc")
         self.at.button(key="FormSubmitter:new_workspace_form-Save").click().run(timeout=100)
-        assert self.conn.query(schemas.Workspaces).filter(schemas.Workspaces.workspace_name == "test_delete").count() == 1
+        assert self.conn.query(schemas.Workspaces).filter(schemas.Workspaces.workspace_name == workspace_name).count() == 1
         #select workspace
         for button in self.at.button:
-            if button.label == "test_delete":
+            if button.label == workspace_name:
                 button.click().run(timeout=100)
         #delete workspace
         self.at.button(key="btn_delete_workspace").click().run(timeout=100)
-        assert self.conn.query(schemas.Workspaces).filter(schemas.Workspaces.workspace_name == "test_delete").count() == 0
+        assert self.conn.query(schemas.Workspaces).filter(schemas.Workspaces.workspace_name == workspace_name).count() == 0
+        
+        shutil.rmtree(os.getenv('WORKDIR'))
 
     def get_final_session_state(self):
         return self.at.session_state

@@ -188,7 +188,7 @@ class Test_Preprocess:
         .filter(schemas.Adata.work_id == self.at.session_state.current_workspace.id).first()
         assert adata.notes == "Important notes"
         self.at.selectbox(key="sb_adata_selection").select("adata_raw").run(timeout=150)
-        #assert self.at.text_area(key="sidebar_notes").value == "Important notes"
+        assert self.at.text_area(key="sidebar_notes").value == "Important notes"
 
     def get_final_session_state(self):
         return self.at.session_state

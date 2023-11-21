@@ -33,8 +33,8 @@ try:
 
     print()
     print(f"{bcolors.BOLD}===============Testing Dashboard===============")
-    workspace_name = f"test_workspace_{randrange(1, 1000000)}"
-    dashboard_test = Test_Dashboard(workspace_name=workspace_name)
+    nonce = randrange(1, 10000000)
+    dashboard_test = Test_Dashboard(workspace_nonce=nonce)
     dashboard_state = dashboard_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")

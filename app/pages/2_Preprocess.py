@@ -198,6 +198,7 @@ class Preprocess:
             sc.pp.calculate_qc_metrics(self.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
                 
             st.text(f"Found {self.adata.var.mt.sum()} mitochondrial genes")
+            
             subcol1, subcol2, subcol3 = st.columns(3, gap="small")
             with subcol1:
                 ax_scatter = sc.pl.scatter(self.adata, x='total_counts', y='pct_counts_mt')
@@ -208,6 +209,7 @@ class Preprocess:
                 ax_violin = sc.pl.violin(self.adata, 'pct_counts_mt')
                 with st.expander(label="Violin"):
                     st.pyplot(ax_violin)
+                    
 
             max_pct_counts_mt = st.number_input(label="max pct_counts_mt", key="ni_pct_counts_mt", min_value=0)
 
@@ -228,6 +230,7 @@ class Preprocess:
         with st.form(key="form_annotate_ribo"):
             st.subheader("Annotate Ribosomal Genes", help="Filter ribosomal gene counts. All ribosomal genes \
                         are by default annotated and placed in the 'ribo' variable.")
+
             with st.spinner(text="Fetching ribosomal genes"):
                 ribo_url = "http://software.broadinstitute.org/gsea/msigdb/download_geneset.jsp?geneSetName=KEGG_RIBOSOME&fileType=txt"
                 ribo_genes = pd.read_table(ribo_url, skiprows=2, header=None)
@@ -246,6 +249,7 @@ class Preprocess:
                     ax_violin = sc.pl.violin(self.adata, 'pct_counts_ribo')
                     with st.expander(label="Violin"):
                         st.pyplot(ax_violin)
+                        
 
             max_pct_counts_ribo = st.number_input(label="max pct_counts_ribo", key="ni_pct_counts_ribo", min_value=0)
 
@@ -259,6 +263,8 @@ class Preprocess:
                     work_id=st.session_state.current_workspace.id, adata=self.adata, 
                     filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
                 st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                
+        
 
     def run_scrublet(self):
         with st.form(key="scrublet_form"):
@@ -281,6 +287,12 @@ class Preprocess:
             
 
 try:
+    #make adata
+    st.session_state.adata_state.add_adata(AdataModel(
+        work_id=st.session_state.current_workspace.id, adata=st.session_state.adata_state.current.adata.copy(), 
+        filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+    st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+    
     sidebar = Sidebar()
 
     sidebar.show()
