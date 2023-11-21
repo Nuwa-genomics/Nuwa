@@ -23,7 +23,55 @@ class Test_Spatial_Transcriptomics:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
+        self.test_spatial_scatter()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_neighbourhood_enrichment()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_ripley_score()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_cooccurance_score()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_interaction_matrix()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_centrality_score()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_ligand_receptor_interation()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+    def test_spatial_scatter(self):
+        print(f"{bcolors.OKBLUE}test_spatial_scatter {bcolors.ENDC}", end="")
+        
+    def test_neighbourhood_enrichment(self):
+        print(f"{bcolors.OKBLUE}test_neighbourhood_enrichment {bcolors.ENDC}", end="")
 
+    def test_ripley_score(self):
+        print(f"{bcolors.OKBLUE}test_ripley_score {bcolors.ENDC}", end="")
+    
+    def test_cooccurance_score(self):
+        print(f"{bcolors.OKBLUE}test_cooccurance_score {bcolors.ENDC}", end="")
+    
+    def test_interaction_matrix(self):
+        print(f"{bcolors.OKBLUE}test_interaction_matrix {bcolors.ENDC}", end="")
+    
+    def test_centrality_score(self):
+        print(f"{bcolors.OKBLUE}test_centrality_score {bcolors.ENDC}", end="")
+        
+    def test_ligand_receptor_interation(self):
+        print(f"{bcolors.OKBLUE}test_ligand_receptor_interaction {bcolors.ENDC}", end="")
+    
     def get_final_session_state(self):
         return self.at.session_state
 

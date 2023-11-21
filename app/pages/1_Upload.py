@@ -74,60 +74,82 @@ class Upload:
             st.error("Couldn't find workspace in session, have you selected one?")
             
         
-        
+
     def scanpy_dataset(self):
         st.subheader("Or select a built-in dataset")
         
         #scanpy datasets
-        dataset_options = ['none', 'krumsiek11', 'moignard15', 'pbmc3k', 'pbmc3k_processed', 'pbmc68k_reduced', 'paul15', 'visium_sge', 'four_i', 'imc', 'seqfish', 'merfish', 'mibitof', 'slideseqv2', 'sc_mouse_cortex', 'visium', 'visium_hne_adata', 'visium_hne_adata_crop', 'visium_fluo_adata', 'visium_fluo_adata_crop', 'visium_hne_image', 'visium_hne_crop', 'visium_fluo_image_crop']   
+        dataset_options = ['none', 'pbmc3k', 'pbmc3k_processed', 'pbmc68k_reduced', 'paul15', 'four_i', 'imc', 'seqfish', 'merfish', 'mibitof', 'slideseqv2', 'sc_mouse_cortex', 'visium', 'visium_hne_adata', 'visium_hne_adata_crop', 'visium_fluo_adata', 'visium_fluo_adata_crop', 'visium_hne_image', 'visium_hne_crop', 'visium_fluo_image_crop']   
         scanpy_ds = st.selectbox(label="Dataset", options=dataset_options, key="sb_sc_datasets")
+        ds_empty = st.empty()
+        
         if scanpy_ds != 'none':
             with st.spinner(text="Loading dataset"):
-                if(st.session_state.sb_sc_datasets == 'krumsiek11'):
-                    self.adata = sc.datasets.krumsiek11()
-                if(st.session_state.sb_sc_datasets == 'moignard15'):
-                    self.adata = sc.datasets.moignard15()
                 if(st.session_state.sb_sc_datasets == 'pbmc3k'):
                     self.adata = sc.datasets.pbmc3k()
+                    ds_empty.empty()
+                    ds_empty.info("3k PBMCs from 10x Genomics. The data consists in 3k PBMCs from a Healthy Donor and is freely available from 10x Genomics [here](%s)" % "https://cf.10xgenomics.com/samples/cell-exp/1.1.0/pbmc3k/pbmc3k_filtered_gene_bc_matrices.tar.gz")
                 if(st.session_state.sb_sc_datasets == 'pbmc3k_processed'):
                     self.adata = sc.datasets.pbmc3k_processed()
+                    ds_empty.empty()
+                    ds_empty.info("Processed 3k PBMCs from 10x Genomics.")
                 if(st.session_state.sb_sc_datasets == 'pbmc68k_reduced'):
                     self.adata = sc.datasets.pbmc68k_reduced()
+                    ds_empty.empty()
+                    ds_empty.info("Subsampled and processed 68k PBMCs. 10x PBMC 68k dataset from [here](%s). The original PBMC 68k dataset was preprocessed using scanpy and was saved keeping only 724 cells and 221 highly variable genes. The saved file contains the annotation of cell types (key: 'bulk_labels'), UMAP coordinates, louvain clustering and gene rankings based on the bulk_labels." % "https://support.10xgenomics.com/single-cell-gene-expression/datasets")
                 if(st.session_state.sb_sc_datasets == 'paul15'):
                     self.adata = sc.datasets.paul15()
-                if(st.session_state.sb_sc_datasets == 'visium_sge'):
-                    self.adata = sc.datasets.visium_sge()
+                    ds_empty.empty()
+                    ds_empty.info("Development of Myeloid Progenitors. Non-logarithmized raw data.")
                 if(st.session_state.sb_sc_datasets == 'four_i'):
                     self.adata = sq.datasets.four_i()
+                    ds_empty.empty()
+                    ds_empty.info("Pre-processed subset 4i dataset from [Gut et al](%s)." % "https://doi.org/10.1126/science.aar7042")
                 if(st.session_state.sb_sc_datasets == 'imc'):
                     self.adata = sq.datasets.imc()
+                    ds_empty.empty()
+                    ds_empty.info("Pre-processed subset IMC dataset from [Jackson et al](%s)." % "https://www.nature.com/articles/s41586-019-1876-x")
                 if(st.session_state.sb_sc_datasets == 'seqfish'):
                     self.adata = sq.datasets.seqfish()
+                    ds_empty.empty()
+                    ds_empty.info("Pre-processed subset seqFISH dataset from [Lohoff et al](%s)." % "https://www.biorxiv.org/content/10.1101/2020.11.20.391896v1")
                 if(st.session_state.sb_sc_datasets == 'merfish'):
                     self.adata = sq.datasets.merfish()
+                    ds_empty.empty()
+                    ds_empty.info("Pre-processed MERFISH dataset from [Moffitt et al](%s)." % "https://doi.org/10.1126/science.aau5324")
                 if(st.session_state.sb_sc_datasets == 'mibitof'):
                     self.adata = sq.datasets.mibitof()
+                    ds_empty.empty()
+                    ds_empty.info("Pre-processed MIBI-TOF dataset from [Hartmann et al](%s)." % "https://doi.org/10.1101/2020.01.17.909796")
                 if(st.session_state.sb_sc_datasets == 'slideseqv2'):
                     self.adata = sq.datasets.slideseqv2()
+                    ds_empty.empty()
+                    ds_empty.info("Pre-processed SlideseqV2 dataset from [Stickles et al](%s)." % "https://doi.org/10.1038/s41587-020-0739-1")
                 if(st.session_state.sb_sc_datasets == 'sc_mouse_cortex'):
                     self.adata = sq.datasets.sc_mouse_cortex()
+                    ds_empty.empty()
+                    ds_empty.info("Pre-processed [scRNA-seq mouse cortex](%s)." % "https://doi.org/10.1038/s41586-018-0654-5")
                 if(st.session_state.sb_sc_datasets == 'visium'):
                     self.adata = sq.datasets.visium()
+                    ds_empty.empty()
+                    ds_empty.info("Download Visium [datasets](%s) from 10x Genomics." % "https://support.10xgenomics.com/spatial-gene-expression/datasets")
                 if(st.session_state.sb_sc_datasets == 'visium_hne_adata'):
                     self.adata = sq.datasets.visium_hne_adata()
+                    ds_empty.empty()
+                    ds_empty.info("Pre-processed 10x Genomics Visium H&E [dataset](%s)." % "https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Adult_Mouse_Brain")
                 if(st.session_state.sb_sc_datasets == 'visium_hne_adata_crop'):
                     self.adata = sq.datasets.visium_hne_adata_crop()
+                    ds_empty.empty()
+                    ds_empty.info("Pre-processed subset 10x Genomics Visium H&E [dataset](%s)." % "https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Adult_Mouse_Brain")
                 if(st.session_state.sb_sc_datasets == 'visium_fluo_adata'):
                     self.adata = sq.datasets.visium_fluo_adata()
+                    ds_empty.empty()
+                    ds_empty.info("Pre-processed 10x Genomics Visium Fluorecent [dataset](%s)." % "https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Adult_Mouse_Brain_Coronal_Section_2")
                 if(st.session_state.sb_sc_datasets == 'visium_fluo_adata_crop'):
                     self.adata = sq.datasets.visium_fluo_adata_crop()
-                if(st.session_state.sb_sc_datasets == 'visium_hne_image'):
-                    self.adata = sq.datasets.visium_hne_image()
-                if(st.session_state.sb_sc_datasets == 'visium_hne_image_crop'):
-                    self.adata = sq.datasets.visium_hne_image_crop()
-                if(st.session_state.sb_sc_datasets == 'visium_fluo_image_crop'):
-                    self.adata = sq.datasets.visium_fluo_image_crop()
-            
+                    ds_empty.empty()
+                    ds_empty.info("Pre-processed subset 10x Genomics Visium Fluorescent [dataset](%s)." % "https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Adult_Mouse_Brain_Coronal_Section_2")
+
             self.show_anndata(self.adata)
         
 
