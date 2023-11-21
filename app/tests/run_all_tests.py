@@ -129,10 +129,17 @@ try:
     trajectory_inference_state = trajectory_inference_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
+    
+    print()
+    print(f"{bcolors.BOLD}===============Testing Upload merfish===============")
+    upload_test = Test_Upload(session_state=dashboard_state, dataset="merfish")
+    upload_state = upload_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
     print()
     print(f"{bcolors.BOLD}===============Testing Spatial Transcriptomics===============")
-    spatial_transcriptomics_test = Test_Spatial_Transcriptomics(session_state=pp_state)
+    spatial_transcriptomics_test = Test_Spatial_Transcriptomics(session_state=upload_state)
     spatial_transcriptomics_state = spatial_transcriptomics_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")

@@ -1,6 +1,7 @@
 from pydantic import ValidationError
 import streamlit as st
 import scanpy as sc
+import squidpy as sq
 import pickle
 import os
 from models.AdataModel import AdataModel
@@ -75,9 +76,10 @@ class Upload:
         
         
     def scanpy_dataset(self):
-        st.subheader("Or select a scanpy dataset")
+        st.subheader("Or select a built-in dataset")
         
-        dataset_options = ['none', 'krumsiek11', 'moignard15', 'pbmc3k', 'pbmc3k_processed', 'pbmc68k_reduced', 'paul15', 'visium_sge']   
+        #scanpy datasets
+        dataset_options = ['none', 'krumsiek11', 'moignard15', 'pbmc3k', 'pbmc3k_processed', 'pbmc68k_reduced', 'paul15', 'visium_sge', 'four_i', 'imc', 'seqfish', 'merfish', 'mibitof', 'slideseqv2', 'sc_mouse_cortex', 'visium', 'visium_hne_adata', 'visium_hne_adata_crop', 'visium_fluo_adata', 'visium_fluo_adata_crop', 'visium_hne_image', 'visium_hne_crop', 'visium_fluo_image_crop']   
         scanpy_ds = st.selectbox(label="Dataset", options=dataset_options, key="sb_sc_datasets")
         if scanpy_ds != 'none':
             with st.spinner(text="Loading dataset"):
@@ -95,6 +97,36 @@ class Upload:
                     self.adata = sc.datasets.paul15()
                 if(st.session_state.sb_sc_datasets == 'visium_sge'):
                     self.adata = sc.datasets.visium_sge()
+                if(st.session_state.sb_sc_datasets == 'four_i'):
+                    self.adata = sq.datasets.four_i()
+                if(st.session_state.sb_sc_datasets == 'imc'):
+                    self.adata = sq.datasets.imc()
+                if(st.session_state.sb_sc_datasets == 'seqfish'):
+                    self.adata = sq.datasets.seqfish()
+                if(st.session_state.sb_sc_datasets == 'merfish'):
+                    self.adata = sq.datasets.merfish()
+                if(st.session_state.sb_sc_datasets == 'mibitof'):
+                    self.adata = sq.datasets.mibitof()
+                if(st.session_state.sb_sc_datasets == 'slideseqv2'):
+                    self.adata = sq.datasets.slideseqv2()
+                if(st.session_state.sb_sc_datasets == 'sc_mouse_cortex'):
+                    self.adata = sq.datasets.sc_mouse_cortex()
+                if(st.session_state.sb_sc_datasets == 'visium'):
+                    self.adata = sq.datasets.visium()
+                if(st.session_state.sb_sc_datasets == 'visium_hne_adata'):
+                    self.adata = sq.datasets.visium_hne_adata()
+                if(st.session_state.sb_sc_datasets == 'visium_hne_adata_crop'):
+                    self.adata = sq.datasets.visium_hne_adata_crop()
+                if(st.session_state.sb_sc_datasets == 'visium_fluo_adata'):
+                    self.adata = sq.datasets.visium_fluo_adata()
+                if(st.session_state.sb_sc_datasets == 'visium_fluo_adata_crop'):
+                    self.adata = sq.datasets.visium_fluo_adata_crop()
+                if(st.session_state.sb_sc_datasets == 'visium_hne_image'):
+                    self.adata = sq.datasets.visium_hne_image()
+                if(st.session_state.sb_sc_datasets == 'visium_hne_image_crop'):
+                    self.adata = sq.datasets.visium_hne_image_crop()
+                if(st.session_state.sb_sc_datasets == 'visium_fluo_image_crop'):
+                    self.adata = sq.datasets.visium_fluo_image_crop()
             
             self.show_anndata(self.adata)
         
