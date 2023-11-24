@@ -13,6 +13,8 @@ from utils.AdataState import AdataState
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬')
 
+os.chdir('/app')
+
 with open('css/common.css') as f:
     common_style = f"""
                 <style>

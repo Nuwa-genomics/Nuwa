@@ -7,11 +7,14 @@ from database.schemas import schemas
 from sqlalchemy.orm import Session
 from hashlib import sha256
 import time
+import os
 
 #create databases if not already present
 Base.metadata.create_all(engine)
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬')
+
+os.chdir('/app')
 
 common_style = """
             <style>

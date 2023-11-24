@@ -12,8 +12,11 @@ import torch
 from components.sidebar import *
 from models.AdataModel import AdataModel
 from utils.AdataState import AdataState
+import os
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
+
+os.chdir('/app')
 
 with open('css/common.css') as f:
     common_style = f"""

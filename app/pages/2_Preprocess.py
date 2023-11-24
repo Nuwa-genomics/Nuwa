@@ -19,6 +19,8 @@ import os
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
+os.chdir('/app')
+
 with open('css/common.css') as f:
     common_style = f"""
                 <style>
