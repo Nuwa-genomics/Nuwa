@@ -90,3 +90,11 @@ with bash:
                 st.session_state['stdout'] = ""
             st.session_state['stdout'] = f"""<div style='font: .9rem Inconsolata, monospace;'>{st.session_state.stdout}\n{f"<div style='display: flex; gap:5px;'><div style='font-weight: bold; color: #1976d2;'>{st.session_state.user}@Nuwa:~{os.getcwd()}$</div>{st.session_state.ti_cmd}</div>"}\n<div style='white-space: pre-line; color: red;'>{e.__repr__()}</div></div>"""
             container.markdown(st.session_state.stdout, unsafe_allow_html=True)
+            
+            
+with python:
+    
+    st.write("Integrated python window to be implemented in the future!")
+    st.write("To access container from a terminal run:")
+    st.code("docker exec -it streamlit bash\ncd ../streamlit-volume/\n#activate bioconda environment\nsource activate bioconda_env\n#interactive python\npython3")
+    
