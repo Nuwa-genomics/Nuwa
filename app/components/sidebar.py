@@ -80,11 +80,11 @@ class Sidebar:
                 if st.session_state.adata_state.switch_adata(st.session_state.sb_adata_selection) == -1:
                     st.error("Couldn't switch adata")
             def save_file():
-                selected_adata = st.session_state.adata_state.get_adata(adata_name=st.session_state.sb_adata_selection)
+                selected_adata = st.session_state.adata_state.load_adata(workspace_id=st.session_state.current_workspace.id, adata_name=st.session_state.sb_adata_selection)
                 if not selected_adata:
                     st.toast("Couldn't find selected adata to save")
                 else:
-                    sc.write(filename=f"{os.getenv('WORKDIR')}/downloads/{selected_adata.adata_name}.h5ad", adata=st.session_state.adata_state.current.adata)
+                    sc.write(filename=os.path.join(f"{os.getenv('WORKDIR')}", "downloads", f"{selected_adata.adata_name}.h5ad"), adata=selected_adata.adata)
                     st.toast("Downloaded file", icon='✅')
             st.selectbox(label="Current Experiment:", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection", on_change=set_adata, index=st.session_state.adata_state.get_index_of_current())
             st.button(label="Download adata file", on_click=save_file, use_container_width=True, key="btn_save_adata")

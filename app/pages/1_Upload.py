@@ -31,7 +31,7 @@ class Upload:
         self.external_sources()
         
     def upload_file(self):
-        st.title("Upload a file")
+        st.title("Upload a dataset")
         
         uploaded_f = st.file_uploader("Choose a file to upload", type=["csv", "h5ad", "h5", "loom", "mtx", "tsv"], accept_multiple_files=True)
         
@@ -90,7 +90,7 @@ class Upload:
                 if(st.session_state.sb_sc_datasets == 'pbmc3k'):
                     self.adata = sc.datasets.pbmc3k()
                     ds_empty.empty()
-                    ds_empty.info("3k PBMCs from 10x Genomics. The data consists in 3k PBMCs from a Healthy Donor and is freely available from 10x Genomics [here](%s)" % "https://cf.10xgenomics.com/samples/cell-exp/1.1.0/pbmc3k/pbmc3k_filtered_gene_bc_matrices.tar.gz")
+                    ds_empty.info("3k PBMCs from 10x Genomics. The data consists in 3k PBMCs from a Healthy Donor and is available from 10x Genomics [here](%s)" % "https://cf.10xgenomics.com/samples/cell-exp/1.1.0/pbmc3k/pbmc3k_filtered_gene_bc_matrices.tar.gz")
                 if(st.session_state.sb_sc_datasets == 'pbmc3k_processed'):
                     self.adata = sc.datasets.pbmc3k_processed()
                     ds_empty.empty()
