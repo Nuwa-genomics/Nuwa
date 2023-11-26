@@ -1,11 +1,11 @@
-from tests.test_preprocess import Test_Preprocess
-from tests.test_dashboard import Test_Dashboard
-from tests.test_upload import Test_Upload
-from tests.test_create_model import Test_Create_Model
-from tests.test_train import Test_Train
-from tests.test_cluster_analysis import Test_Cluster_Analysis
-from tests.test_tranjectory_inference import Test_Trajectory_Inference
-from tests.test_spatial_transcriptomics import Test_Spatial_Transcriptomics
+from test_preprocess import Test_Preprocess
+from test_dashboard import Test_Dashboard
+from test_upload import Test_Upload
+from test_create_model import Test_Create_Model
+from test_train import Test_Train
+from test_cluster_analysis import Test_Cluster_Analysis
+from test_tranjectory_inference import Test_Trajectory_Inference
+from test_spatial_transcriptomics import Test_Spatial_Transcriptomics
 
 from database.database import SessionLocal
 from sqlalchemy.orm import Session
@@ -161,6 +161,7 @@ finally:
     #tear down
 
     #remove test records from db
+    workspace_name = f"workspace_name_{nonce}"
     conn.query(schemas.Workspaces).filter(schemas.Workspaces.workspace_name == workspace_name).delete()
     conn.commit()
 

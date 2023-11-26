@@ -8,8 +8,6 @@ services:
     depends_on:
       - postgres
     restart: 'no'
-    ports:
-      - "127.0.0.1:80:8501"
     volumes:
       - ./app/.streamlit:/root/.streamlit
       - ./streamlit-volume:/streamlit-volume
@@ -19,6 +17,8 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
+    ports:
+      - ${SERVER_ADDR}:${HOST_PORT}:8501
     deploy:
       resources:
         limits:

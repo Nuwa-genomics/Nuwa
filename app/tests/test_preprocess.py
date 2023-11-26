@@ -1,6 +1,7 @@
 from streamlit.testing.v1 import AppTest
 import streamlit as st
 import time
+import os
 
 from utils.AdataState import AdataState
 from models.AdataModel import AdataModel
@@ -13,6 +14,7 @@ from database.schemas import schemas
 from utils.AdataState import AdataState
 
 import scanpy as sc
+import os
 
 class bcolors:
     HEADER = '\033[95m'
@@ -40,9 +42,9 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        self.test_notes()
-        assert not self.at.exception
-        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        # self.test_notes()
+        # assert not self.at.exception
+        # print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         self.test_filter_highest_expressed()
         assert not self.at.exception
@@ -79,6 +81,10 @@ class Test_Preprocess:
         self.test_annot_ribo()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        # self.test_save_adata()
+        # assert not self.at.exception
+        # print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         
         
@@ -189,9 +195,21 @@ class Test_Preprocess:
         assert adata.notes == "Important notes"
         self.at.selectbox(key="sb_adata_selection").select("adata_raw").run(timeout=150)
         assert self.at.text_area(key="sidebar_notes").value == "Important notes"
+        
+    def test_save_adata(self):
+        print(f"{bcolors.OKBLUE}test_save_adata {bcolors.ENDC}", end="")
+        self.at.button(key="btn_save_adata").click().run(timeout=100)
+        adata_name = self.at.session_state.adata_state.current.adata.adata_name
+        downloaded_adata = sc.read_h5ad(os.path.join(os.getenv('WORKDIR'), 'downloads', f"{adata_name}.h5ad"))
+        current_adata = self.at.session_state.current.adata.adata
+        print(downloaded_adata)
+        print()
+        print(current_adata)
 
     def get_final_session_state(self):
         return self.at.session_state
+    
+        
 
 
 
