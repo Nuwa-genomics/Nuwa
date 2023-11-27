@@ -38,7 +38,7 @@ with bash:
     container = st.container()
         
         
-    cmd = col1.text_input(label="Bash terminal on host", key='ti_cmd', placeholder="Command")
+    cmd = col1.text_input(label="Bash shell on docker container", key='ti_cmd', placeholder="Command")
                     
     if cmd:
         try:

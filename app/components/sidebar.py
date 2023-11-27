@@ -2,11 +2,13 @@ import os
 import streamlit as st
 import scanpy as sc
 from database.schemas import schemas
+from scipy import io
 
 from models.AdataModel import AdataModel
 from database.database import SessionLocal
 from sqlalchemy.orm import Session
 from utils.AdataState import AdataState
+from pathlib import Path
 
 class Sidebar:
     def __init__(self):
@@ -62,31 +64,63 @@ class Sidebar:
             print("Error: ", e)
 
 
-    def add_experiment(self):
-        with st.sidebar:
-            try:
-                with st.form(key="new_adata_form"):
-                    st.subheader("Create New Adata")
-                    st.text_input(label="Name", key="ti_new_adata_name")
-                    st.text_input(label="Notes", key="ti_new_adata_notes")
-                    st.form_submit_button(label="Save", on_click=self.write_adata)
-            except Exception as e:
-                print("Error: ", e)
-                st.error(e)
+
 
     def show(self):
         with st.sidebar:
             def set_adata():
                 if st.session_state.adata_state.switch_adata(st.session_state.sb_adata_selection) == -1:
                     st.error("Couldn't switch adata")
-            def save_file():
-                selected_adata = st.session_state.adata_state.load_adata(workspace_id=st.session_state.current_workspace.id, adata_name=st.session_state.sb_adata_selection)
-                if not selected_adata:
-                    st.toast("Couldn't find selected adata to save")
-                else:
-                    sc.write(filename=os.path.join(f"{os.getenv('WORKDIR')}", "downloads", f"{selected_adata.adata_name}.h5ad"), adata=selected_adata.adata)
-                    st.toast("Downloaded file", icon='✅')
+                
             st.selectbox(label="Current Experiment:", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection", on_change=set_adata, index=st.session_state.adata_state.get_index_of_current())
-            st.button(label="Download adata file", on_click=save_file, use_container_width=True, key="btn_save_adata")
-            st.button(label="Add experiment", on_click=self.add_experiment, use_container_width=True, key="btn_add_adata")
+            
+            with st.expander(label="Download adata file", expanded=False):
+                try:
+                    st.checkbox(label="Use Seurat format", value=False, key="cb_seurat_format")
+                    st.text_input(label="Download directory", value=os.path.join(os.getenv('WORKDIR'), 'downloads'), key="ti_save_adata_dir")
+                    save_adata_btn = st.button(label="Download", key="btn_save_adata")
+                    if save_adata_btn:
+                        selected_adata = st.session_state.adata_state.load_adata(workspace_id=st.session_state.current_workspace.id, adata_name=st.session_state.sb_adata_selection)
+                        
+                        if not selected_adata:
+                            st.toast("Couldn't find selected adata to save", icon="❌")
+                        else:
+                            if st.session_state.cb_seurat_format:
+                                if not os.path.exists(st.session_state.ti_save_adata_dir):
+                                    raise FileNotFoundError('File path must exist')
+                                if st.session_state.ti_save_adata_dir.find('streamlit-volume') == -1:
+                                    raise Exception("Download filename must be within the 'streamlit-volume' directory")
+                                with st.spinner(text="Converting adata into seurat"):
+                                    #matrix
+                                    io.mmwrite(os.path.join(st.session_state.ti_save_adata_dir, 'seurat', 'matrix'), selected_adata.adata.X.T)
+                                    #barcodes
+                                    with open(os.path.join(st.session_state.ti_save_adata_dir, 'seurat', 'barcodes.tsv'), 'w') as f:
+                                        for item in selected_adata.adata.obs_names:
+                                            f.write(item + '\n')
+                                    #features
+                                    with open(os.path.join(st.session_state.ti_save_adata_dir, 'seurat', 'features.tsv'), 'w') as f:
+                                        for item in selected_adata.adata.var_names:
+                                            f.write(item + '\n')
+                                    #metadata
+                                    selected_adata.adata.obs.to_csv(os.path.join(st.session_state.ti_save_adata_dir, 'seurat', 'metadata.csv'))
+                                    st.toast("Downloaded file", icon='✅')
+                                        
+                            else:
+                                with st.spinner(text="Saving adata"):
+                                    sc.write(filename=os.path.join(st.session_state.ti_save_adata_dir, f"{selected_adata.adata_name}.h5ad"), adata=selected_adata.adata)
+                                st.toast("Downloaded file", icon='✅')
+                except Exception as e:
+                    print("Error ", e)
+                    st.toast(e, icon="❌")
+                                
+                
+            with st.expander(label="Add experiment", expanded=False):
+                try:
+                    st.subheader("Create New Adata")
+                    st.text_input(label="Name", key="ti_new_adata_name")
+                    st.text_input(label="Notes", key="ti_new_adata_notes")
+                    st.button(label="Save", on_click=self.write_adata)
+                except Exception as e:
+                    print("Error: ", e)
+                    st.error(e)
             self.show_notes()

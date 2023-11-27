@@ -17,6 +17,7 @@ from time import sleep
 import os
 
 
+
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
 os.chdir('/app')
@@ -285,7 +286,33 @@ class Preprocess:
                         work_id=st.session_state.current_workspace.id, adata=self.adata, 
                         filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
                     st.session_state.adata_state.switch_adata(adata_name="adata_pp")
-
+                    
+                    
+    def regress_out(self):
+        def regress_out_btn():
+            if st.session_state.ms_regress_out_keys:
+                sc.pp.regress_out(self.adata, keys=st.session_state.ms_regress_out_keys)
+                st.toast("Successfully regressed out data", icon="✅")
+            else:
+                st.toast("No option selected, not regressing data.", icon="ℹ️")
+        with st.form(key="regress_out_form"):
+            st.subheader("Regress out", help="Regress out (mostly) unwanted sources of variation. Uses simple linear regression. This is inspired by Seurat's regressOut function in R [Satija15]. Note that this function tends to overcorrect in certain circumstances as described in :issue:526.")
+            regress_keys = st.multiselect(label="Keys", options=self.adata.obs_keys(), key="ms_regress_out_keys")
+            regress_out_btn = st.form_submit_button(label="Regress out", on_click=regress_out_btn)
+            
+            
+    def scale_to_unit_variance(self):
+        with st.form(key="scale_to_unit_variance_form"):
+            st.subheader("Scale to unit variance")
+            st.number_input(label="Max value", value=10, key="ni_scale_data_max_value")
+            btn_scale_data_btn = st.form_submit_button(label="Apply")
+            if btn_scale_data_btn:
+                if st.session_state.ni_scale_data_max_value:
+                    sc.pp.scale(self.adata, max_value=st.session_state.ni_scale_data_max_value)
+                    st.toast("Successfully scaled data", icon="✅")
+                else:
+                    st.toast("Max value cannot be blank", icon="❌")
+            
             
 
 try:
@@ -308,11 +335,14 @@ try:
         preprocess.filter_highest_expr_genes()
         preprocess.filter_highly_variable_genes()
         preprocess.normalize_counts()
+        preprocess.regress_out()
+        preprocess.scale_to_unit_variance()
 
     with col2:
         preprocess.recipes()
         preprocess.filter_cells()
         preprocess.filter_genes()
+        
             
     with col3:
         preprocess.annotate_mito()

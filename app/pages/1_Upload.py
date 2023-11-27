@@ -182,20 +182,35 @@ class Upload:
         with st.sidebar:
             st.subheader("File info")
             st.write(f"AnnData object with n_obs x n_vars = {adata.n_obs} x {adata.n_vars}")
+            
+            #make var unique
+            
             if f is not None:
                 st.write(f"Size: {f.size} bytes")
+                
+            
 
             st.subheader("Obs")
+            
             if not adata.obs.empty:
+                make_obs_unique = st.checkbox(label="Obs names make unique", key="btn_make_obs_unique", value=False)
+                if make_obs_unique:
+                    st.write("to implement")
                 st.dataframe(adata.obs.head())
                 st.write(f"Showing 5 rows of {len(adata.obs.columns)} columns")
+                
             else:
                 st.text("No obs to show")
             
             st.subheader("Var")
+            
             if not adata.var.empty:
+                make_var_unique = st.checkbox(label="Var names make unique", key="btn_make_var_unique", value=False)
+                if make_var_unique:
+                    st.write("To implement")
                 st.dataframe(adata.var.head())
                 st.write(f"Showing 5 rows of {len(adata.var.columns)} columns")
+                
             else:
                 st.text("No var to show")
 
