@@ -77,6 +77,23 @@ View expression profiles while retaining spatial information. Currently includes
 
 ![Spatial transcriptomics](screenshots/spatial.png "Spatial transcriptomics screenshot")
 
+## Access bioconda evironment
+
+You can access the docker container by running:
+
+```bash
+docker exec -it streamlit bash
+cd ../streamlit-volume/
+#activate bioconda environment
+source activate bioconda_env
+#interactive python
+python3
+#also interactive R
+R
+```
+
+From here you can access many of the python and R packages availble within bioconda. 
+
 ## Run on mobile
 
 For security reasons the web server is only accessible over a local interface. To disable this run:

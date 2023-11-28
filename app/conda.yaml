@@ -6,4 +6,4 @@ channels:
 dependencies:
   - salmon
   - scanpy
-  - streamlit
+  - rpy2
