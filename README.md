@@ -30,7 +30,7 @@ Preprocess 10x genomics reads using scanpy's preprocessing module:
 - Normalize and logarithmize data
 - Apply recipes to quickly preprocess data
 
-![preprocess](screenshots/Preprocess.png "Preprocess data")
+![preprocess](screenshots/preprocess.png "Preprocess data")
 
 ## Build model
 
