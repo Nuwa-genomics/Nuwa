@@ -313,6 +313,39 @@ class Preprocess:
                 else:
                     st.toast("Max value cannot be blank", icon="❌")
             
+    
+    def sample_data(self):
+        st.subheader("Sample data")
+        downsample_tab, subsample_tab = st.tabs(['Downsample', 'Subsample'])
+        
+        with downsample_tab:
+            with st.form(key="downsample_form"):
+                st.subheader("Downsample counts")
+                counts_per_cell = st.number_input(label="Counts per cell")
+                total_counts = st.number_input(label="Total counts")
+                btn_downsample = st.form_submit_button(label="Apply")
+                if btn_downsample:
+                    sc.pp.downsample_counts(self.adata, counts_per_cell=counts_per_cell, total_counts=total_counts)
+            
+        with subsample_tab:
+            with st.form(key="subsample_form"):
+                st.subheader("Subsample counts")
+                n_obs = st.number_input(label="n obs")
+                fraction = st.number_input(label="subsample_fraction")
+                btn_subsample = st.form_submit_button(label="Apply")
+                if btn_subsample:
+                    sc.pp.subsample(self.adata, n_obs=st.session_state.ni_n_obs, fraction=st.session_state.ni_subsample_fraction)
+                    
+                    
+    def batch_effect_removal(self):
+        with st.form(key="batch_effect_removal_form"):
+            st.subheader("Batch effect removal")
+            key = st.text_input(label="Key")
+            covariates = st.multiselect(placeholder="Optional", label="Covariates", options=self.adata.obs_keys())
+            btn_batch_effect_removal = st.form_submit_button(label="Apply")
+            if btn_batch_effect_removal:
+                sc.pp.combat(self.adata, key=key, covariates=covariates)
+        
             
 
 try:
@@ -342,12 +375,14 @@ try:
         preprocess.recipes()
         preprocess.filter_cells()
         preprocess.filter_genes()
+        preprocess.sample_data()
         
             
     with col3:
         preprocess.annotate_mito()
         preprocess.annotate_ribo()
         preprocess.run_scrublet()
+        preprocess.batch_effect_removal()
 
     sidebar.show_preview()
     sidebar.delete_experiment_btn()
