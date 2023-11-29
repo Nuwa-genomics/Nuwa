@@ -372,7 +372,8 @@ class Preprocess:
                     pca_empty.empty()
                     pca_empty.scatter_chart(data=df_pca, x='pca1', y='pca2', color='color', size=18)
                 
-                     
+               
+            index = 0      
             for i, item in enumerate(self.adata.obs_keys()):
                   if item.lower().replace("_", "").__contains__("batch"): #give precedence to batch if present since it is relevant to preprocessing
                       index = i           
