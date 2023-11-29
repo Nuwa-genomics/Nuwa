@@ -82,19 +82,30 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        # self.test_save_adata()
-        # assert not self.at.exception
-        # print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        self.test_scale_data()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_batch_effect_removal()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_sampling_data()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_save_adata()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         
         
         
     def test_add_and_delete_adata(self):
         print(f"{bcolors.OKBLUE}test_add_and_delete_data {bcolors.ENDC}", end="")
-        self.at.button(key="btn_add_adata").click().run(timeout=100)
         self.at.text_input(key="ti_new_adata_name").input("adata_test")
         self.at.text_input(key="ti_new_adata_notes").input("test_note")
-        self.at.button(key="FormSubmitter:new_adata_form-Save").click().run(timeout=100)
+        self.at.button(key="btn_add_adata").click().run(timeout=100)
         #test added to db
         assert self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == "adata_test") \
         .filter(schemas.Adata.notes == "test_note") \
@@ -198,13 +209,20 @@ class Test_Preprocess:
         
     def test_save_adata(self):
         print(f"{bcolors.OKBLUE}test_save_adata {bcolors.ENDC}", end="")
+        self.at.selectbox(key="sb_adata_selection").select("adata_pp").run(timeout=150)
         self.at.button(key="btn_save_adata").click().run(timeout=100)
-        adata_name = self.at.session_state.adata_state.current.adata.adata_name
-        downloaded_adata = sc.read_h5ad(os.path.join(os.getenv('WORKDIR'), 'downloads', f"{adata_name}.h5ad"))
-        current_adata = self.at.session_state.current.adata.adata
-        print(downloaded_adata)
-        print()
-        print(current_adata)
+        downloaded_adata = sc.read_h5ad(os.path.join(os.getenv('WORKDIR'), 'downloads', 'adata_pp.h5ad'))
+        current_adata = sc.read_h5ad(os.path.join(os.getenv('WORKDIR'), 'adata', 'adata_pp.h5ad'))
+        #TODO: add seurat format and change text dir
+        
+    def test_scale_data(self):
+        print(f"{bcolors.OKBLUE}test_save_adata {bcolors.ENDC}", end="")
+        
+    def test_batch_effect_removal(self):
+        print(f"{bcolors.OKBLUE}test_save_adata {bcolors.ENDC}", end="")
+        
+    def test_sampling_data(self):
+        print(f"{bcolors.OKBLUE}test_save_adata {bcolors.ENDC}", end="")
 
     def get_final_session_state(self):
         return self.at.session_state

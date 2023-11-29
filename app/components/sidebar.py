@@ -119,7 +119,7 @@ class Sidebar:
                     st.subheader("Create New Adata")
                     st.text_input(label="Name", key="ti_new_adata_name")
                     st.text_input(label="Notes", key="ti_new_adata_notes")
-                    st.button(label="Save", on_click=self.write_adata)
+                    st.button(label="Save", on_click=self.write_adata, key="btn_add_adata")
                 except Exception as e:
                     print("Error: ", e)
                     st.error(e)

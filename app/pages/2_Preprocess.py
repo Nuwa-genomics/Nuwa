@@ -275,7 +275,8 @@ class Preprocess:
             st.write("Use Scrublet to remove cells predicted to be doublets.")
             sim_doublet_ratio = st.number_input(label="Sim doublet ratio", value=2, key="ni_sim_doublet_ratio")
             expected_doublet_rate = st.number_input(label="Expected doublet rate", value=0.05, key="ni_expected_doublet_rate")
-            scrublet_submit = st.form_submit_button(label="Filter")
+            subcol1, _, _ = st.columns(3)
+            scrublet_submit = subcol1.form_submit_button(label="Filter", use_container_width=True)
 
             if scrublet_submit:
                 with st.spinner("Running scrublet"):
@@ -298,14 +299,16 @@ class Preprocess:
         with st.form(key="regress_out_form"):
             st.subheader("Regress out", help="Regress out (mostly) unwanted sources of variation. Uses simple linear regression. This is inspired by Seurat's regressOut function in R [Satija15]. Note that this function tends to overcorrect in certain circumstances as described in :issue:526.")
             regress_keys = st.multiselect(label="Keys", options=self.adata.obs_keys(), key="ms_regress_out_keys")
-            regress_out_btn = st.form_submit_button(label="Regress out", on_click=regress_out_btn)
+            subcol1, _, _ = st.columns(3)
+            regress_out_btn = subcol1.form_submit_button(label="Apply", on_click=regress_out_btn, use_container_width=True)
             
             
     def scale_to_unit_variance(self):
         with st.form(key="scale_to_unit_variance_form"):
             st.subheader("Scale to unit variance")
             st.number_input(label="Max value", value=10, key="ni_scale_data_max_value")
-            btn_scale_data_btn = st.form_submit_button(label="Apply")
+            subcol1, _, _ = st.columns(3)
+            btn_scale_data_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if btn_scale_data_btn:
                 if st.session_state.ni_scale_data_max_value:
                     sc.pp.scale(self.adata, max_value=st.session_state.ni_scale_data_max_value)
@@ -323,7 +326,8 @@ class Preprocess:
                 st.subheader("Downsample counts")
                 counts_per_cell = st.number_input(label="Counts per cell")
                 total_counts = st.number_input(label="Total counts")
-                btn_downsample = st.form_submit_button(label="Apply")
+                subcol1, _, _ = st.columns(3)
+                btn_downsample = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_downsample:
                     sc.pp.downsample_counts(self.adata, counts_per_cell=counts_per_cell, total_counts=total_counts)
             
@@ -332,19 +336,57 @@ class Preprocess:
                 st.subheader("Subsample counts")
                 n_obs = st.number_input(label="n obs")
                 fraction = st.number_input(label="subsample_fraction")
-                btn_subsample = st.form_submit_button(label="Apply")
+                subcol1, _, _ = st.columns(3)
+                btn_subsample = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_subsample:
                     sc.pp.subsample(self.adata, n_obs=st.session_state.ni_n_obs, fraction=st.session_state.ni_subsample_fraction)
                     
                     
     def batch_effect_removal(self):
         with st.form(key="batch_effect_removal_form"):
-            st.subheader("Batch effect removal")
-            key = st.text_input(label="Key")
+            st.subheader("Batch effect correction")
+            key = st.selectbox(label="Key", options=self.adata.obs_keys())
             covariates = st.multiselect(placeholder="Optional", label="Covariates", options=self.adata.obs_keys())
-            btn_batch_effect_removal = st.form_submit_button(label="Apply")
+            subcol1, _, _ = st.columns(3)
+            btn_batch_effect_removal = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if btn_batch_effect_removal:
-                sc.pp.combat(self.adata, key=key, covariates=covariates)
+                with st.spinner(text="Running Combat batch effect correction"):
+                    sc.pp.combat(self.adata, key=key, covariates=covariates)
+                with st.spinner(text="Saving new adata"):
+                    st.session_state.adata_state.add_adata(AdataModel(
+                        work_id=st.session_state.current_workspace.id, adata=self.adata, 
+                        filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
+                    st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                st.toast("Batch corrected data", icon='✅')
+                
+                
+    def pca(self):
+        with st.form(key="pca_pp_form"):
+            st.subheader("PCA")
+            st.write("Run PCA for guiding preprocessing.")
+            
+            def run_pca(adata):
+                with st.spinner(text="Running PCA"):
+                    sc.pp.pca(adata, random_state=42)
+                    df_pca = pd.DataFrame({'pca1': adata.obsm['X_pca'][:,0], 'pca2': adata.obsm['X_pca'][:,1], 'color': adata.obs[f'{st.session_state.sb_pca_color_pp}']})  
+                    pca_empty.empty()
+                    pca_empty.scatter_chart(data=df_pca, x='pca1', y='pca2', color='color', size=18)
+                
+                     
+            for i, item in enumerate(self.adata.obs_keys()):
+                  if item.lower().replace("_", "").__contains__("batch"): #give precedence to batch if present since it is relevant to preprocessing
+                      index = i           
+            pca_color = st.selectbox(label="Color", options=self.adata.obs_keys(), key="sb_pca_color_pp", index=index)
+            subcol1, _, _ = st.columns(3)
+            pca_pp_btn = subcol1.form_submit_button("Apply", use_container_width=True)
+            pca_empty = st.empty()
+            
+            run_pca(self.adata)
+            
+            if pca_pp_btn:
+                run_pca(self.adata)
+                
+            
         
             
 
@@ -369,20 +411,22 @@ try:
         preprocess.filter_highly_variable_genes()
         preprocess.normalize_counts()
         preprocess.regress_out()
-        preprocess.scale_to_unit_variance()
+        
+        preprocess.sample_data()
 
     with col2:
-        preprocess.recipes()
         preprocess.filter_cells()
         preprocess.filter_genes()
-        preprocess.sample_data()
+        preprocess.run_scrublet()
+        preprocess.recipes()
+        preprocess.batch_effect_removal()
         
             
     with col3:
         preprocess.annotate_mito()
         preprocess.annotate_ribo()
-        preprocess.run_scrublet()
-        preprocess.batch_effect_removal()
+        preprocess.pca()
+        preprocess.scale_to_unit_variance()
 
     sidebar.show_preview()
     sidebar.delete_experiment_btn()
@@ -390,6 +434,7 @@ try:
 except KeyError as ke:
     print("KeyError: ", ke)
     st.error("Couldn't find adata object in session, have you uploaded one?")
+    st.error(ke)
 except Exception as e:
     print('Error: ', e)
     st.error(e)
