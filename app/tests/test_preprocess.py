@@ -86,7 +86,7 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        self.test_batch_effect_removal()
+        self.test_batch_effect_removal_and_pca()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
@@ -216,13 +216,16 @@ class Test_Preprocess:
         #TODO: add seurat format and change text dir
         
     def test_scale_data(self):
-        print(f"{bcolors.OKBLUE}test_save_adata {bcolors.ENDC}", end="")
+        print(f"{bcolors.OKBLUE}test_scale_adata {bcolors.ENDC}", end="")
         
-    def test_batch_effect_removal(self):
-        print(f"{bcolors.OKBLUE}test_save_adata {bcolors.ENDC}", end="")
+    def test_batch_effect_removal_and_pca(self):
+        print(f"{bcolors.OKBLUE}test_batch_effect_removal_and_adata {bcolors.ENDC}", end="")
+        adata_from_file = sc.read_h5ad('/app/tests/data/bct_raw.h5ad')
+        sc.pp.combat(adata_from_file, key='BATCH')
+        
         
     def test_sampling_data(self):
-        print(f"{bcolors.OKBLUE}test_save_adata {bcolors.ENDC}", end="")
+        print(f"{bcolors.OKBLUE}test_sampling_adata {bcolors.ENDC}", end="")
 
     def get_final_session_state(self):
         return self.at.session_state

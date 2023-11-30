@@ -10,6 +10,7 @@ from database.database import SessionLocal
 from sqlalchemy.orm import Session
 from database.schemas import schemas
 from utils.AdataState import AdataState
+import loompy as lmp
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬')
 
@@ -69,6 +70,9 @@ class Upload:
                             self.show_anndata(adata, f)
                         if file_type == "h5ad":
                             adata = sc.read_h5ad(f)
+                            self.show_anndata(adata, f)
+                        if file_type == "loom":
+                            adata = sc.read_loom(path)
                             self.show_anndata(adata, f)
 
         except KeyError as ke:
