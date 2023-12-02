@@ -207,7 +207,7 @@ class Upload:
                 filename = f.name
             
             #upload raw adata
-            sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'uploads', f'{filename}_raw.h5ad'), adata=adata)
+            sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'uploads', f'{filename}.h5ad'), adata=adata)
             
             adata.raw = adata
             active_adata = AdataModel(
