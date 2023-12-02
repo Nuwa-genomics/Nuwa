@@ -88,23 +88,21 @@ class Sidebar:
             with st.expander(label="Download adata file", expanded=False):
                 try:
                     st.checkbox(label="Use Seurat format", value=False, key="cb_seurat_format")
-                    st.text_input(label="Download directory", value=os.path.join(os.getenv('WORKDIR'), 'downloads'), key="ti_save_adata_dir")
+                    st.text_input(label="Download directory", value=os.path.join(os.getenv('WORKDIR'), 'downloads', st.session_state.sb_adata_selection), key="ti_save_adata_dir")
                     save_adata_btn = st.button(label="Download", key="btn_save_adata")
                     if save_adata_btn:
                         selected_adata = st.session_state.adata_state.load_adata(workspace_id=st.session_state.current_workspace.id, adata_name=st.session_state.sb_adata_selection)
-                        
-                        
-                        
-                        
+
                         if not selected_adata:
                             st.toast("Couldn't find selected adata to save", icon="❌")
                         else:
+                            download_path = os.path.join(os.getenv('WORKDIR'), 'downloads', st.session_state.sb_adata_selection)
+                            if not os.path.exists(download_path):
+                                os.mkdir(download_path)
+                            if st.session_state.ti_save_adata_dir.find('streamlit-volume') == -1:
+                                raise Exception("Download filename must be within the 'streamlit-volume' directory")
+                            
                             if st.session_state.cb_seurat_format:
-                                if not os.path.exists(st.session_state.ti_save_adata_dir):
-                                    raise FileNotFoundError('File path must exist')
-                                if st.session_state.ti_save_adata_dir.find('streamlit-volume') == -1:
-                                    raise Exception("Download filename must be within the 'streamlit-volume' directory")
-                                
                                 if not os.path.isdir(os.path.join(st.session_state.ti_save_adata_dir, 'seurat')):
                                     os.mkdir(os.path.join(st.session_state.ti_save_adata_dir, 'seurat'))
                                 with st.spinner(text="Converting adata into seurat"):

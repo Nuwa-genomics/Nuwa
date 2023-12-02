@@ -96,23 +96,24 @@ From here you can access many of the python and R packages availble within bioco
 
 ## File structure
 
-The streamlit volume is created in the installation path of the git repository.
+The streamlit volume is mounted within the installation path of the git repository.
 
 ```python
-├── streamlit-volume
-    ├── workspace_6f2b160d4a89bafe
-        ├── adata
-        |   ├── example.h5ad
-        ├── downloads
-        |   ├──example
-        |      ├── seurat #seurat format
-        |      |   ├── barcodes.tsv
-        |      |   ├── features.tsv
-        |      |   ├── matrix.mtx
-        |      |   ├── metadata.csv
-        |      ├── example.h5ad #h5ad format
-        ├── uploads
-            ├── example.h5ad
+├── Nuwa
+    ├── streamlit-volume
+        ├── workspace_6f2b160d4a89bafe
+            ├── adata
+            |   ├── example.h5ad
+            ├── downloads
+            |   ├──example
+            |      ├── seurat #files downloaded in seurat format
+            |      |   ├── barcodes.tsv
+            |      |   ├── features.tsv
+            |      |   ├── matrix.mtx
+            |      |   ├── metadata.csv
+            |      ├── example.h5ad #files downloaded in h5ad format
+            ├── uploads
+                ├── example.h5ad
 ```
   
 ## Run on mobile
