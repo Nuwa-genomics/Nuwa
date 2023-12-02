@@ -98,6 +98,7 @@ From here you can access many of the python and R packages availble within bioco
 
 The streamlit volume is created in the installation path of the git repository.
 
+```
 ├── streamlit-volume
     ├── workspace_6f2b160d4a89bafe
         ├── adata
@@ -112,6 +113,7 @@ The streamlit volume is created in the installation path of the git repository.
         |      ├── example.h5ad #h5ad format
         ├── uploads
             ├── example.h5ad
+```
   
 ## Run on mobile
 
