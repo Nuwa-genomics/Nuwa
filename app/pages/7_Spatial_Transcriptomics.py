@@ -31,7 +31,7 @@ class Spatial_Transcriptomics:
     def draw_page(self):
         st.title("Spatial Transcriptomics")
         plt.style.use('dark_background')
-        self.col1, self.col2, self.col3 = st.columns(3, gap="large")
+        self.col1, self.col2, self.col3 = st.columns(3, gap="medium")
         self.spatial_scatter()
         self.neighbourhood_enrichment()
         self.interaction_matrix()
@@ -66,93 +66,145 @@ class Spatial_Transcriptomics:
 
     def neighbourhood_enrichment(self):
         with self.col2:
-            st.subheader("Neighbourhood Enrichment")
-            try:
-                st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_n_enrich")
-                with st.spinner(text="Running neighbourhood enrichment"):
-                    sq.gr.spatial_neighbors(self.adata)
-                    sq.gr.nhood_enrichment(self.adata, cluster_key=st.session_state.sb_cluster_key_n_enrich)
-                    ax_n_enrich = sq.pl.nhood_enrichment(self.adata, cluster_key=st.session_state.sb_cluster_key_n_enrich)
-                    with st.expander(label="Show figure"):
-                        st.pyplot(ax_n_enrich)
-            except Exception as e:
-                st.error(e)
-            st.divider()
+            with st.form(key="n_enrich_form"):
+                st.subheader("Neighbourhood Enrichment")
+                try:
+                    st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_n_enrich")
+                    subcol1, _, _, _ = st.columns(4)
+                    empty = st.empty()
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    if submit_btn:
+                        with st.spinner(text="Running neighbourhood enrichment"):
+                            sq.gr.spatial_neighbors(self.adata)
+                            sq.gr.nhood_enrichment(self.adata, cluster_key=st.session_state.sb_cluster_key_n_enrich)
+                            ax_n_enrich = sq.pl.nhood_enrichment(self.adata, cluster_key=st.session_state.sb_cluster_key_n_enrich)
+                            empty.empty()
+                            empty.pyplot(ax_n_enrich)
+                            #write to script state
+                            st.session_state["script_state"].add_script("sq.gr.spatial_neighbors(adata)")
+                            st.session_state["script_state"].add_script(f"sq.gr.nhood_enrichment(adata, cluster_key={st.session_state.sb_cluster_key_n_enrich})")
+                            st.session_state["script_state"].add_script("")
+                            st.session_state["script_state"].add_script("")
+                except Exception as e:
+                    st.error(e)
 
     def ripley_score(self):
         with self.col2:
-            st.subheader("Ripley score")
-            try:
-                st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_ripley")
-                with st.spinner(text="Calculating Ripley score"):
-                    sq.gr.ripley(self.adata, cluster_key=st.session_state.sb_cluster_key_ripley, mode="L", max_dist=500)
-                    ax_ripley = sq.pl.ripley(self.adata, cluster_key=st.session_state.sb_cluster_key_ripley, mode="L")
-                    with st.expander(label="Show Figure"):
-                        st.pyplot(ax_ripley)
-            except Exception as e:
-                st.error(e)
-            st.divider()
+            with st.form(key="ripley_score_form"):
+                st.subheader("Ripley score")
+                try:
+                    st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_ripley")
+                    empty = st.empty()
+                    subcol1, _, _, _ = st.columns(4)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    if submit_btn:
+                        with st.spinner(text="Calculating Ripley score"):
+                            sq.gr.ripley(self.adata, cluster_key=st.session_state.sb_cluster_key_ripley, mode="L", max_dist=500)
+                            ax_ripley = sq.pl.ripley(self.adata, cluster_key=st.session_state.sb_cluster_key_ripley, mode="L")
+                            empty.pyplot(ax_ripley)
+                        #write to script state
+                        st.session_state["script_state"].add_script(f"sq.gr.ripley(adata, cluster_key={st.session_state.sb_cluster_key_ripley}, mode='L', max_dist=500)")
+                        st.session_state["script_state"].add_script(f"sq.pl.ripley(adata, cluster_key={st.session_state.sb_cluster_key_ripley}, mode='L')")
+                        st.session_state["script_state"].add_script("plt.show()")
+                except Exception as e:
+                    st.error(e)
 
     def co_occurance_score(self):
         with self.col3:
-            st.subheader("Co-occurance score")
-            try:
-                st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns.unique()), key="sb_cluster_key_cooc")
-                options = self.adata.obs[st.session_state.sb_cluster_key_cooc].unique()
-                st.multiselect(label="Clusters", options=options, key="ms_clusters_cooc", default=options[0])
-                with st.spinner(text="Calculating co-occurance score"):
-                    sq.gr.co_occurrence(self.adata, cluster_key=st.session_state.sb_cluster_key_cooc)
-                    ax_cooc = sq.pl.co_occurrence(self.adata, cluster_key=st.session_state.sb_cluster_key_cooc, clusters=st.session_state.ms_clusters_cooc)
-                    with st.expander(label="Show Figure"):
-                        st.pyplot(ax_cooc)
-            except Exception as e:
-                st.error(e)
+            with st.form(key="cooccurance_form"):
+                st.subheader("Co-occurance score")
+                try:
+                    st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns.unique()), key="sb_cluster_key_cooc")
+                    options = self.adata.obs[st.session_state.sb_cluster_key_cooc].unique()
+                    st.multiselect(label="Clusters", options=options, key="ms_clusters_cooc", default=options[0])
+                    empty = st.empty()
+                    subcol1, _, _, _ = st.columns(4)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    if submit_btn:
+                        with st.spinner(text="Calculating co-occurance score"):
+                            sq.gr.co_occurrence(self.adata, cluster_key=st.session_state.sb_cluster_key_cooc)
+                            ax_cooc = sq.pl.co_occurrence(self.adata, cluster_key=st.session_state.sb_cluster_key_cooc, clusters=st.session_state.ms_clusters_cooc)
+                            empty.empty()
+                            empty.pyplot(ax_cooc)
+                            #write to script state
+                            st.session_state["script_state"].add_script(f"sq.gr.co_occurrence(adata, cluster_key={st.session_state.sb_cluster_key_cooc})")
+                            st.session_state["script_state"].add_script(f"sq.pl.co_occurrence(adata, cluster_key={st.session_state.sb_cluster_key_cooc}, clusters={st.session_state.ms_clusters_cooc}")
+                            st.session_state["script_state"].add_script("plt.show()")
+                except Exception as e:
+                    st.error(e)
 
 
     def interaction_matrix(self):
         with self.col3:
-            st.subheader("Interaction matrix")
-            try:
-                st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_inter_matrix")
-                with st.spinner(text="Computing interaction matrix"):
-                    sq.gr.interaction_matrix(self.adata, cluster_key=st.session_state.sb_cluster_key_inter_matrix)
-                    ax_inter_matrix = sq.pl.interaction_matrix(self.adata, cluster_key=st.session_state.sb_cluster_key_inter_matrix)
-                    with st.expander(label="Show figure"):
-                        st.pyplot(ax_inter_matrix)
-            except Exception as e:
-                st.error(e)
-            st.divider()
+            with st.form(key="interaction_matrix_form"):
+                st.subheader("Interaction matrix")
+                try:
+                    st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_inter_matrix")
+                    empty = st.empty()
+                    subcol1, _, _, _ = st.columns(4)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    if submit_btn:
+                        with st.spinner(text="Computing interaction matrix"):
+                            sq.gr.interaction_matrix(self.adata, cluster_key=st.session_state.sb_cluster_key_inter_matrix)
+                            ax_inter_matrix = sq.pl.interaction_matrix(self.adata, cluster_key=st.session_state.sb_cluster_key_inter_matrix)
+                            empty.empty()
+                            empty.pyplot(ax_inter_matrix)
+                            #write to script state
+                            st.session_state["script_state"].add_script(f"sq.gr.interaction_matrix(adata, cluster_key={st.session_state.sb_cluster_key_inter_matrix})")
+                            st.session_state["script_state"].add_script(f"sq.pl.interaction_matrix(adata, cluster_key={st.session_state.sb_cluster_key_inter_matrix})")
+                            st.session_state["script_state"].add_script("plt.show()")
+                except Exception as e:
+                    st.error(e)
 
     def centrality_score(self):
-        with self.col2:
-            st.subheader("Centrality score")
-            try:
-                st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_centrality_score")
-                with st.spinner(text="Calculating centrality score"):
-                    sq.gr.centrality_scores(self.adata, cluster_key=st.session_state.sb_cluster_key_centrality_score)
-                    ax_cent = sq.pl.centrality_scores(self.adata, cluster_key=st.session_state.sb_cluster_key_centrality_score, s=500)
-                    with st.expander(label="Show figure"):
-                        st.pyplot(ax_cent)
-            except Exception as e:
-                st.error(e)
+        with self.col3:
+            with st.form(key="centrality_score_form"):
+                st.subheader("Centrality score")
+                try:
+                    st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_centrality_score")
+                    empty = st.empty()
+                    subcol1, _, _, _ = st.columns(4)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    if submit_btn:
+                        with st.spinner(text="Calculating centrality score"):
+                            sq.gr.centrality_scores(self.adata, cluster_key=st.session_state.sb_cluster_key_centrality_score)
+                            ax_cent = sq.pl.centrality_scores(self.adata, cluster_key=st.session_state.sb_cluster_key_centrality_score, s=500)
+                            empty.empty()
+                            empty.pyplot(ax_cent)
+                            #write to script state
+                            st.session_state["script_state"].add_script(f"sq.gr.centrality_scores(adata, cluster_key={st.session_state.sb_cluster_key_centrality_score})")
+                            st.session_state["script_state"].add_script(f"sq.pl.centrality_scores(adata, cluster_key={st.session_state.sb_cluster_key_centrality_score}, s=500)")
+                            st.session_state["script_state"].add_script("plt.show()")
+                except Exception as e:
+                    st.error(e)
 
     def ligand_receptor_interaction(self):
-        with self.col3:
-            st.subheader("Ligand receptor interaction")
-            try:
-                st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_lri")
-                options = self.adata.obs[st.session_state.sb_cluster_key_lri].unique()
-                st.multiselect(label="Source groups", options=options, default=options[0], key="ms_lri_source_groups")
-                st.multiselect(label="Target groups", options=options, default=options[0], key="ms_lri_target_groups")
-                with st.spinner(text="Computing ligand-receptor interaction matrix"):
-                    sq.gr.ligrec(self.adata, n_perms=100, cluster_key=st.session_state.sb_cluster_key_lri)
-                    ax_lri = sq.pl.ligrec(self.adata, cluster_key=st.session_state.sb_cluster_key_lri, 
-                    source_groups=st.session_state.ms_lri_source_groups, target_groups=st.session_state.ms_lri_target_groups,
-                    means_range=(0.3, np.inf), alpha=1e-4, swap_axes=True)
-                    with st.expander(label="Show figure"):
-                        st.pyplot(ax_lri)
-            except Exception as e:
-                st.error(e)
+        with self.col2:
+            with st.form(key="ligand_receptor_form"):
+                st.subheader("Ligand receptor interaction")
+                try:
+                    st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_lri")
+                    options = self.adata.obs[st.session_state.sb_cluster_key_lri].unique()
+                    st.multiselect(label="Source groups", options=options, default=options[0], key="ms_lri_source_groups")
+                    st.multiselect(label="Target groups", options=options, default=options[0], key="ms_lri_target_groups")
+                    empty = st.empty()
+                    subcol1, _, _, _ = st.columns(4)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    if submit_btn:
+                        with st.spinner(text="Computing ligand-receptor interaction matrix"):
+                            sq.gr.ligrec(self.adata, n_perms=100, cluster_key=st.session_state.sb_cluster_key_lri)
+                            ax_lri = sq.pl.ligrec(self.adata, cluster_key=st.session_state.sb_cluster_key_lri, 
+                            source_groups=st.session_state.ms_lri_source_groups, target_groups=st.session_state.ms_lri_target_groups,
+                            means_range=(0.3, np.inf), alpha=1e-4, swap_axes=True)
+                            empty.empty()
+                            empty.pyplot(ax_lri)
+                            #write to script state
+                            st.session_state["script_state"].add_script(f"sq.gr.ligrec(adata, n_perms=100, cluster_key={st.session_state.sb_cluster_key_lri})")
+                            st.session_state["script_state"].add_adata(f"sq.pl.ligrec(adata, cluster_key={st.session_state.sb_cluster_key_lri},  \
+                                source_groups={st.session_state.ms_lri_source_groups}, target_groups={st.session_state.ms_lri_target_groups}, \
+                                means_range=(0.3, np.inf), alpha=1e-4, swap_axes=True)")
+                except Exception as e:
+                    st.error(e)
                 
 
 try:
@@ -163,6 +215,7 @@ try:
     spatial_t = Spatial_Transcriptomics(adata_state.current.adata)
     spatial_t.draw_page()
     sidebar.show_preview()
+    sidebar.export_script()
     sidebar.delete_experiment_btn()
 
 except KeyError as ke:

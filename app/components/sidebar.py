@@ -25,11 +25,22 @@ class Sidebar:
             delete_btn = st.button(label="🗑️ Delete Experiment", use_container_width=True, key="btn_delete_adata")
             if delete_btn:
                 st.session_state.adata_state.delete_record(adata_name=st.session_state.sb_adata_selection)
+                
+                
+    def export_script(self):
+        with st.sidebar:
+            with st.expander(label="Export python script"):
+                scripts: list(str) = st.session_state.script_state.load_script()
+                full_script = ""
+                for script in scripts:
+                    full_script += script + '\n'
+                st.code(full_script, language="python", line_numbers=True)
 
 
 
     def show_notes(self):
         with st.sidebar:
+ 
             notes = st.session_state.adata_state.load_adata(workspace_id=st.session_state.current_workspace.id, adata_name=st.session_state.sb_adata_selection).notes
             display_notes = notes if notes != None else ""
             notes_ta = st.text_area(label="Notes", placeholder="Notes", value=display_notes, key="sidebar_notes")
@@ -52,7 +63,7 @@ class Sidebar:
             name = st.session_state.ti_new_adata_name
             notes = st.session_state.ti_new_adata_notes
 
-            st.session_state.adata_state.add_adata(AdataModel(
+            st.session_state.adata_state.insert_record(AdataModel(
                 work_id=st.session_state.current_workspace.id,
                 adata_name=name,
                 filename=os.path.join(os.getenv('WORKDIR'), "adata", f"{name}.h5ad"),
@@ -64,8 +75,6 @@ class Sidebar:
             print("Error: ", e)
 
 
-
-
     def show(self):
         with st.sidebar:
             def set_adata():
@@ -73,6 +82,8 @@ class Sidebar:
                     st.error("Couldn't switch adata")
                 
             st.selectbox(label="Current Experiment:", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection", on_change=set_adata, index=st.session_state.adata_state.get_index_of_current())
+            
+            
             
             with st.expander(label="Download adata file", expanded=False):
                 try:
@@ -82,6 +93,9 @@ class Sidebar:
                     if save_adata_btn:
                         selected_adata = st.session_state.adata_state.load_adata(workspace_id=st.session_state.current_workspace.id, adata_name=st.session_state.sb_adata_selection)
                         
+                        
+                        
+                        
                         if not selected_adata:
                             st.toast("Couldn't find selected adata to save", icon="❌")
                         else:
@@ -90,6 +104,9 @@ class Sidebar:
                                     raise FileNotFoundError('File path must exist')
                                 if st.session_state.ti_save_adata_dir.find('streamlit-volume') == -1:
                                     raise Exception("Download filename must be within the 'streamlit-volume' directory")
+                                
+                                if not os.path.isdir(os.path.join(st.session_state.ti_save_adata_dir, 'seurat')):
+                                    os.mkdir(os.path.join(st.session_state.ti_save_adata_dir, 'seurat'))
                                 with st.spinner(text="Converting adata into seurat"):
                                     #matrix
                                     io.mmwrite(os.path.join(st.session_state.ti_save_adata_dir, 'seurat', 'matrix'), selected_adata.adata.X.T)
@@ -112,6 +129,7 @@ class Sidebar:
                 except Exception as e:
                     print("Error ", e)
                     st.toast(e, icon="❌")
+                    
                                 
         
             with st.expander(label="Add experiment", expanded=False):
@@ -123,4 +141,7 @@ class Sidebar:
                 except Exception as e:
                     print("Error: ", e)
                     st.error(e)
+                    
             self.show_notes()
+            
+            

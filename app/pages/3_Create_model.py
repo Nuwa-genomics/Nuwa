@@ -359,6 +359,7 @@ try:
     change_model()
 
     sidebar.show_preview()
+    sidebar.export_script()
     sidebar.delete_experiment_btn()
     
 except KeyError as ke:

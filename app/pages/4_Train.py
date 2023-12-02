@@ -119,6 +119,7 @@ try:
     sidebar.show()
 
     sidebar.show_preview()
+    sidebar.export_script()
     sidebar.delete_experiment_btn()
     
     train = Train(adata_state.current.adata)

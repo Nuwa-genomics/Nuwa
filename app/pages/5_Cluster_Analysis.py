@@ -254,6 +254,7 @@ try:
     analysis.find_marker_genes()
 
     sidebar.show_preview()
+    sidebar.export_script()
     sidebar.delete_experiment_btn()
 
 except KeyError as ke:

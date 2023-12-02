@@ -10,7 +10,9 @@ from database.database import SessionLocal
 from sqlalchemy.orm import Session
 from database.schemas import schemas
 from utils.AdataState import AdataState
+from utils.ScriptState import ScriptState
 import loompy as lmp
+import glob
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬')
 
@@ -27,12 +29,19 @@ with open('css/common.css') as f:
     
 class Upload:
     def __init__(self):
+        self.first_load = True
+        self.conn: Session = SessionLocal()
         self.upload_file()
         self.scanpy_dataset()
         self.external_sources()
         
     def upload_file(self):
         st.title("Upload a dataset")
+        
+        #warn user that workspace already has adata in
+        if glob.glob(os.path.join(os.getenv('WORKDIR'), "adata", "*.h5ad")):
+            st.info("Workspace already contains a dataset. You can import a new one or continue with existing files.")
+            self.first_load = False
         
         uploaded_f = st.file_uploader("Choose a file to upload", type=["csv", "h5ad", "h5", "loom", "mtx", "tsv"], accept_multiple_files=True)
         
@@ -55,6 +64,8 @@ class Upload:
                         os.mkdir(download_path)
                     if not os.path.exists(adata_path):
                         os.mkdir(adata_path)
+                        
+                    
 
                     for f in uploaded_f:
                         bytes_data = f.read()
@@ -90,73 +101,90 @@ class Upload:
         ds_empty = st.empty()
         
         if scanpy_ds != 'none':
+            filename=""
             with st.spinner(text="Loading dataset"):
                 if(st.session_state.sb_sc_datasets == 'pbmc3k'):
                     self.adata = sc.datasets.pbmc3k()
+                    filename="pbmc3k"
                     ds_empty.empty()
                     ds_empty.info("3k PBMCs from 10x Genomics. The data consists in 3k PBMCs from a Healthy Donor and is available from 10x Genomics [here](%s)" % "https://cf.10xgenomics.com/samples/cell-exp/1.1.0/pbmc3k/pbmc3k_filtered_gene_bc_matrices.tar.gz")
                 if(st.session_state.sb_sc_datasets == 'pbmc3k_processed'):
                     self.adata = sc.datasets.pbmc3k_processed()
+                    filename="pbmc3k_processed"
                     ds_empty.empty()
                     ds_empty.info("Processed 3k PBMCs from 10x Genomics.")
                 if(st.session_state.sb_sc_datasets == 'pbmc68k_reduced'):
                     self.adata = sc.datasets.pbmc68k_reduced()
+                    filename="pbmc68k_reduced"
                     ds_empty.empty()
                     ds_empty.info("Subsampled and processed 68k PBMCs. 10x PBMC 68k dataset from [here](%s). The original PBMC 68k dataset was preprocessed using scanpy and was saved keeping only 724 cells and 221 highly variable genes. The saved file contains the annotation of cell types (key: 'bulk_labels'), UMAP coordinates, louvain clustering and gene rankings based on the bulk_labels." % "https://support.10xgenomics.com/single-cell-gene-expression/datasets")
                 if(st.session_state.sb_sc_datasets == 'paul15'):
                     self.adata = sc.datasets.paul15()
+                    filename="paul15"
                     ds_empty.empty()
                     ds_empty.info("Development of Myeloid Progenitors. Non-logarithmized raw data.")
                 if(st.session_state.sb_sc_datasets == 'four_i'):
                     self.adata = sq.datasets.four_i()
+                    filename="four_i"
                     ds_empty.empty()
                     ds_empty.info("Pre-processed subset 4i dataset from [Gut et al](%s)." % "https://doi.org/10.1126/science.aar7042")
                 if(st.session_state.sb_sc_datasets == 'imc'):
                     self.adata = sq.datasets.imc()
+                    filename="imc"
                     ds_empty.empty()
                     ds_empty.info("Pre-processed subset IMC dataset from [Jackson et al](%s)." % "https://www.nature.com/articles/s41586-019-1876-x")
                 if(st.session_state.sb_sc_datasets == 'seqfish'):
                     self.adata = sq.datasets.seqfish()
+                    filename="seqfish"
                     ds_empty.empty()
                     ds_empty.info("Pre-processed subset seqFISH dataset from [Lohoff et al](%s)." % "https://www.biorxiv.org/content/10.1101/2020.11.20.391896v1")
                 if(st.session_state.sb_sc_datasets == 'merfish'):
                     self.adata = sq.datasets.merfish()
+                    filename="merfish"
                     ds_empty.empty()
                     ds_empty.info("Pre-processed MERFISH dataset from [Moffitt et al](%s)." % "https://doi.org/10.1126/science.aau5324")
                 if(st.session_state.sb_sc_datasets == 'mibitof'):
                     self.adata = sq.datasets.mibitof()
+                    filename="mibitof"
                     ds_empty.empty()
                     ds_empty.info("Pre-processed MIBI-TOF dataset from [Hartmann et al](%s)." % "https://doi.org/10.1101/2020.01.17.909796")
                 if(st.session_state.sb_sc_datasets == 'slideseqv2'):
                     self.adata = sq.datasets.slideseqv2()
+                    filename="slideseqv2"
                     ds_empty.empty()
                     ds_empty.info("Pre-processed SlideseqV2 dataset from [Stickles et al](%s)." % "https://doi.org/10.1038/s41587-020-0739-1")
                 if(st.session_state.sb_sc_datasets == 'sc_mouse_cortex'):
                     self.adata = sq.datasets.sc_mouse_cortex()
+                    filename="sc_mouse_cortex"
                     ds_empty.empty()
                     ds_empty.info("Pre-processed [scRNA-seq mouse cortex](%s)." % "https://doi.org/10.1038/s41586-018-0654-5")
                 if(st.session_state.sb_sc_datasets == 'visium'):
                     self.adata = sq.datasets.visium()
+                    filename="visium"
                     ds_empty.empty()
                     ds_empty.info("Download Visium [datasets](%s) from 10x Genomics." % "https://support.10xgenomics.com/spatial-gene-expression/datasets")
                 if(st.session_state.sb_sc_datasets == 'visium_hne_adata'):
                     self.adata = sq.datasets.visium_hne_adata()
+                    filename="visium_hne_adata"
                     ds_empty.empty()
                     ds_empty.info("Pre-processed 10x Genomics Visium H&E [dataset](%s)." % "https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Adult_Mouse_Brain")
                 if(st.session_state.sb_sc_datasets == 'visium_hne_adata_crop'):
                     self.adata = sq.datasets.visium_hne_adata_crop()
+                    filename="visium_hne_adata_crop"
                     ds_empty.empty()
                     ds_empty.info("Pre-processed subset 10x Genomics Visium H&E [dataset](%s)." % "https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Adult_Mouse_Brain")
                 if(st.session_state.sb_sc_datasets == 'visium_fluo_adata'):
                     self.adata = sq.datasets.visium_fluo_adata()
+                    filename="visium_fluo_adata"
                     ds_empty.empty()
                     ds_empty.info("Pre-processed 10x Genomics Visium Fluorecent [dataset](%s)." % "https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Adult_Mouse_Brain_Coronal_Section_2")
                 if(st.session_state.sb_sc_datasets == 'visium_fluo_adata_crop'):
                     self.adata = sq.datasets.visium_fluo_adata_crop()
+                    filename="visium_adata_crop"
                     ds_empty.empty()
                     ds_empty.info("Pre-processed subset 10x Genomics Visium Fluorescent [dataset](%s)." % "https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Adult_Mouse_Brain_Coronal_Section_2")
 
-            self.show_anndata(self.adata)
+            self.show_anndata(self.adata, filename=filename)
         
 
     def external_sources(self):
@@ -169,16 +197,40 @@ class Upload:
             if ebi_form_btn:
                 with st.spinner(text="Fetching dataset"):
                     dataset = sc.datasets.ebi_expression_atlas(accession=accession_str)
-                    self.show_anndata(dataset)
+                    self.show_anndata(dataset, filename=accession_str)
 
 
-    def show_anndata(self, adata, f = None):
+    def show_anndata(self, adata, f = None, filename = ""):
         try:
+            
+            if filename == "":
+                filename = f.name
+            
             #upload raw adata
-            sc.write(filename=f"{os.getenv('WORKDIR')}uploads/adata_raw.h5ad", adata=adata)
-            sc.write(filename=f"{os.getenv('WORKDIR')}adata/adata_raw.h5ad", adata=adata)
-
-            st.session_state["adata_state"] = AdataState(workspace_id=st.session_state.current_workspace.id)
+            sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'uploads', f'{filename}_raw.h5ad'), adata=adata)
+            
+            adata.raw = adata
+            active_adata = AdataModel(
+                work_id = st.session_state.current_workspace.id, 
+                adata_name=f"{filename}", adata=adata, 
+                filename=os.path.join(os.getenv('WORKDIR'), 'adata', f'{filename}.h5ad')
+            )
+            st.session_state["adata_state"] = AdataState(active=active_adata)
+            
+            
+            #see if dataset already in db
+            if self.first_load: #TODO: this doesn't take into account loading a new dataset into original workspace. adata definition won't show
+                if f != None:
+                    st.session_state["script_state"].add_script(f"#Uploaded adata should be added here. Adata used for current experiment was {filename}.\n")
+                else:
+                    st.session_state["script_state"].add_script(f"#Uploaded adata should be added here.\n")
+                
+            
+            
+            
+            
+            
+            
 
         except ValidationError as e:
             st.error(e)

@@ -40,13 +40,22 @@ class Preprocess:
         self.adata = adata
         self.conn: Session = SessionLocal()
         st.title("Preprocess")
+        
+        
+        
+    def make_adata(self, adata):
+        adata_name = f"{st.session_state.adata_state.current.adata_name}"
+        st.session_state.adata_state.insert_record(AdataModel(
+            work_id=st.session_state.current_workspace.id, adata=adata, 
+            filename=os.path.join(os.getenv('WORKDIR'), "adata", f"{adata_name}.h5ad"), adata_name=adata_name))
+        st.session_state.adata_state.switch_adata(adata_name=adata_name)
+        
          
 
     def filter_highest_expr_genes(self):
         with st.form(key="form_highest_expr"):
             st.subheader("Show highest expressed genes")
             num_genes = st.number_input(label="Number of genes", min_value=1, max_value=100, value=20, key="n_top_genes")
-            fn = 'figures/highest_expr_genes.pdf'
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Filter", use_container_width=True)
 
@@ -70,16 +79,16 @@ class Preprocess:
                 if submit_btn:
                     with st.spinner(text="Calculating highly variable genes"):
                         with st.expander(label="Show figure"):
-                            sc.pp.normalize_total(self.adata, target_sum=1e4)
-                            sc.pp.log1p(self.adata)
-                            sc.pp.highly_variable_genes(self.adata, min_mean=min_mean, max_mean=max_mean, min_disp=0.5)
+                            sc.pp.normalize_total(self.adata, target_sum=1e4); st.session_state["script_state"].add_script("sc.pp.normalize_total(adata, target_sum=1e4)")
+                            sc.pp.log1p(self.adata); st.session_state["script_state"].add_script("sc.pp.log1p(adata)")
+                            sc.pp.highly_variable_genes(self.adata, min_mean=min_mean, max_mean=max_mean, min_disp=0.5); st.session_state["script_state"].add_script(f"sc.pp.highly_variable_genes(adata, min_mean={min_mean}, max_mean={max_mean}, min_disp=0.5)")
                             #make adata
-                            st.session_state.adata_state.add_adata(AdataModel(
-                                work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                                filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-                            st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                            self.make_adata(self.adata)
                             ax = sc.pl.highly_variable_genes(self.adata)
                             st.pyplot(ax)
+                            #add to script state
+                            st.session_state["script_state"].add_script("sc.pl.highly_variable_genes(adata)")
+                            st.session_state["script_state"].add_script("plt.show()")
         except Exception as e:
             st.toast(f"Failed to normalize data: {e}", icon="❌")
 
@@ -96,12 +105,9 @@ class Preprocess:
                 submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
                 if submit_btn:
-                    sc.pp.normalize_total(self.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr)
+                    sc.pp.normalize_total(self.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr); st.session_state["script_state"].add_script(f"sc.pp.normalize_total(adata, target_sum={target_sum}, exclude_highly_expressed={exclude_high_expr})")
                     #make adata
-                    st.session_state.adata_state.add_adata(AdataModel(
-                        work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                        filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-                    st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                    self.make_adata(self.adata)
                     st.toast("Normalized data", icon='✅')
         with tab_per_cell:
             with st.form(key="form_normalize_per_cell"):
@@ -111,12 +117,9 @@ class Preprocess:
                 submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
                 if submit_btn:
-                    sc.pp.normalize_per_cell(self.adata, counts_per_cell_after=counts_per_cell_after)
+                    sc.pp.normalize_per_cell(self.adata, counts_per_cell_after=counts_per_cell_after); st.session_state["script_state"].add_script(f"sc.pp.normalize_per_cell(adata, counts_per_cell_after={counts_per_cell_after})")
                     #make adata
-                    st.session_state.adata_state.add_adata(AdataModel(
-                        work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                        filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-                    st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                    self.make_adata(self.adata)
                     st.toast("Normalized data", icon='✅')
 
     def filter_cells(self):
@@ -135,12 +138,9 @@ class Preprocess:
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
             if submit_btn:
-                sc.pp.filter_cells(self.adata, max_genes=max_genes, min_genes=min_genes, max_counts=max_count, min_counts=min_count)
+                sc.pp.filter_cells(self.adata, max_genes=max_genes, min_genes=min_genes, max_counts=max_count, min_counts=min_count); st.session_state["script_state"].add_script(f"sc.pp.filter_cells(adata, max_genes={max_genes}, min_genes={min_genes}, max_counts={max_count}, min_counts={min_count})")
                 #make adata
-                st.session_state.adata_state.add_adata(AdataModel(
-                    work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                    filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-                st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                self.make_adata(self.adata)
                 st.toast("Filtered cells", icon='✅')
 
 
@@ -158,12 +158,9 @@ class Preprocess:
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if submit_btn:
-                sc.pp.filter_genes(self.adata, max_cells=max_cells, min_cells=min_cells, max_counts=max_count, min_counts=min_count)
+                sc.pp.filter_genes(self.adata, max_cells=max_cells, min_cells=min_cells, max_counts=max_count, min_counts=min_count); st.session_state["script_state"].add_script(f"sc.pp.filter_genes(adata, max_cells={max_cells}, min_cells={min_cells}, max_counts={max_count}, min_counts={min_count})")
                 #make adata
-                st.session_state.adata_state.add_adata(AdataModel(
-                    work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                    filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-                st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                self.make_adata(self.adata)
                 st.toast("Filtered genes", icon='✅')
 
 
@@ -176,19 +173,16 @@ class Preprocess:
             
             if submit_btn:
                 if recipe == 'Seurat':
-                    sc.pp.recipe_seurat(self.adata)
+                    sc.pp.recipe_seurat(self.adata); st.session_state["script_state"].add_script("sc.pp.recipe_seurat(adata)")
                 elif recipe == 'Weinreb17':
-                    sc.pp.recipe_weinreb17(self.adata)
+                    sc.pp.recipe_weinreb17(self.adata); st.session_state["script_state"].add_script("sc.pp.recipe_weinreb17(adata)")
                 elif recipe == 'Zheng17':
-                    sc.pp.recipe_zheng17(self.adata)
+                    sc.pp.recipe_zheng17(self.adata); st.session_state["script_state"].add_script("sc.pp.recipe_zheng17(adata)")
                 else:
                     st.error("Recipe not found")
 
                 #make adata
-                st.session_state.adata_state.add_adata(AdataModel(
-                    work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                    filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-                st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                self.make_adata(self.adata)
                 st.toast(f"Applied recipe: {st.session_state.sb_pp_recipe}", icon='✅')
 
     
@@ -221,11 +215,12 @@ class Preprocess:
 
             if mito_annot_submit_btn:
                 self.adata = self.adata[self.adata.obs.pct_counts_mt < max_pct_counts_mt, :]
+                #write to script state
+                st.session_state["script_state"].add_script("sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)")
+                st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_mt < {max_pct_counts_mt}, :]")
                 #make adata
-                st.session_state.adata_state.add_adata(AdataModel(
-                    work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                    filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-                st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                self.make_adata(self.adata)
+                st.toast("Filtered mitochondrial genes", icon="✅")
 
             
 
@@ -261,13 +256,14 @@ class Preprocess:
 
             if ribo_annot_submit_btn:
                 self.adata = self.adata[self.adata.obs.pct_counts_ribo < max_pct_counts_ribo, :]
+                #add to script adata
+                st.session_state["script_state"].add_script("sc.pp.calculate_qc_metrics(adata, qc_vars=['ribo'], percent_top=None, log1p=False, inplace=True)")
+                st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_ribo < {max_pct_counts_ribo}, :]")
                 #make adata
-                st.session_state.adata_state.add_adata(AdataModel(
-                    work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                    filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-                st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                self.make_adata(self.adata)
+                st.toast("Filtered ribosomal genes", icon="✅")
                 
-        
+                
 
     def run_scrublet(self):
         with st.form(key="scrublet_form"):
@@ -280,20 +276,19 @@ class Preprocess:
 
             if scrublet_submit:
                 with st.spinner("Running scrublet"):
-                    adata_scrublet = sc.external.pp.scrublet(self.adata, sim_doublet_ratio=sim_doublet_ratio, expected_doublet_rate=expected_doublet_rate)
+                    adata_scrublet = sc.external.pp.scrublet(self.adata, sim_doublet_ratio=sim_doublet_ratio, expected_doublet_rate=expected_doublet_rate); st.session_state["script_state"].add_script(f"adata_scrublet = sc.external.pp.scrublet(adata, sim_doublet_ratio={sim_doublet_ratio}, expected_doublet_rate={expected_doublet_rate})")
                     self.adata = adata_scrublet #TODO: only temporary, change to saving separately
                     #make adata
-                    st.session_state.adata_state.add_adata(AdataModel(
-                        work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                        filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-                    st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                    self.make_adata(self.adata)
+                    st.toast("Completed doublet predictions", icon="✅")
                     
                     
     def regress_out(self):
         def regress_out_btn():
             if st.session_state.ms_regress_out_keys:
-                sc.pp.regress_out(self.adata, keys=st.session_state.ms_regress_out_keys)
+                sc.pp.regress_out(self.adata, keys=st.session_state.ms_regress_out_keys); st.session_state["script_state"].add_script(f"sc.pp.regress_out(adata, keys={st.session_state.ms_regress_out_keys})")
                 st.toast("Successfully regressed out data", icon="✅")
+                self.make_adata(self.adata)
             else:
                 st.toast("No option selected, not regressing data.", icon="ℹ️")
         with st.form(key="regress_out_form"):
@@ -311,7 +306,8 @@ class Preprocess:
             btn_scale_data_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if btn_scale_data_btn:
                 if st.session_state.ni_scale_data_max_value:
-                    sc.pp.scale(self.adata, max_value=st.session_state.ni_scale_data_max_value)
+                    sc.pp.scale(self.adata, max_value=st.session_state.ni_scale_data_max_value); st.session_state["script_state"].add_script(f"sc.pp.scale(adata, max_value={st.session_state.ni_scale_data_max_value})")
+                    self.make_adata(self.adata)
                     st.toast("Successfully scaled data", icon="✅")
                 else:
                     st.toast("Max value cannot be blank", icon="❌")
@@ -329,7 +325,9 @@ class Preprocess:
                 subcol1, _, _ = st.columns(3)
                 btn_downsample = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_downsample:
-                    sc.pp.downsample_counts(self.adata, counts_per_cell=counts_per_cell, total_counts=total_counts)
+                    sc.pp.downsample_counts(self.adata, counts_per_cell=counts_per_cell, total_counts=total_counts); st.session_state["script_state"].add_script(f"sc.pp.downsample_counts(adata, counts_per_cell={counts_per_cell}, total_counts={total_counts})")
+                    self.make_adata(self.adata)
+                    st.toast("Successfully downsampled data", icon="✅")
             
         with subsample_tab:
             with st.form(key="subsample_form"):
@@ -339,8 +337,9 @@ class Preprocess:
                 subcol1, _, _ = st.columns(3)
                 btn_subsample = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_subsample:
-                    sc.pp.subsample(self.adata, n_obs=st.session_state.ni_n_obs, fraction=st.session_state.ni_subsample_fraction)
-                    
+                    sc.pp.subsample(self.adata, n_obs=st.session_state.ni_n_obs, fraction=st.session_state.ni_subsample_fraction); st.session_state["script_state"].add_script(f"sc.pp.subsample(adata, n_obs={st.session_state.ni_n_obs}, fraction={st.session_state.ni_subsample_fraction})")
+                    self.make_adata(self.adata)
+                    st.toast("Successfully subsampled data", icon="✅")
                     
     def batch_effect_removal(self):
         with st.form(key="batch_effect_removal_form"):
@@ -351,12 +350,8 @@ class Preprocess:
             btn_batch_effect_removal = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if btn_batch_effect_removal:
                 with st.spinner(text="Running Combat batch effect correction"):
-                    sc.pp.combat(self.adata, key=key, covariates=covariates)
-                with st.spinner(text="Saving new adata"):
-                    st.session_state.adata_state.add_adata(AdataModel(
-                        work_id=st.session_state.current_workspace.id, adata=self.adata, 
-                        filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-                    st.session_state.adata_state.switch_adata(adata_name="adata_pp")
+                    sc.pp.combat(self.adata, key=key, covariates=covariates); st.session_state["script_state"].add_script(f"sc.pp.combat(adata, key={key}, covariates={covariates})")
+                self.make_adata(self.adata)
                 st.toast("Batch corrected data", icon='✅')
                 
                 
@@ -371,6 +366,7 @@ class Preprocess:
                     df_pca = pd.DataFrame({'pca1': adata.obsm['X_pca'][:,0], 'pca2': adata.obsm['X_pca'][:,1], 'color': adata.obs[f'{st.session_state.sb_pca_color_pp}']})  
                     pca_empty.empty()
                     pca_empty.scatter_chart(data=df_pca, x='pca1', y='pca2', color='color', size=18)
+                    self.make_adata(self.adata)
                 
                
             index = 0      
@@ -385,24 +381,17 @@ class Preprocess:
             run_pca(self.adata)
             
             if pca_pp_btn:
+                st.session_state["script_state"].add_script("sc.pp.pca(adata, random_state=42)")
+                st.session_state["script_state"].add_script("sc.pl.pca(adata, random_state=42)")
+                st.session_state["script_state"].add_script("plt.show()")
                 run_pca(self.adata)
-                
-            
-        
-            
+                  
 
 try:
-    #make adata
-    st.session_state.adata_state.add_adata(AdataModel(
-        work_id=st.session_state.current_workspace.id, adata=st.session_state.adata_state.current.adata.copy(), 
-        filename=os.path.join(os.getenv('WORKDIR'), "adata", "adata_pp.h5ad"), adata_name="adata_pp"))
-    st.session_state.adata_state.switch_adata(adata_name="adata_pp")
-    
     sidebar = Sidebar()
-
+    
     sidebar.show()
-
-    st.session_state["current_adata"] = st.session_state.adata_state.current.adata
+    
     preprocess = Preprocess(st.session_state.adata_state.current.adata.copy())
 
     col1, col2, col3 = st.columns(3, gap="medium")
@@ -430,6 +419,7 @@ try:
         preprocess.scale_to_unit_variance()
 
     sidebar.show_preview()
+    sidebar.export_script()
     sidebar.delete_experiment_btn()
 
 except KeyError as ke:
