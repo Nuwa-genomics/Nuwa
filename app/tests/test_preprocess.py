@@ -133,7 +133,7 @@ class Test_Preprocess:
         self.at.number_input(key="input_highly_variable_min_mean").set_value(0.0125)
         self.at.number_input(key="input_highly_variable_max_mean").set_value(3.00)
         self.at.button(key="FormSubmitter:form_highly_variable-Filter").click().run(timeout=100)
-        adata = sc.read_h5ad('/app/datasets/bct_raw.h5ad')
+        adata = sc.read_h5ad('/app/data/bct_raw.h5ad')
         sc.pp.normalize_total(adata, target_sum=1e4)
         sc.pp.log1p(adata)
         sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5)
@@ -146,7 +146,7 @@ class Test_Preprocess:
         #TODO: add other inputs
         self.at.button(key="FormSubmitter:form_filter_cells-Apply").click().run(timeout=100)
         #test filter
-        adata = sc.read_h5ad('/app/datasets/bct_raw.h5ad')
+        adata = sc.read_h5ad('/app/data/bct_raw.h5ad')
         assert len(adata.obs) == 9288 #original obs
         sc.pp.filter_cells(adata, min_genes=200)
         assert len(self.at.session_state.adata_state.current.adata.obs) == len(adata.obs) #8573

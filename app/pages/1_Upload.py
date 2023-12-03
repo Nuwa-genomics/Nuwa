@@ -117,7 +117,7 @@ class Upload:
                     filename="pbmc68k_reduced"
                     ds_empty.info("Subsampled and processed 68k PBMCs. 10x PBMC 68k dataset from [here](%s). The original PBMC 68k dataset was preprocessed using scanpy and was saved keeping only 724 cells and 221 highly variable genes. The saved file contains the annotation of cell types (key: 'bulk_labels'), UMAP coordinates, louvain clustering and gene rankings based on the bulk_labels." % "https://support.10xgenomics.com/single-cell-gene-expression/datasets")
                 if(st.session_state.sb_sc_datasets == 'mouse mammary epithelial'):
-                    self.adata = sc.read_h5ad('/app/datasets/bct_raw.h5ad')
+                    self.adata = sc.read_h5ad('/app/data/bct_raw.h5ad')
                     filename="mouse mammary epithelial"
                     ds_empty.info("Mammary epithelial cell sample taken from mouse donor. (PumbedID_30089273, PubmedID_29158510, PubmedID_29225342)")
                 if(st.session_state.sb_sc_datasets == 'paul15'):
