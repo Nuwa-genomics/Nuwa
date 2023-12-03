@@ -13,7 +13,6 @@ from utils.AdataState import AdataState
 from utils.ScriptState import ScriptState
 import loompy as lmp
 import glob
-import zipfile
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬')
 
@@ -97,7 +96,7 @@ class Upload:
         st.subheader("Or select a built-in dataset")
         
         #scanpy datasets
-        dataset_options = ['none', 'pbmc3k', 'pbmc3k_processed', 'pbmc68k_reduced', 'mouse mammary epithelial', 'macaque retina', 'paul15', 'four_i', 'imc', 'seqfish', 'merfish', 'mibitof', 'slideseqv2', 'sc_mouse_cortex', 'visium', 'visium_hne_adata', 'visium_hne_adata_crop', 'visium_fluo_adata', 'visium_fluo_adata_crop', 'visium_hne_image', 'visium_hne_crop', 'visium_fluo_image_crop']   
+        dataset_options = ['none', 'pbmc3k', 'pbmc3k_processed', 'pbmc68k_reduced', 'mouse mammary epithelial', 'paul15', 'four_i', 'imc', 'seqfish', 'merfish', 'mibitof', 'slideseqv2', 'sc_mouse_cortex', 'visium', 'visium_hne_adata', 'visium_hne_adata_crop', 'visium_fluo_adata', 'visium_fluo_adata_crop', 'visium_hne_image', 'visium_hne_crop', 'visium_fluo_image_crop']   
         scanpy_ds = st.selectbox(label="Dataset", options=dataset_options, key="sb_sc_datasets")
         ds_empty = st.empty()
         
@@ -121,13 +120,6 @@ class Upload:
                     self.adata = sc.read_h5ad('/app/datasets/bct_raw.h5ad')
                     filename="mouse mammary epithelial"
                     ds_empty.info("Mammary epithelial cell sample taken from mouse donor. (PumbedID_30089273, PubmedID_29158510, PubmedID_29225342)")
-                if(st.session_state.sb_sc_datasets == 'macaque retina'):
-                    #unzip dataset
-                    with zipfile.ZipFile('/app/datasets/macaque_raw.zip', 'r') as zip_ref:
-                        zip_ref.extractall('/app/datasets')
-                    self.adata = sc.read_h5ad('/app/datasets/macaque_raw.h5ad')
-                    filename="macaque retina"
-                    ds_empty.info("Retina bipolar cells taken from macaque donor. GSE11848(Peng et al., 2019)")
                 if(st.session_state.sb_sc_datasets == 'paul15'):
                     self.adata = sc.datasets.paul15()
                     filename="paul15"
