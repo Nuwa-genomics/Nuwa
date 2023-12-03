@@ -13,6 +13,7 @@ from utils.AdataState import AdataState
 from utils.ScriptState import ScriptState
 import loompy as lmp
 import glob
+import zipfile
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬')
 
@@ -121,6 +122,9 @@ class Upload:
                     filename="mouse mammary epithelial"
                     ds_empty.info("Mammary epithelial cell sample taken from mouse donor. (PumbedID_30089273, PubmedID_29158510, PubmedID_29225342)")
                 if(st.session_state.sb_sc_datasets == 'macaque retina'):
+                    #unzip dataset
+                    with zipfile.ZipFile('/app/datasets/macaque_raw.zip', 'r') as zip_ref:
+                        zip_ref.extractall('/app/datasets')
                     self.adata = sc.read_h5ad('/app/datasets/macaque_raw.h5ad')
                     filename="macaque retina"
                     ds_empty.info("Retina bipolar cells taken from macaque donor. GSE11848(Peng et al., 2019)")
