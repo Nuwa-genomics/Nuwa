@@ -2,6 +2,7 @@ bin
 .vscode
 postgresql/data
 app/ml/DeepST/Results
+app/datasets
 __pycache__
 streamlit-volume
 .pytest_cache
