@@ -287,7 +287,6 @@ class CreateDeepSTModel:
         st.session_state.model_obj["model"] = model
         
 
-
 def create_citeseq(adata):
     create_model = CreateCiteSeqModel(adata)
 
