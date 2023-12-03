@@ -55,10 +55,11 @@ class Dashboard:
             self.conn.add(new_workspace)
             self.conn.commit()
             self.conn.refresh(new_workspace)
+            st.toast("Successfully created workspace", icon='✅')
         except Exception as e:
             st.error(e)
-        finally:
-            st.toast("Successfully created workspace", icon='✅')
+            st.toast("Failed to create workspace", icon="❌")
+            
 
     def new_workspace(self):
         with st.sidebar:

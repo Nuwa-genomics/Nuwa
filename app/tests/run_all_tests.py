@@ -41,7 +41,7 @@ try:
 
     print()
     print(f"{bcolors.BOLD}===============Testing Upload pbmc3k===============")
-    upload_test = Test_Upload(session_state=dashboard_state, dataset="pbmc3k")
+    upload_test = Test_Upload(session_state=dashboard_state, dataset="mouse mammary epithelial")
     upload_state = upload_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")

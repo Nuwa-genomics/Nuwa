@@ -239,12 +239,12 @@ class Analysis:
 
 
 try:
-    adata_state = AdataState(workspace_id=st.session_state.current_workspace.id)
+    adata = st.session_state.adata_state.current.adata
 
     sidebar = Sidebar()
     sidebar.show()
 
-    analysis = Analysis(adata_state.current.adata)
+    analysis = Analysis(adata)
 
     analysis.autoencoder_cluster_plot()
     analysis.neighbourhood_graph()

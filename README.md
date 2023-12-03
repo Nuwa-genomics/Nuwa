@@ -130,7 +130,7 @@ The host's filesysystem will not be accessible to others.
 
 ## Running Tests
 
-Unit tests can be run using the tests docker compose file:
+Automated unit tests can be run using the tests docker compose file:
 
 ```
 docker-compose -f tests.docker-compose.yml up --build

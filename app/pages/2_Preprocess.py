@@ -208,16 +208,16 @@ class Preprocess:
                     st.pyplot(ax_violin)
                     
 
-            max_pct_counts_mt = st.number_input(label="max pct_counts_mt", key="ni_pct_counts_mt", min_value=0)
+            ni_pct_counts_mt = st.number_input(label="max pct_counts_mt", key="ni_pct_counts_mt", min_value=0, value=100)
 
             subcol1, _, _ = st.columns(3)
             mito_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
             if mito_annot_submit_btn:
-                self.adata = self.adata[self.adata.obs.pct_counts_mt < max_pct_counts_mt, :]
+                self.adata = self.adata[self.adata.obs.pct_counts_mt < ni_pct_counts_mt, :]
                 #write to script state
                 st.session_state["script_state"].add_script("sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)")
-                st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_mt < {max_pct_counts_mt}, :]")
+                st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_mt < {ni_pct_counts_mt}, :]")
                 #make adata
                 self.make_adata(self.adata)
                 st.toast("Filtered mitochondrial genes", icon="✅")
@@ -249,7 +249,7 @@ class Preprocess:
                         st.pyplot(ax_violin)
                         
 
-            max_pct_counts_ribo = st.number_input(label="max pct_counts_ribo", key="ni_pct_counts_ribo", min_value=0)
+            max_pct_counts_ribo = st.number_input(label="max pct_counts_ribo", key="ni_pct_counts_ribo", min_value=0, value=100)
 
             subcol1, _, _ = st.columns(3)
             ribo_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
@@ -343,8 +343,8 @@ class Preprocess:
                     
     def batch_effect_removal(self):
         with st.form(key="batch_effect_removal_form"):
-            st.subheader("Batch effect correction")
-            key = st.selectbox(label="Key", options=self.adata.obs_keys())
+            st.subheader("Batch effect correction", help="Uses Combat to correct non-biological differences caused by batch effect.")
+            key = st.selectbox(label="Key", options=self.adata.obs_keys(), key="sb_batch_effect_key")
             covariates = st.multiselect(placeholder="Optional", label="Covariates", options=self.adata.obs_keys())
             subcol1, _, _ = st.columns(3)
             btn_batch_effect_removal = subcol1.form_submit_button(label="Apply", use_container_width=True)

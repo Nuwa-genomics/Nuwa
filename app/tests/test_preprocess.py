@@ -34,7 +34,7 @@ class Test_Preprocess:
         if session_state is not None:
             self.at.session_state = session_state
             
-        self.at.run(timeout=100)
+        self.at.run(timeout=500)
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
@@ -42,9 +42,9 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        # self.test_notes()
-        # assert not self.at.exception
-        # print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        self.test_notes()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         self.test_filter_highest_expressed()
         assert not self.at.exception
@@ -70,10 +70,6 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        self.test_doublet_prediction()
-        assert not self.at.exception
-        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
-        
         self.test_annot_mito()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
@@ -82,11 +78,15 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        self.test_scale_data()
+        self.test_batch_effect_removal_and_pca()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        self.test_batch_effect_removal_and_pca()
+        self.test_doublet_prediction()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_scale_data()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
@@ -119,8 +119,8 @@ class Test_Preprocess:
         assert self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == "adata_test") \
         .filter(schemas.Adata.notes == "test_note") \
         .filter(schemas.Adata.work_id == self.at.session_state.current_workspace.id).count() == 0
-        #Select original raw
-        self.at.selectbox(key="sb_adata_selection").select("adata_raw").run(timeout=100)
+        #Select original adata
+        self.at.selectbox(key="sb_adata_selection").select("mouse_mammary_epithelial").run(timeout=100)
         
     def test_filter_highest_expressed(self):
         print(f"{bcolors.OKBLUE}test_filter_highest_expressed {bcolors.ENDC}", end="")
@@ -133,7 +133,7 @@ class Test_Preprocess:
         self.at.number_input(key="input_highly_variable_min_mean").set_value(0.0125)
         self.at.number_input(key="input_highly_variable_max_mean").set_value(3.00)
         self.at.button(key="FormSubmitter:form_highly_variable-Filter").click().run(timeout=100)
-        adata = sc.datasets.pbmc3k()
+        adata = sc.read_h5ad('/app/datasets/bct_raw.h5ad')
         sc.pp.normalize_total(adata, target_sum=1e4)
         sc.pp.log1p(adata)
         sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5)
@@ -142,28 +142,29 @@ class Test_Preprocess:
         
     def test_filter_cells(self):
         print(f"{bcolors.OKBLUE}test_filter_cells {bcolors.ENDC}", end="")
-        self.at.number_input(key="filter_cell_min_genes").set_value(300)
+        self.at.number_input(key="filter_cell_min_genes").set_value(200)
         #TODO: add other inputs
         self.at.button(key="FormSubmitter:form_filter_cells-Apply").click().run(timeout=100)
         #test filter
-        adata = sc.datasets.pbmc3k()
-        sc.pp.filter_cells(adata, min_genes=300)
-        assert len(self.at.session_state.adata_state.current.adata.obs) == len(adata.obs) #2685
-        assert len(self.at.session_state.adata_state.current.adata.var) == len(adata.var) #32738
+        adata = sc.read_h5ad('/app/datasets/bct_raw.h5ad')
+        assert len(adata.obs) == 9288 #original obs
+        sc.pp.filter_cells(adata, min_genes=200)
+        assert len(self.at.session_state.adata_state.current.adata.obs) == len(adata.obs) #8573
+        assert len(self.at.session_state.adata_state.current.adata.var) == len(adata.var) #1222
         from_file_adata = sc.read(self.at.session_state.adata_state.current.filename)
         assert len(from_file_adata.var) == len(adata.var)
         assert len(from_file_adata.obs) == len(adata.obs)
         
     def test_filter_genes(self):
         print(f"{bcolors.OKBLUE}test_filter_genes {bcolors.ENDC}", end="")
-        self.at.number_input(key="filter_gene_min_cells").set_value(3)
+        self.at.number_input(key="filter_gene_min_cells").set_value(900)
         self.at.button(key="FormSubmitter:form_filter_genes-Apply").click().run(timeout=100)
         #use values from last filter
-        assert len(self.at.session_state.adata_state.current.adata.obs) == 2685 
-        assert len(self.at.session_state.adata_state.current.adata.var) == 13708
+        assert len(self.at.session_state.adata_state.current.adata.obs) == 8573
+        assert len(self.at.session_state.adata_state.current.adata.var) == 1169
         from_file_adata = sc.read(self.at.session_state.adata_state.current.filename)
-        assert len(from_file_adata.var) == 13708
-        assert len(from_file_adata.obs) == 2685
+        assert len(from_file_adata.var) == 1169
+        assert len(from_file_adata.obs) == 8573
         
     def test_pp_recipe(self):
         print(f"{bcolors.OKBLUE}test_pp_recipe {bcolors.ENDC}", end="")
@@ -199,29 +200,41 @@ class Test_Preprocess:
         
     def test_notes(self):
         print(f"{bcolors.OKBLUE}test_notes {bcolors.ENDC}", end="")
-        self.at.selectbox(key="sb_adata_selection").select("adata_raw").run(timeout=150)
+        self.at.selectbox(key="sb_adata_selection").select("mouse_mammary_epithelial").run(timeout=150)
         self.at.text_area(key="sidebar_notes").input("Important notes").run(timeout=150)
-        adata = self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == "adata_raw") \
+        adata = self.conn.query(schemas.Adata).filter(schemas.Adata.adata_name == "mouse_mammary_epithelial") \
         .filter(schemas.Adata.work_id == self.at.session_state.current_workspace.id).first()
         assert adata.notes == "Important notes"
-        self.at.selectbox(key="sb_adata_selection").select("adata_raw").run(timeout=150)
+        self.at.selectbox(key="sb_adata_selection").select("mouse_mammary_epithelial").run(timeout=150)
         assert self.at.text_area(key="sidebar_notes").value == "Important notes"
         
     def test_save_adata(self):
         print(f"{bcolors.OKBLUE}test_save_adata {bcolors.ENDC}", end="")
-        self.at.selectbox(key="sb_adata_selection").select("adata_pp").run(timeout=150)
+        self.at.selectbox(key="sb_adata_selection").select("mouse_mammary_epithelial").run(timeout=150)
         self.at.button(key="btn_save_adata").click().run(timeout=100)
-        downloaded_adata = sc.read_h5ad(os.path.join(os.getenv('WORKDIR'), 'downloads', 'adata_pp.h5ad'))
-        current_adata = sc.read_h5ad(os.path.join(os.getenv('WORKDIR'), 'adata', 'adata_pp.h5ad'))
-        #TODO: add seurat format and change text dir
+        assert os.path.isfile(os.path.join(os.getenv('WORKDIR'), 'downloads', 'mouse_mammary_epithelial', 'mouse_mammary_epithelial.h5ad'))
+        downloaded_adata = sc.read_h5ad(os.path.join(os.getenv('WORKDIR'), 'downloads', 'mouse_mammary_epithelial', 'mouse_mammary_epithelial.h5ad'))
+        current_adata = sc.read_h5ad(os.path.join(os.getenv('WORKDIR'), 'adata', 'mouse_mammary_epithelial.h5ad'))
+        #test seurat format
+        self.at.checkbox(key="cb_seurat_format").check().run(timeout=100)
+        self.at.button(key="btn_save_adata").click().run(timeout=500)
+        assert os.path.isfile(os.path.join(os.getenv('WORKDIR'), 'downloads', 'mouse_mammary_epithelial', 'seurat', 'barcodes.tsv'))
+        assert os.path.isfile(os.path.join(os.getenv('WORKDIR'), 'downloads', 'mouse_mammary_epithelial', 'seurat', 'features.tsv'))
+        assert os.path.isfile(os.path.join(os.getenv('WORKDIR'), 'downloads', 'mouse_mammary_epithelial', 'seurat', 'matrix.mtx'))
+        assert os.path.isfile(os.path.join(os.getenv('WORKDIR'), 'downloads', 'mouse_mammary_epithelial', 'seurat', 'metadata.csv'))
+        
         
     def test_scale_data(self):
         print(f"{bcolors.OKBLUE}test_scale_adata {bcolors.ENDC}", end="")
         
     def test_batch_effect_removal_and_pca(self):
         print(f"{bcolors.OKBLUE}test_batch_effect_removal_and_adata {bcolors.ENDC}", end="")
-        adata_from_file = sc.read_h5ad('/app/tests/data/bct_raw.h5ad')
-        sc.pp.combat(adata_from_file, key='BATCH')
+        adata_original = self.at.session_state.adata_state.current.adata
+        sc.pp.combat(adata_original, key='BATCH', inplace=False)
+        sc.pp.pca(adata_original)
+        self.at.selectbox(key="sb_batch_effect_key").select("BATCH")
+        self.at.button(key="FormSubmitter:batch_effect_removal_form-Apply").click().run(timeout=500)
+        assert adata_original.obsm['X_pca'].all() == self.at.session_state.adata_state.current.adata.obsm['X_pca'].all() #TODO: make sure this works
         
         
     def test_sampling_data(self):

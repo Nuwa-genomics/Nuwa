@@ -112,7 +112,7 @@ class Train:
             st.session_state["trained_model"] = self.model['model'].run(callback=self.train_pgb_non_specific)
 
 try:
-    adata_state = AdataState(workspace_id=st.session_state.current_workspace.id)
+    adata = st.session_state.adata_state.current.adata
 
     sidebar = Sidebar()
 
@@ -122,7 +122,7 @@ try:
     sidebar.export_script()
     sidebar.delete_experiment_btn()
     
-    train = Train(adata_state.current.adata)
+    train = Train(adata)
 
     train.draw_animation()
 

@@ -208,11 +208,11 @@ class Spatial_Transcriptomics:
                 
 
 try:
-    adata_state = AdataState(workspace_id=st.session_state.current_workspace.id)
+    adata = st.session_state.adata_state.current.adata
     sidebar = Sidebar()
     sidebar.show()
 
-    spatial_t = Spatial_Transcriptomics(adata_state.current.adata)
+    spatial_t = Spatial_Transcriptomics(adata)
     spatial_t.draw_page()
     sidebar.show_preview()
     sidebar.export_script()
