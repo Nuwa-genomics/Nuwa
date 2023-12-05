@@ -14,11 +14,17 @@ class Sidebar:
     def __init__(self):
         self.conn: Session = SessionLocal()
 
-    def show_preview(self):
+    def show_preview(self, integrate=False):
             with st.sidebar:
                 with st.expander(label="Show Preview"):
                     st.subheader("Anndata preview")
-                    st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_state.current.adata}</p>""", unsafe_allow_html=True)
+                    if integrate:
+                        st.markdown(f"""<h3 style='font-size: 16px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_ref.adata_name}</h3>""", unsafe_allow_html=True)
+                        st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_ref.adata}</p>""", unsafe_allow_html=True)
+                        st.markdown(f"""<h3 style='font-size: 16px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_target.adata_name}</h3>""", unsafe_allow_html=True)
+                        st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_target.adata}</p>""", unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_state.current.adata}</p>""", unsafe_allow_html=True)
 
     def delete_experiment_btn(self):
         with st.sidebar:
@@ -56,35 +62,23 @@ class Sidebar:
             if adata.adata_name == name:
                 return adata
         return 0
-
-
-    def write_adata(self):
-        try:
-            name = st.session_state.ti_new_adata_name
-            notes = st.session_state.ti_new_adata_notes
-
-            st.session_state.adata_state.insert_record(AdataModel(
-                work_id=st.session_state.current_workspace.id,
-                adata_name=name,
-                filename=os.path.join(os.getenv('WORKDIR'), "adata", f"{name}.h5ad"),
-                notes=notes,
-            ))
-            
-        except Exception as e:
-            st.error(e)
-            print("Error: ", e)
-
-
-    def show(self):
+    
+    
+    def add_experiment_expander(self):
         with st.sidebar:
-            def set_adata():
-                if st.session_state.adata_state.switch_adata(st.session_state.sb_adata_selection) == -1:
-                    st.error("Couldn't switch adata")
+            with st.expander(label="Add experiment", expanded=False):
+                try:
+                    st.subheader("Create New Adata")
+                    st.text_input(label="Name", key="ti_new_adata_name")
+                    st.text_input(label="Notes", key="ti_new_adata_notes")
+                    st.button(label="Save", on_click=self.write_adata, key="btn_add_adata")
+                except Exception as e:
+                    print("Error: ", e)
+                    st.error(e)
+                    
                 
-            st.selectbox(label="Current Experiment:", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection", on_change=set_adata, index=st.session_state.adata_state.get_index_of_current())
-            
-            
-            
+    def download_adata_expander(self):
+        with st.sidebar:
             with st.expander(label="Download adata file", expanded=False):
                 try:
                     st.checkbox(label="Use Seurat format", value=False, key="cb_seurat_format")
@@ -127,18 +121,91 @@ class Sidebar:
                 except Exception as e:
                     print("Error ", e)
                     st.toast(e, icon="❌")
+
+
+    def write_adata(self):
+        try:
+            name = st.session_state.ti_new_adata_name
+            notes = st.session_state.ti_new_adata_notes
+
+            st.session_state.adata_state.insert_record(AdataModel(
+                work_id=st.session_state.current_workspace.id,
+                adata_name=name,
+                filename=os.path.join(os.getenv('WORKDIR'), "adata", f"{name}.h5ad"),
+                notes=notes,
+            ))
+            
+        except Exception as e:
+            st.error(e)
+            print("Error: ", e)
+
+
+    def show(self, integrate = False):
+        with st.sidebar:
+            def set_adata():
+                if st.session_state.adata_state.switch_adata(st.session_state.sb_adata_selection) == -1:
+                    st.error("Couldn't switch adata")
+                
+            
+            if integrate:
+                st.selectbox(label="Current Experiment (reference adata):", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection", on_change=set_adata, index=st.session_state.adata_state.get_index_of_current())
+                st.selectbox(label="Integrate into:", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection_target")
                     
-                                
-        
-            with st.expander(label="Add experiment", expanded=False):
-                try:
-                    st.subheader("Create New Adata")
-                    st.text_input(label="Name", key="ti_new_adata_name")
-                    st.text_input(label="Notes", key="ti_new_adata_notes")
-                    st.button(label="Save", on_click=self.write_adata, key="btn_add_adata")
-                except Exception as e:
-                    print("Error: ", e)
-                    st.error(e)
+                
+                #set integrate adata
+                st.session_state['adata_ref']: AdataModel = st.session_state.adata_state.current.copy()
+                st.session_state['adata_target']: AdataModel = st.session_state.adata_state.load_adata(st.session_state.current_workspace.id, st.session_state.sb_adata_selection_target).copy()
+            
+                #sync genes
+                #test var names
+                if len(st.session_state.adata_ref.adata.var_names) == len(st.session_state.adata_target.adata.var_names):
+                    matching = True
+                    for i, gene in enumerate(st.session_state.adata_ref.adata.var_names):
+                        if gene != st.session_state.adata_target.adata.var_names[i]:
+                            matching = False
+                            break
+                else:
+                    matching = False
+                    
+                empty_msg = st.empty()
+                
+                if st.session_state.adata_ref.adata_name == st.session_state.adata_target.adata_name:
+                    st.warning("Datasets can't be the same")
+                    st.session_state["sync_genes"] = False
+                elif matching:
+                    st.session_state["sync_genes"] = True
+                    empty_msg.success("Gene names match, ready to proceed to integrating datasets.")
+                else:
+                    st.session_state["sync_genes"] = False
+                    empty_msg.warning("Datasets have mismatched var names. Toggle 'Sync genes' to reduce the genes to only those present in both datasets.")
+                    
+                toggle = st.toggle(label="Sync genes", key="toggle_sync_genes", value=False, disabled=(st.session_state.adata_ref.adata_name == st.session_state.adata_target.adata_name))
+                
+                empty = st.empty()
+                if toggle:
+                    #use intersecting var names
+                    var_names = st.session_state.adata_ref.adata.var_names.intersection(st.session_state.adata_target.adata.var_names)
+                    st.session_state['adata_ref'].adata = st.session_state.adata_ref.adata[:, var_names]
+                    st.session_state['adata_target'].adata = st.session_state.adata_target.adata[:, var_names]
+                    st.session_state["sync_genes"] = True
+                    empty_msg.success("Gene names match, ready to proceed to integrating datasets.")
+                    empty.markdown(f"""<p style='font-size: 15px; color: rgba(255, 255, 255, 0.75)'>Current experiment {len(st.session_state.adata_ref.adata.var_names)} genes</p><p style='font-size: 15px; color: rgba(255, 255, 255, 0.75)'>Target experiment {len(st.session_state.adata_target.adata.var_names)} genes</p>""", unsafe_allow_html=True)
+                else:
+                    #set integrate adata
+                    st.session_state['adata_ref']: AdataModel = st.session_state.adata_state.current
+                    st.session_state['adata_target']: AdataModel = st.session_state.adata_state.load_adata(st.session_state.current_workspace.id, st.session_state.sb_adata_selection_target)
+                    empty.markdown(f"""<p style='font-size: 15px; color: rgba(255, 255, 255, 0.75)'>Current experiment {len(st.session_state.adata_ref.adata.var_names)} genes</p><p style='font-size: 15px; color: rgba(255, 255, 255, 0.75)'>Target experiment {len(st.session_state.adata_target.adata.var_names)} genes</p>""", unsafe_allow_html=True)
+                    
+                st.divider()
+
+            else:
+                st.selectbox(label="Current Experiment:", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection", on_change=set_adata, index=st.session_state.adata_state.get_index_of_current())
+
+                
+            
+            self.download_adata_expander()
+                    
+            self.add_experiment_expander()
                     
             self.show_notes()
             
