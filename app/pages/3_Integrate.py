@@ -68,8 +68,10 @@ class Integrate:
             st.write(f"Apply to {st.session_state.adata_state.current.adata_name}")
             batch_key = st.selectbox(label="Batch key", options=st.session_state.adata_state.current.adata.obs_keys())
             subcol1, _, _, _ = st.columns(4)
-            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
             if submit_btn:
+                with st.spinner(text="Computing PCA"):
+                    sc.tl.pca(st.session_state.adata_state.current.adata)
                 with st.spinner(text="Applying BBKNN"): 
                     sc.external.pp.bbknn(st.session_state.adata_state.current.adata, batch_key=batch_key)
                     
@@ -123,19 +125,24 @@ class Integrate:
             submit_btn = subcol1_btn.form_submit_button(label="Run", use_container_width=True)
             if submit_btn:
                 with st.spinner(text="Concatenating datasets"):
-                    if batch_cat1 == "" or batch_cat2 == "":
-                        st.toast("Batch categories cannot be null", icon="❌")
-                    else:
-                        adata1: AnnData = st.session_state.adata_state.load_adata(st.session_state.current_workspace.id, adata1_name).adata
-                        adata2: AnnData = st.session_state.adata_state.load_adata(st.session_state.current_workspace.id, adata2_name).adata
-                        adata_concat = adata1.concatenate(adata2, batch_key=batch_key, batch_categories=[batch_cat1, batch_cat2])
-                        empty.write(adata_concat)
-                        #insert as new adata
-                        adata_name = f"concat_{adata1_name}_{adata2_name}"
-                        st.session_state.adata_state.insert_record(AdataModel(
-                            work_id=st.session_state.current_workspace.id, adata=adata_concat, 
-                            filename=os.path.join(os.getenv('WORKDIR'), "adata", f"{adata_name}.h5ad"), adata_name=adata1_name)
-                        )
+                    try:
+                        if batch_cat1 == "" or batch_cat2 == "":
+                            st.toast("Batch categories cannot be null", icon="❌")
+                        else:
+                            adata1: AnnData = st.session_state.adata_state.load_adata(st.session_state.current_workspace.id, adata1_name).adata
+                            adata2: AnnData = st.session_state.adata_state.load_adata(st.session_state.current_workspace.id, adata2_name).adata
+                            adata_concat = adata1.concatenate(adata2, batch_key=batch_key, batch_categories=[batch_cat1, batch_cat2])
+
+                            #insert as new adata
+                            adata_name = f"concat_{adata1_name}_{adata2_name}"
+                            st.session_state.adata_state.insert_record(AdataModel(
+                                work_id=st.session_state.current_workspace.id, adata=adata_concat, 
+                                filename=os.path.join(os.getenv('WORKDIR'), "adata", f"{adata_name}.h5ad"), adata_name=adata_name)
+                            )
+                            st.toast("Successfully concatenated dataframes", icon="✅")
+                    except Exception as e:
+                        st.toast("Couldn't concatenate dataframes", icon="❌")
+                        empty.error(e)
                         
                     
                 
