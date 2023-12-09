@@ -227,7 +227,7 @@ class Analysis:
                     umap_options = np.append(self.columns, 'leiden')
                     genes = st.multiselect(label='Gene', options=(umap_options), key="ms_umap_select_gene", default=["leiden", self.columns[0]], max_selections=24) 
                         
-                    nhood_container = st.container() 
+                    nhood_container = st.empty() 
                     
                     with st.spinner(text="Computing neighbourhood graph"):
                                 

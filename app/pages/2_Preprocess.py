@@ -3,6 +3,7 @@ import scanpy as sc
 import pickle
 import pandas as pd
 import warnings
+import numpy as np
 
 from models.AdataModel import AdataModel
 from components.sidebar import *
@@ -385,6 +386,50 @@ class Preprocess:
                 st.session_state["script_state"].add_script("sc.pl.pca(adata, random_state=42)")
                 st.session_state["script_state"].add_script("plt.show()")
                 run_pca(self.adata)
+                
+    
+    def predict_sex(self):
+        
+        def mark_sex_genes(batch_key=None):
+            annot = sc.queries.biomart_annotations("hsapiens", ["ensembl_gene_id", "external_gene_name", "start_position", "end_position", "chromosome_name"]).set_index("external_gene_name")
+            chrY_genes = self.adata.var_names.intersection(annot.index[annot.chromosome_name == "Y"])
+            self.adata.obs['percent_chrY'] = np.sum(self.adata[:, chrY_genes].X, axis=1).A1 / np.sum(self.adata.X, axis=1).A1 * 100
+            self.adata.obs["XIST-counts"] = self.adata.X[:,self.adata.var_names.str.match('XIST')].toarray()
+            subcol1, subcol2 = st.columns(2)
+            with subcol1.expander("Scatter chart"):
+                if batch_key == None:
+                    ax_scatter = sc.pl.scatter(self.adata, x='XIST-counts', y='percent_chrY')
+                else:
+                    ax_scatter = sc.pl.scatter(self.adata, x='XIST-counts', y='percent_chrY', color=batch_key)
+                st.pyplot(ax_scatter)
+            with subcol2.expander("Violin plot"):
+                if batch_key == None:
+                    ax_violin = sc.pl.violin(self.adata, ["XIST-counts", "percent_chrY"], jitter=0.4, rotation= 45)
+                else:
+                    ax_violin = sc.pl.violin(self.adata, ["XIST-counts", "percent_chrY"], jitter=0.4, groupby = batch_key, rotation= 45)
+                st.pyplot(ax_violin)
+        
+        
+        st.subheader("Predict sex")
+        single_dataset, subsample = st.tabs(['Current dataset', 'Subsample'])
+        
+        with single_dataset:
+            with st.form(key="sex_predict_single_dataset"):
+                st.write("Use a batch key to compare across batches in a single dataset.")
+                subcol_btn1, _, _, _ = st.columns(4)
+                submit_btn = subcol_btn1.form_submit_button(label="Run", use_container_width=True)
+                if submit_btn:
+                    with st.spinner(text="Locating sex genes"):
+                        mark_sex_genes()
+        with subsample:
+            with st.form(key="sex_predict_multiple_datasets"):
+                st.write("Treat each dataset as a single sample.")
+                batch_key_sex_pred = st.selectbox(label="Obs key", options=self.adata.obs_keys(), key="sb_sex_pred_batch_key")
+                subcol_btn1, _, _, _ = st.columns(4)
+                submit_btn = subcol_btn1.form_submit_button(label="Run", use_container_width=True)
+                if submit_btn:
+                    with st.spinner(text="Locating sex genes"):
+                        mark_sex_genes(batch_key=batch_key_sex_pred)
                   
 
 try:
@@ -403,6 +448,7 @@ try:
         preprocess.regress_out()
         
         preprocess.sample_data()
+        #preprocess.predict_sex() TODO: fix for future use
 
     with col2:
         preprocess.filter_cells()
