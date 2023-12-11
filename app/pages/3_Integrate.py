@@ -23,11 +23,12 @@ class Integrate:
         with col1:
             self.auto_integrate_recipies()
             self.ingest()
-            self.bbknn()
+            self.scanorama_integrate()
         with col2:
             self.quick_map()
             self.concat()
         with col3:
+            self.bbknn()
             self.umap()
             
             
@@ -35,7 +36,7 @@ class Integrate:
         with st.form(key="auto_integrate_recipies_form"):
             st.subheader("Autointegrate recipies")
             recipie = st.selectbox(label="Recipie", options=['rec'])
-            subcol1, _, _, _ = st.columns(4)
+            subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
             if submit_btn:
                 with st.spinner(text="Applying integration recipie"):
@@ -47,7 +48,7 @@ class Integrate:
             st.subheader("Integrate with Ingest", help="Integrates embeddings and annotations of an adata with a reference dataset adata_ref through projecting on a PCA (or alternate model) that has been fitted on the reference data. The function uses a knn classifier for mapping labels and the UMAP package [McInnes18] for mapping the embeddings.")
             st.markdown(f"""<div style='color: rgb(50, 168, 82); font-weight: bold''>{st.session_state.adata_ref.adata_name} → {st.session_state.adata_target.adata_name}</div>""", unsafe_allow_html=True)
             obs = st.multiselect(label="Obs", options=st.session_state.adata_ref.adata.obs_keys())
-            subcol1, _, _, _ = st.columns(4)
+            subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
             if submit_btn:
                 try:
@@ -61,13 +62,24 @@ class Integrate:
                     st.toast("Failed to integrate datasets", icon="❌")
                     st.error(e)
                     print("Error: ", e)
+                    
+                    
+    def scanorama_integrate(self):
+        with st.form(key="scanorama_integrate_form"):
+            st.subheader("Integrate with Scanorama")
+            subcol1, _, _ = st.columns(3)
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
+            if submit_btn:
+                with st.spinner(text="Integrating with Scanorama"):
+                    print("hi")
+            
             
     def bbknn(self):
         with st.form(key="bbknn_form"):
             st.subheader("BBKNN", help="Batch balanced kNN alters the kNN procedure to identify each cell’s top neighbours in each batch separately instead of the entire cell pool with no accounting for batch. The nearest neighbours for each batch are then merged to create a final list of neighbours for the cell. Aligns batches in a quick and lightweight manner.")
             st.write(f"Apply to {st.session_state.adata_state.current.adata_name}")
             batch_key = st.selectbox(label="Batch key", options=st.session_state.adata_state.current.adata.obs_keys())
-            subcol1, _, _, _ = st.columns(4)
+            subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
             if submit_btn:
                 with st.spinner(text="Computing PCA"):
@@ -91,7 +103,7 @@ class Integrate:
             #row2_subcol2.text_input(label="Destination attributes", placeholder="e.g. uns.louvain_colors", key="ti_adata_dest_atts")
 
             
-            subcol1_btn, _, _, _ = st.columns(4)
+            subcol1_btn, _, _ = st.columns(3)
             submit_btn = subcol1_btn.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
             
             if submit_btn:
@@ -121,7 +133,7 @@ class Integrate:
             batch_cat2 = subcol2.text_input(label="Batch category 2")
             batch_key = st.text_input(label="Batch key", value="batch")
             empty = st.empty()
-            subcol1_btn, _, _, _ = st.columns(4)
+            subcol1_btn, _, _ = st.columns(3)
             submit_btn = subcol1_btn.form_submit_button(label="Run", use_container_width=True)
             if submit_btn:
                 with st.spinner(text="Concatenating datasets"):
@@ -145,27 +157,33 @@ class Integrate:
                         empty.error(e)
                         
                     
-                
-            
-    
             
     def umap(self):
+        
+        def compute_umap():
+            with st.spinner(text="Computing umap"):
+                adata = st.session_state.adata_state.current.adata
+                sc.pp.neighbors(adata)
+                sc.tl.umap(adata)
+                for color in colors:
+                    df_umap = pd.DataFrame({'umap1': adata.obsm['X_umap'][:,0], 'umap2': adata.obsm['X_umap'][:,1], 'color': adata.obs[color]})
+                    container.scatter_chart(data=df_umap, x='umap1', y='umap2', color='color', size=18)
+                    
         with st.form(key="integrate_umap_form"):
             st.subheader("UMAP")
-            colors = st.multiselect(label="Color (obs)", options=st.session_state.adata_state.current.adata.obs_keys())
+            default = st.session_state.adata_state.current.adata.obs_keys()[0]
+            for i, item in enumerate(st.session_state.adata_state.current.adata.obs_keys()):
+                if item.lower().replace("_", "").__contains__("batch"): #give precedence to batch if present since it is relevant to preprocessing
+                    default = item
+            colors = st.multiselect(label="Color (obs)", options=st.session_state.adata_state.current.adata.obs_keys(), default=default)
             container = st.container()
-            subcol1, _, _, _ = st.columns(4)
+            subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+            
+            compute_umap()
+            
             if submit_btn:
-                with st.spinner(text="Computing umap"):
-                    adata = st.session_state.adata_state.current.adata
-                    sc.pp.neighbors(adata)
-                    sc.tl.umap(adata)
-                    #ax = sc.pl.umap(adata, color=colors)
-                    #empty.pyplot(ax)
-                    for color in colors:
-                        df_umap = pd.DataFrame({'umap1': adata.obsm['X_umap'][:,0], 'umap2': adata.obsm['X_umap'][:,1], 'color': adata.obs[color]})
-                        container.scatter_chart(data=df_umap, x='umap1', y='umap2', color='color', size=18)
+                compute_umap()
             
     
 

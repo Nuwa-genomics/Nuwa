@@ -193,7 +193,7 @@ class Upload:
         try:
             
             if filename == "":
-                filename = f.name
+                filename = f.name.split(".")[0]
                 
             filename = filename.replace(" ", "_") #files must not contain spaces
             
@@ -212,7 +212,7 @@ class Upload:
             #see if dataset already in db
             if self.first_load: #TODO: this doesn't take into account loading a new dataset into original workspace. adata definition won't show
                 if f != None:
-                    st.session_state["script_state"].add_script(f"#Uploaded adata should be added here. Adata used for current experiment was {filename}.\n")
+                    st.session_state["script_state"].add_script(f"#Uploaded adata should be added here. Adata used for current experiment was {filename}.h5ad\n")
                 else:
                     st.session_state["script_state"].add_script(f"#Uploaded adata should be added here.\n")
                 

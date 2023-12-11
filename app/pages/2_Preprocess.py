@@ -62,9 +62,23 @@ class Preprocess:
 
             if submit_btn:
                 with st.spinner(text="Calculating highest expressed genes"):
-                    with st.expander(label="Show figure"):
-                        ax = sc.pl.highest_expr_genes(self.adata, n_top=num_genes)
-                        st.pyplot(ax)
+                    ax = sc.pl.highest_expr_genes(self.adata, n_top=num_genes)
+                    st.pyplot(ax)
+                        
+                        
+    def remove_genes(self):
+        with st.form(key="remove_genes_form"):
+            st.subheader("Remove genes")
+            remove_genes = st.multiselect(label="Genes", options=self.adata.var_names)
+            subcol1, _, _ = st.columns(3)
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+            if submit_btn:
+                with st.spinner(text="Removing genes"):
+                    for gene in remove_genes:
+                        remove_genes = self.adata.var_names.str.startswith(gene)
+                        remove = np.array(remove_genes)
+                        keep = np.invert(remove)
+                        self.adata = self.adata[:,keep]
 
 
     def filter_highly_variable_genes(self):
@@ -79,17 +93,16 @@ class Preprocess:
 
                 if submit_btn:
                     with st.spinner(text="Calculating highly variable genes"):
-                        with st.expander(label="Show figure"):
-                            sc.pp.normalize_total(self.adata, target_sum=1e4); st.session_state["script_state"].add_script("sc.pp.normalize_total(adata, target_sum=1e4)")
-                            sc.pp.log1p(self.adata); st.session_state["script_state"].add_script("sc.pp.log1p(adata)")
-                            sc.pp.highly_variable_genes(self.adata, min_mean=min_mean, max_mean=max_mean, min_disp=0.5); st.session_state["script_state"].add_script(f"sc.pp.highly_variable_genes(adata, min_mean={min_mean}, max_mean={max_mean}, min_disp=0.5)")
-                            #make adata
-                            self.make_adata(self.adata)
-                            ax = sc.pl.highly_variable_genes(self.adata)
-                            st.pyplot(ax)
-                            #add to script state
-                            st.session_state["script_state"].add_script("sc.pl.highly_variable_genes(adata)")
-                            st.session_state["script_state"].add_script("plt.show()")
+                        sc.pp.normalize_total(self.adata, target_sum=1e4); st.session_state["script_state"].add_script("sc.pp.normalize_total(adata, target_sum=1e4)")
+                        sc.pp.log1p(self.adata); st.session_state["script_state"].add_script("sc.pp.log1p(adata)")
+                        sc.pp.highly_variable_genes(self.adata, min_mean=min_mean, max_mean=max_mean, min_disp=0.5); st.session_state["script_state"].add_script(f"sc.pp.highly_variable_genes(adata, min_mean={min_mean}, max_mean={max_mean}, min_disp=0.5)")
+                        #make adata
+                        self.make_adata(self.adata)
+                        ax = sc.pl.highly_variable_genes(self.adata)
+                        st.pyplot(ax)
+                        #add to script state
+                        st.session_state["script_state"].add_script("sc.pl.highly_variable_genes(adata)")
+                        st.session_state["script_state"].add_script("plt.show()")
         except Exception as e:
             st.toast(f"Failed to normalize data: {e}", icon="❌")
 
@@ -252,7 +265,6 @@ class Preprocess:
 
             max_pct_counts_ribo = st.number_input(label="max pct_counts_ribo", key="ni_pct_counts_ribo", min_value=0, value=100)
 
-            subcol1, _, _ = st.columns(3)
             ribo_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
             if ribo_annot_submit_btn:
@@ -260,6 +272,44 @@ class Preprocess:
                 #add to script adata
                 st.session_state["script_state"].add_script("sc.pp.calculate_qc_metrics(adata, qc_vars=['ribo'], percent_top=None, log1p=False, inplace=True)")
                 st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_ribo < {max_pct_counts_ribo}, :]")
+                #make adata
+                self.make_adata(self.adata)
+                st.toast("Filtered ribosomal genes", icon="✅")
+                
+                
+    def annotate_hb(self):
+        with st.form(key="form_annotate_hb"):
+            st.subheader("Annotate haemoglobin genes", help="Filter haemoglobin gene counts. All haemoglobin genes \
+                        are by default annotated and placed in the 'hb' variable.")
+            
+            # hemoglobin genes.
+            self.adata.var['hb'] = self.adata.var_names.str.contains(("^HB[^(P)]"))
+            
+            sc.pp.calculate_qc_metrics(self.adata, qc_vars=['hb'], percent_top=None, log1p=False, inplace=True)
+            
+            st.text(f"Found {self.adata.var.hb.sum()} haemoglobin genes")
+
+            subcol1, subcol2, _ = st.columns(3)
+            
+            with subcol1:
+                ax_scatter = sc.pl.scatter(self.adata, x='total_counts', y='pct_counts_hb')
+                with st.expander(label="Scatter"):
+                    st.pyplot(ax_scatter)
+
+            with subcol2:
+                ax_violin = sc.pl.violin(self.adata, 'pct_counts_hb')
+                with st.expander(label="Violin"):
+                    st.pyplot(ax_violin)
+                    
+            max_pct_counts_hb = st.number_input(label="max pct_counts_hb", key="ni_pct_counts_hb", min_value=0, value=100)
+                    
+            submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+            
+            if submit_btn:
+                self.adata = self.adata[self.adata.obs.pct_counts_ribo < max_pct_counts_ribo, :]
+                #add to script adata
+                st.session_state["script_state"].add_script("sc.pp.calculate_qc_metrics(adata, qc_vars=['hb'], percent_top=None, log1p=False, inplace=True)")
+                st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_hb < {max_pct_counts_hb}, :]")
                 #make adata
                 self.make_adata(self.adata)
                 st.toast("Filtered ribosomal genes", icon="✅")
@@ -294,6 +344,7 @@ class Preprocess:
                 st.toast("No option selected, not regressing data.", icon="ℹ️")
         with st.form(key="regress_out_form"):
             st.subheader("Regress out", help="Regress out (mostly) unwanted sources of variation. Uses simple linear regression. This is inspired by Seurat's regressOut function in R [Satija15]. Note that this function tends to overcorrect in certain circumstances as described in :issue:526.")
+            st.write("Uses linear regression to remove unwanted sources of variation.")
             regress_keys = st.multiselect(label="Keys", options=self.adata.obs_keys(), key="ms_regress_out_keys")
             subcol1, _, _ = st.columns(3)
             regress_out_btn = subcol1.form_submit_button(label="Apply", on_click=regress_out_btn, use_container_width=True)
@@ -321,6 +372,7 @@ class Preprocess:
         with downsample_tab:
             with st.form(key="downsample_form"):
                 st.subheader("Downsample counts")
+                st.write("Downsample counts from count matrix.")
                 counts_per_cell = st.number_input(label="Counts per cell")
                 total_counts = st.number_input(label="Total counts")
                 subcol1, _, _ = st.columns(3)
@@ -333,6 +385,7 @@ class Preprocess:
         with subsample_tab:
             with st.form(key="subsample_form"):
                 st.subheader("Subsample counts")
+                st.write("Subsample to a fraction of the number of observations.")
                 n_obs = st.number_input(label="n obs")
                 fraction = st.number_input(label="subsample_fraction")
                 subcol1, _, _ = st.columns(3)
@@ -390,46 +443,33 @@ class Preprocess:
     
     def predict_sex(self):
         
-        def mark_sex_genes(batch_key=None):
-            annot = sc.queries.biomart_annotations("hsapiens", ["ensembl_gene_id", "external_gene_name", "start_position", "end_position", "chromosome_name"]).set_index("external_gene_name")
-            chrY_genes = self.adata.var_names.intersection(annot.index[annot.chromosome_name == "Y"])
-            self.adata.obs['percent_chrY'] = np.sum(self.adata[:, chrY_genes].X, axis=1).A1 / np.sum(self.adata.X, axis=1).A1 * 100
-            self.adata.obs["XIST-counts"] = self.adata.X[:,self.adata.var_names.str.match('XIST')].toarray()
-            subcol1, subcol2 = st.columns(2)
-            with subcol1.expander("Scatter chart"):
-                if batch_key == None:
-                    ax_scatter = sc.pl.scatter(self.adata, x='XIST-counts', y='percent_chrY')
-                else:
-                    ax_scatter = sc.pl.scatter(self.adata, x='XIST-counts', y='percent_chrY', color=batch_key)
-                st.pyplot(ax_scatter)
-            with subcol2.expander("Violin plot"):
-                if batch_key == None:
-                    ax_violin = sc.pl.violin(self.adata, ["XIST-counts", "percent_chrY"], jitter=0.4, rotation= 45)
-                else:
-                    ax_violin = sc.pl.violin(self.adata, ["XIST-counts", "percent_chrY"], jitter=0.4, groupby = batch_key, rotation= 45)
-                st.pyplot(ax_violin)
-        
-        
-        st.subheader("Predict sex")
+        st.subheader("Measure gene counts")
         single_dataset, subsample = st.tabs(['Current dataset', 'Subsample'])
         
         with single_dataset:
             with st.form(key="sex_predict_single_dataset"):
-                st.write("Use a batch key to compare across batches in a single dataset.")
-                subcol_btn1, _, _, _ = st.columns(4)
+                st.subheader("Collective counts across dataset")
+                gene = st.selectbox(label="Gene", options=self.adata.var_names)
+                subcol_btn1, _, _ = st.columns(3)
                 submit_btn = subcol_btn1.form_submit_button(label="Run", use_container_width=True)
                 if submit_btn:
                     with st.spinner(text="Locating sex genes"):
-                        mark_sex_genes()
+                        self.adata.obs["gene-counts"] = self.adata.X[:,self.adata.var_names.str.match(f'{gene}')].toarray()
+                        arr = np.array([f'{st.session_state.adata_state.current.adata_name}'])
+                        df = pd.DataFrame({f'{gene} count': self.adata.obs["gene-counts"], "Dataset": np.repeat(arr, self.adata.n_obs)})
+                        st.bar_chart(data=df, x="Dataset", y=f'{gene} count')
         with subsample:
             with st.form(key="sex_predict_multiple_datasets"):
-                st.write("Treat each dataset as a single sample.")
+                st.subheader("Subsample counts in dataset")
                 batch_key_sex_pred = st.selectbox(label="Obs key", options=self.adata.obs_keys(), key="sb_sex_pred_batch_key")
-                subcol_btn1, _, _, _ = st.columns(4)
+                gene = st.selectbox(label="Gene", options=self.adata.var_names)
+                subcol_btn1, _, _ = st.columns(3)
                 submit_btn = subcol_btn1.form_submit_button(label="Run", use_container_width=True)
                 if submit_btn:
                     with st.spinner(text="Locating sex genes"):
-                        mark_sex_genes(batch_key=batch_key_sex_pred)
+                        self.adata.obs["gene-counts"] = self.adata.X[:,self.adata.var_names.str.match(f'{gene}')].toarray()
+                        df = pd.DataFrame({f'{gene} count': self.adata.obs["gene-counts"], f"{batch_key_sex_pred}": self.adata.obs[f"{batch_key_sex_pred}"]})
+                        st.bar_chart(data=df, x=f"{batch_key_sex_pred}", y=f'{gene} count')
                   
 
 try:
@@ -443,12 +483,12 @@ try:
 
     with col1:
         preprocess.filter_highest_expr_genes()
+        preprocess.remove_genes()
         preprocess.filter_highly_variable_genes()
         preprocess.normalize_counts()
         preprocess.regress_out()
-        
         preprocess.sample_data()
-        #preprocess.predict_sex() TODO: fix for future use
+        
 
     with col2:
         preprocess.filter_cells()
@@ -456,13 +496,17 @@ try:
         preprocess.run_scrublet()
         preprocess.recipes()
         preprocess.batch_effect_removal()
+        preprocess.predict_sex()
         
             
     with col3:
         preprocess.annotate_mito()
         preprocess.annotate_ribo()
+        preprocess.annotate_hb()
         preprocess.pca()
         preprocess.scale_to_unit_variance()
+        
+        
 
     sidebar.show_preview()
     sidebar.export_script()
