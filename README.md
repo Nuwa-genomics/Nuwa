@@ -157,6 +157,7 @@ All development is non-profit, any contributions are greatly appreciated! Donate
 
 <img src="screenshots/bc1qs9l5dvkrtgcxfewm5ly6rs47p2qjxv55qkqwwu_010753.png" width="200" height="200">
 
+Bitcoin address (on-chain)
 ```
 bc1qs9l5dvkrtgcxfewm5ly6rs47p2qjxv55qkqwwu
 ```
