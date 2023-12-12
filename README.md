@@ -162,4 +162,6 @@ Bitcoin address (on-chain)
 bc1qs9l5dvkrtgcxfewm5ly6rs47p2qjxv55qkqwwu
 ```
 
+<img src="screenshots/catgif.gif" width="200" height="200">
+
 
