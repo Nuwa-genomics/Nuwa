@@ -12,9 +12,14 @@ First, clone the repo:
 git clone https://github.com/ch1ru/Nuwa.git && cd Nuwa
 ```
 
-Get started using docker compose:
+If you have a Nvidia GPU:
 ```bash
-docker-compose up -d --build
+docker-compose -f cuda.docker-compose.yml up -d --build
+```
+
+Otherwise:
+```bash
+docker-compose -f cpu.docker-compose.yml up -d --build
 ```
 You can also use [docker desktop](https://www.docker.com/products/docker-desktop/)
 

@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  streamlit:
+    container_name: streamlit
+    build:
+      context: ./app
+      dockerfile: cpu.Dockerfile
+    depends_on:
+      - postgres
+    restart: on-failure
+    volumes:
+      - ./app/.streamlit:/root/.streamlit
+      - ./streamlit-volume:/streamlit-volume
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+    ports:
+      - ${SERVER_ADDR}:${HOST_PORT}:8501
+  postgres:
+    container_name: postgresql
+    build: 
+      context: ./postgresql
+      dockerfile: Dockerfile
+    restart: on-failure
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./postgresql/data:/var/lib/postgresql/data
