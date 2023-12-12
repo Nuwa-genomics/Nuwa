@@ -155,13 +155,16 @@ docker-compose -f tests.docker-compose.yml up --build
 
 All development is non-profit, any contributions are greatly appreciated! Donate in bitcoin to:
 
+<div style='display: flex;'>
 <img src="screenshots/bc1qs9l5dvkrtgcxfewm5ly6rs47p2qjxv55qkqwwu_010753.png" width="200" height="200">
+<img src="screenshots/catgif.gif" width="200" height="200">
+</div>
 
 Bitcoin address (on-chain)
 ```
 bc1qs9l5dvkrtgcxfewm5ly6rs47p2qjxv55qkqwwu
 ```
 
-<img src="screenshots/catgif.gif" width="200" height="200">
+
 
 
