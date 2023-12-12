@@ -11,6 +11,8 @@ services:
     volumes:
       - ./app/.streamlit:/root/.streamlit
       - ./streamlit-volume:/streamlit-volume
+    env_file:
+      - .env
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=pass

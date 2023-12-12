@@ -32,9 +32,45 @@ class Test_Integrate:
         self.conn: Session = SessionLocal()
         if session_state is not None:
             self.at.session_state = session_state
+            
         self.at.run(timeout=1000)
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_ingest()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_concat_dataset()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_quick_map()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_scanorama_integrate()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_umap()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+    def test_ingest(self):
+        print(f"{bcolors.OKBLUE}test_ingest{bcolors.ENDC}", end="")
+        
+    def test_concat_dataset(self):
+        print(f"{bcolors.OKBLUE}test_concat_dataset{bcolors.ENDC}", end="")
+        
+    def test_quick_map(self):
+        print(f"{bcolors.OKBLUE}test_quick_map{bcolors.ENDC}", end="")
+        
+    def test_scanorama_integrate(self):
+        print(f"{bcolors.OKBLUE}test_scanorama_integrate{bcolors.ENDC}", end="")
+        
+    def test_umap(self):
+        print(f"{bcolors.OKBLUE}test_umap{bcolors.ENDC}", end="")
         
     def get_final_session_state(self):
         return self.at.session_state

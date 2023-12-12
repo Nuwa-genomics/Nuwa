@@ -35,6 +35,12 @@ class Upload:
         self.scanpy_dataset()
         self.external_sources()
         
+        with st.sidebar:
+            visibility = "hidden" if ("adata" in dir(self)) else "visible" #don't show version since it interferes with other elements
+            st.markdown(f"""<div style='position: fixed; margin-left: 5px; bottom: 5px; visibility: {visibility}'>
+                            <div style='font-size: 16px; color: rgba(255, 255, 255, 0.4)'>Nuwa v{os.getenv('NUWA_VERSION')}</div>
+                            </div>""", unsafe_allow_html=True)
+        
     def upload_file(self):
         st.title("Upload a dataset")
         
@@ -78,12 +84,15 @@ class Upload:
 
                         if file_type == "mtx":
                             adata = sc.read_10x_mtx(upload_path, var_names='gene_symbols', cache=True)
+                            self.adata = adata
                             self.show_anndata(adata, f)
                         if file_type == "h5ad":
                             adata = sc.read_h5ad(f)
+                            self.adata = adata
                             self.show_anndata(adata, f)
                         if file_type == "loom":
                             adata = sc.read_loom(path)
+                            self.adata = adata
                             self.show_anndata(adata, f)
 
         except KeyError as ke:
@@ -186,6 +195,7 @@ class Upload:
             if ebi_form_btn:
                 with st.spinner(text="Fetching dataset"):
                     dataset = sc.datasets.ebi_expression_atlas(accession=accession_str)
+                    self.adata = dataset
                     self.show_anndata(dataset, filename=accession_str)
 
 
@@ -260,6 +270,8 @@ class Upload:
                 
             else:
                 st.text("No var to show")
+                
+            
 
         st.toast("Successfully uploaded file", icon='✅')
         

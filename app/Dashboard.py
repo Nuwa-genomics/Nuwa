@@ -92,8 +92,8 @@ class Dashboard:
                                         os.environ['WORKDIR'] = workspace.data_dir #set wd
                                         with st.sidebar:
                                             st.subheader(f"{workspace.workspace_name}")
-                                            st.write(f"{workspace.description}")
-                                            st.write(f"{workspace.created.ctime()}")
+                                            st.markdown(f"""<p style='font-size: 16px; color: rgba(255, 255, 255, 1)'>{workspace.description}<p>""", unsafe_allow_html=True)
+                                            st.markdown(f"""<p style='font-size: 16px; color: rgba(255, 255, 255, 0.4)'>{workspace.created.ctime()}<p>""", unsafe_allow_html=True)
                                             def delete_workspace():
                                                 try:
                                                     self.conn.query(schemas.Workspaces).filter(schemas.Workspaces.id == st.session_state.current_workspace.id).delete()
@@ -109,6 +109,10 @@ class Dashboard:
 
         with st.sidebar:
             st.button(label="New workspace", on_click=self.new_workspace, key="btn_new_workspace", use_container_width=True)
+
+            st.markdown(f"""<div style='position: fixed; margin-left: 5px; bottom: 5px;'>
+                        <div style='font-size: 16px; color: rgba(255, 255, 255, 0.4)'>Nuwa v{os.getenv('NUWA_VERSION')}</div>
+                        </div>""", unsafe_allow_html=True)
 
 dashboard = Dashboard()
 

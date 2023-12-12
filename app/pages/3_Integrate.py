@@ -199,3 +199,5 @@ integrate = Integrate()
 sidebar.export_script()
 
 sidebar.delete_experiment_btn()
+
+sidebar.show_version()

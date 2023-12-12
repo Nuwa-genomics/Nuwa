@@ -138,6 +138,14 @@ class Sidebar:
         except Exception as e:
             st.error(e)
             print("Error: ", e)
+            
+            
+    def show_version(self):
+        with st.sidebar:
+            st.markdown(f"""<div style='margin-top: 10px; margin-left: 5px;'>
+                        <div style='font-size: 16px; color: rgba(255, 255, 255, 0.4)'>Nuwa v{os.getenv('NUWA_VERSION')}</div>
+                        </div>""", unsafe_allow_html=True)
+
 
 
     def show(self, integrate = False):
@@ -208,5 +216,6 @@ class Sidebar:
             self.add_experiment_expander()
                     
             self.show_notes()
+
             
             
