@@ -150,3 +150,14 @@ docker-compose -f tests.docker-compose.yml up --build
 *[2] Bernstein, N., Fong, N., Lam, I. et al. (2020). Solo: Doublet Identification in Single-Cell RNA-Seq via Semi-Supervised Deep Learning. https://www.cell.com/cell-systems/fulltext/S2405-4712(20)30195-2.*
 
 *[3] Jiang, Q., Xu, C., Jin, X. et al. (2022). DeepST: identifying spatial domains in spatial transcriptomics by deep learning. https://academic.oup.com/nar/article/50/22/e131/6761985.*
+
+## Donate ₿❤️
+
+All development is non-profit, any contributions are greatly appreciated! Donate in bitcoin to:
+
+![Donate](screenshots/bc1qs9l5dvkrtgcxfewm5ly6rs47p2qjxv55qkqwwu_010753.png "bc1qs9l5dvkrtgcxfewm5ly6rs47p2qjxv55qkqwwu")
+```
+bc1qs9l5dvkrtgcxfewm5ly6rs47p2qjxv55qkqwwu
+```
+
+

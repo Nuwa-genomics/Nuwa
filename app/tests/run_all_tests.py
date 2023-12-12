@@ -1,4 +1,5 @@
 from test_preprocess import Test_Preprocess
+from test_integrate import Test_Integrate
 from test_dashboard import Test_Dashboard
 from test_upload import Test_Upload
 from test_create_model import Test_Create_Model
@@ -6,6 +7,7 @@ from test_train import Test_Train
 from test_cluster_analysis import Test_Cluster_Analysis
 from test_tranjectory_inference import Test_Trajectory_Inference
 from test_spatial_transcriptomics import Test_Spatial_Transcriptomics
+from test_terminal import Test_Terminal
 
 from database.database import SessionLocal
 from sqlalchemy.orm import Session
@@ -13,6 +15,7 @@ from utils.AdataState import AdataState
 from database.schemas import schemas
 from models.WorkspaceModel import WorkspaceModel
 import os
+import time
 from random import randrange
 import shutil
 from datetime import datetime, date
@@ -141,6 +144,13 @@ try:
     print(f"{bcolors.BOLD}===============Testing Spatial Transcriptomics===============")
     spatial_transcriptomics_test = Test_Spatial_Transcriptomics(session_state=upload_state)
     spatial_transcriptomics_state = spatial_transcriptomics_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
+    
+    print()
+    print(f"{bcolors.BOLD}===============Test Terminal===============")
+    terminal_test = Test_Terminal(session_state=spatial_transcriptomics_state)
+    terminal_state = terminal_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
     

@@ -14,7 +14,6 @@ from database.schemas import schemas
 from utils.AdataState import AdataState
 
 import scanpy as sc
-import os
 
 class bcolors:
     HEADER = '\033[95m'
@@ -78,6 +77,10 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
+        self.test_annot_hb()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
         self.test_batch_effect_removal_and_pca()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
@@ -91,6 +94,18 @@ class Test_Preprocess:
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         self.test_sampling_data()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_measure_gene_counts()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_remove_genes()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_regress_out()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
@@ -186,6 +201,18 @@ class Test_Preprocess:
         print(f"{bcolors.OKBLUE}test_annot_ribo {bcolors.ENDC}", end="")
         self.at.number_input(key="ni_pct_counts_ribo").set_value(5)
         self.at.button(key="FormSubmitter:form_annotate_ribo-Apply").click().run(timeout=100)
+        
+    def test_annot_hb(self):
+        print(f"{bcolors.OKBLUE}test_annot_hb {bcolors.ENDC}", end="")
+        
+    def test_measure_gene_counts(self):
+        print(f"{bcolors.OKBLUE}test_measure_gene_counts {bcolors.ENDC}", end="")
+        
+    def test_remove_genes(self):
+        print(f"{bcolors.OKBLUE}test_remove_genes {bcolors.ENDC}", end="")
+        
+    def test_regress_out(self):
+        print(f"{bcolors.OKBLUE}test_regress_out {bcolors.ENDC}", end="")
         
     def test_normalize_data(self):
         print(f"{bcolors.OKBLUE}test_normalize_data {bcolors.ENDC}", end="")

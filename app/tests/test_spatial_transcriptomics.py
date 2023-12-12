@@ -15,7 +15,7 @@ class bcolors:
 class Test_Spatial_Transcriptomics:
     def __init__(self, session_state = None):
         print(f"{bcolors.OKBLUE}Initialising page... {bcolors.ENDC}", end="")
-        self.at = AppTest.from_file("pages/7_Spatial_Transcriptomics.py")
+        self.at = AppTest.from_file("pages/8_Spatial_Transcriptomics.py")
         if session_state is not None:
             self.at.session_state = session_state
             

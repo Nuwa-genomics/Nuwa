@@ -293,11 +293,12 @@ try:
     analysis.tsne_graph()
     analysis.neighbourhood_graph()
     analysis.pca_graph()
-    analysis.find_marker_genes()
+    #analysis.find_marker_genes()
 
     sidebar.show_preview()
     sidebar.export_script()
     sidebar.delete_experiment_btn()
+
 
 except KeyError as ke:
     print("KeyError: ", ke)

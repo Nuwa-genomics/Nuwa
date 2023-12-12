@@ -16,7 +16,7 @@ class bcolors:
 class Test_Trajectory_Inference:
     def __init__(self, session_state = None):
         print(f"{bcolors.OKBLUE}Initialising page... {bcolors.ENDC}", end="")
-        self.at = AppTest.from_file("pages/6_Trajectory_Inference.py")
+        self.at = AppTest.from_file("pages/7_Trajectory_Inference.py")
         if session_state is not None:
             self.at.session_state = session_state
             

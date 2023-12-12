@@ -15,7 +15,7 @@ class bcolors:
 class Test_Create_Model:
     def __init__(self, session_state = None, model=None):
         print(f"{bcolors.OKBLUE}Initialising page... {bcolors.ENDC}", end="")
-        self.at = AppTest.from_file("pages/3_Create_model.py")
+        self.at = AppTest.from_file("pages/4_Create_model.py")
         if session_state is not None:
             self.at.session_state = session_state
 
