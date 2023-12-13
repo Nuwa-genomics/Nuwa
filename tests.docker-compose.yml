@@ -21,15 +21,6 @@ services:
       - POSTGRES_PORT=5432
     ports:
       - ${SERVER_ADDR}:${HOST_PORT}:8501
-    deploy:
-      resources:
-        limits:
-          memory: 6G
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
   postgres:
     container_name: postgresql
     build: 
