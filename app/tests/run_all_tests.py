@@ -31,7 +31,6 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 try:
-
     conn: Session = SessionLocal()
 
     print()
