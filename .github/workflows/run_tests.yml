@@ -10,5 +10,6 @@ jobs:
   run_tests:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - name: Run tests
       run: docker-compose -f tests.docker-compose.yml up --build
