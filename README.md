@@ -163,7 +163,7 @@ docker-compose -f tests.docker-compose.yml up --build
 
 *[3] Jiang, Q., Xu, C., Jin, X. et al. (2022). DeepST: identifying spatial domains in spatial transcriptomics by deep learning. https://academic.oup.com/nar/article/50/22/e131/6761985.*
 
-## Donate ₿❤️
+## Donate <span style="color:orange">₿</span>❤️
 
 All development is non-profit, any contributions are greatly appreciated! Donate in bitcoin to:
 
