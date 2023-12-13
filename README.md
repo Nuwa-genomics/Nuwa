@@ -29,7 +29,7 @@ Then visit http://localhost in your browser.
 
 - Ensure system clock is correct if you encounter release file invalid error:
   ```
-  -E: Release file for http://archive.ubuntu.com/ubuntu/dists/focal-updates/InRelease is not valid yet (invalid for another 1min 55s). Updates for this repository will not be applied.
+  ![#f03c15]E: Release file for http://archive.ubuntu.com/ubuntu/dists/focal-updates/InRelease is not valid yet (invalid for another 1min 55s). Updates for this repository will not be applied.
   ```
 
 ## Preprocess
