@@ -36,7 +36,6 @@ try:
 
     print()
     print(f"{bcolors.BOLD}===============Testing Dashboard===============")
-    assert 1 == 2
     nonce = randrange(1, 10000000)
     dashboard_test = Test_Dashboard(workspace_nonce=nonce)
     dashboard_state = dashboard_test.get_final_session_state()
