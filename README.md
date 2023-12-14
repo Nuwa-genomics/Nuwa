@@ -1,6 +1,6 @@
 # Nuwa 🧬🐍
 
-![logo](screenshots/logo.png "logo")
+<img src="screenshots/logo.png" width='500'></img>
 
 A bioinformatics web tool built with scanpy for genomics data processing and analysis. 
 
