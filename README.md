@@ -30,6 +30,8 @@ You can also use [docker desktop](https://www.docker.com/products/docker-desktop
 
 Then visit http://localhost in your browser.
 
+See our [**Documentation**](https://ch1ru.github.io/Nuwa-docs/) for more information and tutorials.
+
 ## Common issues
 
 - Ensure system clock is correct if you encounter release file invalid error when building images:
