@@ -30,7 +30,7 @@ You can also use [docker desktop](https://www.docker.com/products/docker-desktop
 
 Then visit http://localhost in your browser.
 
-See our [**Documentation**](https://ch1ru.github.io/Nuwa-docs/) for more information and tutorials.
+See our <a href="https://ch1ru.github.io/Nuwa-docs/" target="_blank">**Documentation**</a> for more information and tutorials.
 
 ## Common issues
 
