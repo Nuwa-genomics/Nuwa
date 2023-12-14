@@ -1,6 +1,6 @@
 # Nuwa 🧬🐍
 
-<div style='display: flex;'>
+<div style='display: flex;' align="center">
     <img src="screenshots/logo.png" width='600'></img>
 </div>
 
