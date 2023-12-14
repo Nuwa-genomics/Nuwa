@@ -1,10 +1,8 @@
-# Nuwa 🧬🐍
-
 <div style='display: flex;' align="center">
     <img src="screenshots/logo.png" width='500'></img>
 </div>
 
-A bioinformatics web tool built with scanpy for genomics data processing and analysis. 
+A bioinformatics web tool built with scanpy for genomics data processing and analysis 🧬🐍. 
 
 ### \*\*Work in progress! ⚠️\*\*
 
@@ -30,7 +28,7 @@ You can also use [docker desktop](https://www.docker.com/products/docker-desktop
 
 Then visit http://localhost in your browser.
 
-See our <a href="https://ch1ru.github.io/Nuwa-docs/" target="_blank">**Documentation**</a> for more information and tutorials.
+See our [**Documentation**](https://ch1ru.github.io/Nuwa-docs/) for more information and tutorials.
 
 ## Common issues
 
