@@ -30,7 +30,7 @@ Then visit http://localhost in your browser.
 
 ## Docs
 
-See our [**Documentation**](https://ch1ru.github.io/Nuwa-docs/) for more information and tutorials.
+See our [**Documentation**](https://ch1ru.github.io/Nuwa/) for more information and tutorials.
 
 ## Common issues
 
