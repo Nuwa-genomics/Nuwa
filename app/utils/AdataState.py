@@ -10,28 +10,30 @@ from utils.ScriptState import ScriptState
 import os
 
 class AdataState:
-    def __init__(self, active: AdataModel):
+    def __init__(self, active: AdataModel, insert_into_db=True):
         self.conn: Session = SessionLocal()
         self.conn
         self.workspace_id = active.work_id
         #set initial value for current adata. This won't include timestamp or id so needs to be reinitialised.
         self.current = active
         #insert active into db
-        insert_warning = self.insert_record(active)
-        if insert_warning != 0:
-            st.warning(insert_warning)
-        #check record is inserted
-        db_adatas = self.conn.query(schemas.Adata).filter(schemas.Adata.work_id == active.work_id).filter(schemas.Adata.adata_name == active.adata_name)
-        assert db_adatas.count() != 0
-        #reinitialise current to include additional fields
-        current: schemas.Adata = db_adatas.first()
-        self.current = AdataModel(work_id=current.work_id, adata_name=current.adata_name, created=current.created, notes=current.notes, id=current.id, filename=current.filename)
+        if insert_into_db:
+            insert_warning = self.insert_record(active)
+            if insert_warning != 0:
+                st.warning(insert_warning)
+            #check record is inserted
+            db_adatas = self.conn.query(schemas.Adata).filter(schemas.Adata.work_id == active.work_id).filter(schemas.Adata.adata_name == active.adata_name)
+            assert db_adatas.count() != 0
+            #reinitialise current to include additional fields
+            current: schemas.Adata = db_adatas.first()
+            self.current = AdataModel(work_id=current.work_id, adata_name=current.adata_name, created=current.created, notes=current.notes, id=current.id, filename=current.filename)
+
         #add original adata to object
         self.current.adata = active.adata
         #set current to newly created adata
         self.current_index = self.get_index_of_current()
         #set script state
-        st.session_state["script_state"] = ScriptState(adata_id=db_adatas.first().id)
+        st.session_state["script_state"] = ScriptState(adata_id=self.current.id)
 
     def switch_adata(self, adata_name):
         new_current = self.load_adata(workspace_id=self.workspace_id, adata_name=adata_name)

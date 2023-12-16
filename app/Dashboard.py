@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from models.WorkspaceModel import WorkspaceModel
+from models.AdataModel import AdataModel
+from utils.AdataState import AdataState
 from datetime import datetime
 from database.database import *
 from database.schemas import schemas
@@ -8,6 +10,7 @@ from sqlalchemy.orm import Session
 from hashlib import sha256
 import time
 import os
+import scanpy as sc
 
 #create databases if not already present
 Base.metadata.create_all(engine)
@@ -89,6 +92,12 @@ class Dashboard:
                                 for workspace in st.session_state.workspaces:
                                     if workspace.id == int(work_id):
                                         st.session_state["current_workspace"] = workspace
+                                        #load adata into adata state if exists
+                                        adata: schemas.Adata = self.conn.query(schemas.Adata).filter(schemas.Adata.work_id == workspace.id).order_by(schemas.Adata.created).first()
+                                        if adata:
+                                            anndata = sc.read_h5ad(filename=adata.filename)
+                                            active_adata: AdataModel = AdataModel(work_id=adata.work_id, adata=anndata, filename=adata.filename, created=adata.created, adata_name=adata.adata_name, notes = adata.notes, id=adata.id)
+                                            st.session_state["adata_state"] = AdataState(active=active_adata, insert_into_db=False)
                                         os.environ['WORKDIR'] = workspace.data_dir #set wd
                                         with st.sidebar:
                                             st.subheader(f"{workspace.workspace_name}")

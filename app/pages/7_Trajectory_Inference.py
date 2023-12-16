@@ -47,12 +47,15 @@ class Trajectory_Inference:
                 st.subheader("Cluster chart")
                 with st.spinner(text="Plotting clusters"):
                     subcol1, _, _, _ = st.columns(4, gap='large')
-                    subcol1.selectbox(label='color', options=self.adata.obs.columns, key='sb_plt_colors')
+                    key_index = self.adata.obs_keys().index('louvain') #created in constructor
+                    if key_index == -1: #in case louvain was not created
+                        key_index = 0
+                    subcol1.selectbox(label='color', options=self.adata.obs.columns, key='sb_plt_colors', index=key_index)
                     st.slider(label="Point size", min_value=1, max_value=100, key="sl_traj_graph_size", value=50)
                     #denoise
-                    # sc.tl.diffmap(self.adata)
-                    # sc.pp.neighbors(self.adata, n_neighbors=10, use_rep='X_diffmap')
-                    # sc.tl.draw_graph(self.adata)
+                    #sc.tl.diffmap(self.adata)
+                    #sc.pp.neighbors(self.adata, n_neighbors=10, use_rep='X_diffmap')
+                    #sc.tl.draw_graph(self.adata)
                     self.ax_df = pd.DataFrame({'fr1': self.adata.obsm['X_draw_graph_fr'][:,0], 'fr2': self.adata.obsm['X_draw_graph_fr'][:,1], 'color': self.adata.obs[st.session_state.sb_plt_colors]})
                     st.scatter_chart(self.ax_df, x='fr1', y='fr2', color='color', height=600, size=st.session_state.sl_traj_graph_size)
 
@@ -60,20 +63,19 @@ class Trajectory_Inference:
                 st.error(e)
 
     def draw_graph_paga(self):
-        plt.style.use('dark_background')
         with self.col2:
             try:
                 with st.form(key="form_draw_graph_paga"):
                     st.subheader("Louvain with PAGA embedding")
+                    plt.style.use('dark_background')
                     graph_paga_options = st.multiselect(label="Gene", options=np.append(self.adata.to_df().columns, 'louvain'), default=['louvain', self.adata.to_df().columns[0]], key="ms_louvain_colors_paga")
                     subcol1, _, _, _ = st.columns(4)
-                    empty = st.empty()
+                    empty = st.container()
                     draw_paga_graph_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     if draw_paga_graph_btn:
                         with st.spinner(text="Recomputing with PAGA initialisation"):
                             sc.tl.draw_graph(self.adata, init_pos='paga')
                             ax = sc.pl.draw_graph(self.adata, color=graph_paga_options, legend_loc='on data')
-                            empty.empty()
                             empty.pyplot(ax)
                             #write to script
                             st.session_state["script_state"].add_script("sc.tl.draw_graph(adata, init_pos='paga')")
@@ -92,25 +94,25 @@ class Trajectory_Inference:
                     st.subheader("PAGA")
                     plt.style.use('classic')
                     options = st.multiselect(label="Gene", options=np.append(self.adata.to_df().columns, 'louvain'), default=['louvain', self.adata.to_df().columns[0]], key="ms_louvain_colors")
-                    empty = st.empty()
+                    empty = st.container()
                     subcol1, _, _, _ = st.columns(4)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     
                     if submit_btn:
-                        #louvain cluster
-                        sc.tl.louvain(self.adata, resolution=1.0)
+                        with st.spinner(text="Computing clusters"):
+                            #louvain cluster
+                            sc.tl.louvain(self.adata, resolution=1.0)
 
-                        #paga
-                        sc.tl.paga(self.adata, groups='louvain')
-                        ax = sc.pl.paga(self.adata, colors=st.session_state.ms_louvain_colors, cmap='viridis', node_size_scale=3)
-                        empty.empty()
-                        empty.pyplot(ax)
-                        
-                        #write to script state
-                        st.session_state["script_state"].add_script("sc.tl.louvain(adata, resolution=1.0)")
-                        st.session_state["script_state"].add_script("sc.tl.paga(adata, groups='louvain')")
-                        st.session_state["script_state"].add_script(f"sc.pl.paga(adata, colors={options}, cmap='viridis', node_size_scale=3)")
-                        st.session_state["script_state"].add_script("plt.show()")
+                            #paga
+                            sc.tl.paga(self.adata, groups='louvain')
+                            ax = sc.pl.paga(self.adata, colors=st.session_state.ms_louvain_colors, cmap='viridis', node_size_scale=3)
+                            empty.pyplot(ax)
+                            
+                            #write to script state
+                            st.session_state["script_state"].add_script("sc.tl.louvain(adata, resolution=1.0)")
+                            st.session_state["script_state"].add_script("sc.tl.paga(adata, groups='louvain')")
+                            st.session_state["script_state"].add_script(f"sc.pl.paga(adata, colors={options}, cmap='viridis', node_size_scale=3)")
+                            st.session_state["script_state"].add_script("plt.show()")
                         
 
             except Exception as e:
@@ -132,34 +134,35 @@ class Trajectory_Inference:
             try:
                 with st.form(key="dpt_form"):
                     st.subheader("Diffusion Pseudotime")
+                    plt.style.use('dark_background')
                     root_cell = st.selectbox(label='Root cell', options=(self.adata.obs['louvain'].unique()), key='sb_root_cell')
-                    empty = st.empty()
+                    empty = st.container()
                     subcol1, _, _, _ = st.columns(4)
                     dpt_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     if dpt_btn:
-                        self.adata.uns['iroot'] = np.flatnonzero(self.adata.obs['louvain']  == st.session_state.sb_root_cell)[0]
-                        
-                        sc.tl.dpt(self.adata)
-                        sc.pp.log1p(self.adata)
-                        sc.pp.scale(self.adata)
+                        with st.spinner(text="Computing dpt"):
+                            self.adata.uns['iroot'] = np.flatnonzero(self.adata.obs['louvain']  == st.session_state.sb_root_cell)[0]
+                            
+                            sc.tl.dpt(self.adata)
+                            sc.pp.log1p(self.adata)
+                            sc.pp.scale(self.adata)
 
-                        ax1 = sc.pl.draw_graph(self.adata, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')
-                        empty.empty()
-                        empty.pyplot(ax1)
-                        
-                        #add to script state
-                        
-                        st.session_state["script_state"].add_script("adata.uns['iroot'] = np.flatnonzero(adata.obs['louvain']  == st.session_state.sb_root_cell)[0]")
-                        st.session_state["script_state"].add_script("sc.tl.dpt(adata)")
-                        st.session_state["script_state"].add_script("sc.pp.log1p(adata)")
-                        st.session_state["script_state"].add_script("sc.pp.scale(adata)")
-                        st.session_state["script_state"].add_script("sc.pl.draw_graph(adata, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')")
-                        st.session_state["script_state"].add_script("plt.show()")
+                            ax1 = sc.pl.draw_graph(self.adata, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')
+                            empty.pyplot(ax1)
+                            
+                            #add to script state
+                            
+                            st.session_state["script_state"].add_script("adata.uns['iroot'] = np.flatnonzero(adata.obs['louvain']  == st.session_state.sb_root_cell)[0]")
+                            st.session_state["script_state"].add_script("sc.tl.dpt(adata)")
+                            st.session_state["script_state"].add_script("sc.pp.log1p(adata)")
+                            st.session_state["script_state"].add_script("sc.pp.scale(adata)")
+                            st.session_state["script_state"].add_script("sc.pl.draw_graph(adata, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')")
+                            st.session_state["script_state"].add_script("plt.show()")
 
-                        #     sc.tl.dpt(adata_raw, n_branchings=1, n_dcs=10)
-                        #     adata_raw.obs.dpt_groups = adata_raw.obs.dpt_groups[:60]
-                        #     ax2 = sc.pl.dpt_timeseries(adata_raw)
-                        #     st.pyplot(ax2)
+                            #     sc.tl.dpt(adata_raw, n_branchings=1, n_dcs=10)
+                            #     adata_raw.obs.dpt_groups = adata_raw.obs.dpt_groups[:60]
+                            #     ax2 = sc.pl.dpt_timeseries(adata_raw)
+                            #     st.pyplot(ax2)
 
             except Exception as e:
                 st.error(e)
