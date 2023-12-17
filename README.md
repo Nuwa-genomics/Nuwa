@@ -10,21 +10,30 @@ Deep neural networks have many potential use cases for genomic analyses includin
 
 ## Getting Started
 
-First, clone the repo:
+Make sure docker and docker-compose are installed on your host machine.
+
+Next, clone the repo:
 ```bash
 git clone https://github.com/ch1ru/Nuwa.git && cd Nuwa
 ```
 
-If you have a Nvidia GPU:
+### If you have a Nvidia GPU:
+
+1.Make sure cuda drivers are installed on the host machine.
+
+2.Install and configure [Nvidia container toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) for docker
+
+3.Bring up container using CUDA dockerfile: 
 ```bash
 docker-compose -f cuda.docker-compose.yml up -d --build
 ```
 
-Otherwise:
+### If using a CPU:
+
+Bring up containers using CPU dockerfile:
 ```bash
 docker-compose -f cpu.docker-compose.yml up -d --build
 ```
-You can also use [docker desktop](https://www.docker.com/products/docker-desktop/)
 
 Then visit http://localhost in your browser.
 
