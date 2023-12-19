@@ -10,7 +10,7 @@ Deep neural networks have many potential use cases for genomic analyses includin
 
 ## Getting Started
 
-Make sure docker and docker-compose are installed on your host machine.
+Make sure **docker** and **docker-compose** are installed on your host machine.
 
 Next, clone the repo:
 ```bash

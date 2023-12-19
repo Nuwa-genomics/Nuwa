@@ -105,7 +105,7 @@ class Upload:
         st.subheader("Or select a built-in dataset")
         
         #scanpy datasets
-        dataset_options = ['none', 'pbmc3k', 'pbmc3k_processed', 'pbmc68k_reduced', 'mouse mammary epithelial', 'paul15', 'four_i', 'imc', 'seqfish', 'merfish', 'mibitof', 'slideseqv2', 'sc_mouse_cortex', 'visium', 'visium_hne_adata', 'visium_hne_adata_crop', 'visium_fluo_adata', 'visium_fluo_adata_crop', 'visium_hne_image', 'visium_hne_crop', 'visium_fluo_image_crop']   
+        dataset_options = ['none', 'pbmc3k', 'pbmc3k_processed', 'pbmc68k_reduced', 'mouse mammary epithelial', 'covid_GSE149689', 'paul15', 'four_i', 'imc', 'seqfish', 'merfish', 'mibitof', 'slideseqv2', 'sc_mouse_cortex', 'visium', 'visium_hne_adata', 'visium_hne_adata_crop', 'visium_fluo_adata', 'visium_fluo_adata_crop', 'visium_hne_image', 'visium_hne_crop', 'visium_fluo_image_crop']   
         scanpy_ds = st.selectbox(label="Dataset", options=dataset_options, key="sb_sc_datasets")
         ds_empty = st.empty()
         
@@ -129,6 +129,10 @@ class Upload:
                     self.adata = sc.read_h5ad('/app/data/bct_raw.h5ad')
                     filename="mouse mammary epithelial"
                     ds_empty.info("Mammary epithelial cell sample taken from mouse donor. (PumbedID_30089273, PubmedID_29158510, PubmedID_29225342)")
+                if(st.session_state.sb_sc_datasets == 'covid_GSE149689'):
+                    self.adata = sc.read_h5ad('/app/data/covid_GSE149689.h5ad')
+                    filename="covid_GSE149689"
+                    ds_empty.info("A set of 6 PBMC 10x datasets from 3 covid-19 patients and 3 healthy controls, the samples have been subsampled to 1500 cells per sample and concatenated into a single dataset.")
                 if(st.session_state.sb_sc_datasets == 'paul15'):
                     self.adata = sc.datasets.paul15()
                     filename="paul15"

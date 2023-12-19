@@ -17,6 +17,7 @@ pytest==7.4.3
 python-dotenv==1.0.0
 python-igraph==0.10.4
 python-louvain==0.15 
+scanorama==1.7.4
 scanpy==1.9.5
 scikit-learn==1.2.1
 scikit-misc==0.3.0

@@ -1,8 +1,10 @@
+from anndata import AnnData
 import streamlit as st
 from components.sidebar import *
 from models.AdataModel import AdataModel
 import os
 import pandas as pd
+import scanorama
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -30,6 +32,11 @@ class Integrate:
         with col3:
             self.bbknn()
             self.umap()
+
+
+    def save_adata(self):
+        sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'adata', st.session_state.adata_state.current.adata_name), adata=self.adata)
+        st.session_state.adata_state.current.adata = self.adata
             
             
     def auto_integrate_recipies(self):
@@ -40,7 +47,7 @@ class Integrate:
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
             if submit_btn:
                 with st.spinner(text="Applying integration recipie"):
-                    print("hi")
+                    self.save_adata()
             
         
     def ingest(self):
@@ -57,6 +64,7 @@ class Integrate:
                         sc.pp.neighbors(st.session_state.adata_ref.adata)
                         sc.tl.umap(st.session_state.adata_ref.adata)
                         sc.tl.ingest(adata=st.session_state.adata_target.adata, adata_ref=st.session_state.adata_ref.adata, obs=obs)
+                        self.save_adata()
                         st.toast("Integration complete", icon="✅")
                 except Exception as e:
                     st.toast("Failed to integrate datasets", icon="❌")
@@ -71,7 +79,8 @@ class Integrate:
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
             if submit_btn:
                 with st.spinner(text="Integrating with Scanorama"):
-                    print("hi")
+                    scanorama.integrate_scanpy(adatas, dimred=50)
+                    self.save_adata()
             
             
     def bbknn(self):
@@ -86,6 +95,8 @@ class Integrate:
                     sc.tl.pca(st.session_state.adata_state.current.adata)
                 with st.spinner(text="Applying BBKNN"): 
                     sc.external.pp.bbknn(st.session_state.adata_state.current.adata, batch_key=batch_key)
+
+                self.save_adata()
                     
             
     def quick_map(self):
@@ -115,6 +126,8 @@ class Integrate:
                         work_id=st.session_state.current_workspace.id, adata=dest_adata, 
                         filename=os.path.join(os.getenv('WORKDIR'), "adata", f"{dest_dataset_name}.h5ad"), adata_name=dest_dataset_name)
                     )
+
+                    self.save_adata()
                     
                     st.toast("Successfully mapped requested fields into dataset.", icon="✅")
                 except Exception as e:
@@ -151,6 +164,7 @@ class Integrate:
                                 work_id=st.session_state.current_workspace.id, adata=adata_concat, 
                                 filename=os.path.join(os.getenv('WORKDIR'), "adata", f"{adata_name}.h5ad"), adata_name=adata_name)
                             )
+                            self.save_adata()
                             st.toast("Successfully concatenated dataframes", icon="✅")
                     except Exception as e:
                         st.toast("Couldn't concatenate dataframes", icon="❌")
@@ -164,6 +178,7 @@ class Integrate:
             with st.spinner(text="Computing umap"):
                 adata = st.session_state.adata_state.current.adata
                 sc.pp.neighbors(adata)
+                sc.tl.leiden(adata)
                 sc.tl.umap(adata)
                 for color in colors:
                     df_umap = pd.DataFrame({'umap1': adata.obsm['X_umap'][:,0], 'umap2': adata.obsm['X_umap'][:,1], 'color': adata.obs[color]})
@@ -171,11 +186,12 @@ class Integrate:
                     
         with st.form(key="integrate_umap_form"):
             st.subheader("UMAP")
-            default = st.session_state.adata_state.current.adata.obs_keys()[0]
+            default = 'leiden'
+            options = [st.session_state.adata_state.current.adata.obs_keys(), 'leiden']
             for i, item in enumerate(st.session_state.adata_state.current.adata.obs_keys()):
-                if item.lower().replace("_", "").__contains__("batch"): #give precedence to batch if present since it is relevant to preprocessing
-                    default = item
-            colors = st.multiselect(label="Color (obs)", options=st.session_state.adata_state.current.adata.obs_keys(), default=default)
+                if item.lower().replace("_", "").__contains__(default):
+                    options = st.session_state.adata_state.current.adata.obs_keys()
+            colors = st.multiselect(label="Color (obs)", options=options, default=default)
             container = st.container()
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
