@@ -116,13 +116,17 @@ class Preprocess:
         with tab_total:
             with st.form(key="form_normalize_total"):
                 target_sum = st.number_input(label="Target sum", value=1, key="ni_target_sum")
-                exclude_high_expr = st.checkbox(label="Exclude highly expressed", value=False)
+                subcol_input1, subcol_input2 = st.columns(2, gap="medium")
+                exclude_high_expr = subcol_input1.checkbox(label="Exclude highly_expr", value=False)
+                log_transform_total = subcol_input2.checkbox(label="Log transform", value=False)
 
                 subcol1, _, _ = st.columns(3)
                 submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
                 if submit_btn:
                     sc.pp.normalize_total(self.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr)
+                    if log_transform_total:
+                        sc.pp.log1p(self.adata)
                     #write to script state
                     st.session_state["script_state"].add_script(f"#Normalize counts (total)\nsc.pp.normalize_total(adata, target_sum={target_sum}, exclude_highly_expressed={exclude_high_expr})")
                     #make adata
@@ -131,12 +135,15 @@ class Preprocess:
         with tab_per_cell:
             with st.form(key="form_normalize_per_cell"):
                 counts_per_cell_after = st.number_input(label="Counts per cell after")
+                log_transform_per_cell = st.checkbox(label="Log transform", value=False)
 
                 subcol1, _, _ = st.columns(3)
                 submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
                 if submit_btn:
                     sc.pp.normalize_per_cell(self.adata, counts_per_cell_after=counts_per_cell_after)
+                    if log_transform_per_cell:
+                        sc.pp.log1p(self.adata)
                     #write to script state
                     st.session_state["script_state"].add_script(f"#Normalize counts (per cell)\nsc.pp.normalize_per_cell(adata, counts_per_cell_after={counts_per_cell_after})")
                     #make adata

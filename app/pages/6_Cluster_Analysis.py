@@ -262,24 +262,6 @@ class Analysis:
                 st.error(e)
 
 
-    def find_marker_genes(self):
-        with self.col1:
-            try:
-                with st.form(key="marker_genes_form"):
-                    st.subheader("Find marker genes")
-                    algorithm = st.radio(label="Algorithm", options=(['logreg', 't-test', 'wilcoxon']), key='rb_algo')
-                    marker_genes_container = st.container()
-                    subcol1, _, _, _ = st.columns(4)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
-                    if submit_btn:
-                        with st.spinner(text="Grouping marker genes"):
-                            sc.tl.rank_genes_groups(self.adata, groupby='leiden', method = str.lower(algorithm))
-                            ax = sc.pl.rank_genes_groups(self.adata, n_genes=25, sharey=False)
-                            marker_genes_container.pyplot(ax)
-
-            except Exception as e:
-                st.error(e)
-
 
 try:
     adata = st.session_state.adata_state.current.adata
@@ -293,7 +275,6 @@ try:
     analysis.tsne_graph()
     analysis.neighbourhood_graph()
     analysis.pca_graph()
-    #analysis.find_marker_genes()
 
     sidebar.show_preview()
     sidebar.export_script()

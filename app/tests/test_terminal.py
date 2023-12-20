@@ -28,7 +28,7 @@ class bcolors:
 class Test_Terminal:
     def __init__(self, session_state = None):
         print(f"{bcolors.OKBLUE}Initialising page... {bcolors.ENDC}", end="")
-        self.at = AppTest.from_file("pages/2_Preprocess.py")
+        self.at = AppTest.from_file("pages/10_Terminal.py")
         self.conn: Session = SessionLocal()
         if session_state is not None:
             self.at.session_state = session_state

@@ -19,8 +19,6 @@ from utils.AdataState import AdataState
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
-
-
 with open('css/common.css') as f:
     common_style = f"""
                 <style>
@@ -28,7 +26,6 @@ with open('css/common.css') as f:
                 </style>
                 """
     st.markdown(common_style, unsafe_allow_html=True)
-
 
 
 class CreateCiteSeqModel:
