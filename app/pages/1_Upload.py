@@ -203,6 +203,20 @@ class Upload:
                     self.show_anndata(dataset, filename=accession_str)
 
 
+    def obs_unique(self):
+        if st.session_state.btn_make_obs_unique:
+            st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata.obs_names_make_unique()
+        else:
+            st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata.raw.copy()
+
+
+    def var_unique(self):
+        if st.session_state.btn_make_var_unique:
+            st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata.var_names_make_unique()
+        else:
+            st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata.raw.copy()
+
+
     def show_anndata(self, adata, f = None, filename = ""):
         try:
             
@@ -222,7 +236,6 @@ class Upload:
             )
             st.session_state["adata_state"] = AdataState(active=active_adata)
             
-            
             #see if dataset already in db
             if self.first_load: #TODO: this doesn't take into account loading a new dataset into original workspace. adata definition won't show
                 if f != None:
@@ -231,11 +244,7 @@ class Upload:
                     st.session_state["script_state"].add_script(f"#Uploaded adata should be added here.\n")
                 
             
-            
-            
-            
-            
-            
+            st.toast("Successfully uploaded file", icon='✅')
 
         except ValidationError as e:
             st.error(e)
@@ -243,41 +252,33 @@ class Upload:
         with st.sidebar:
             st.subheader("File info")
             st.write(f"AnnData object with n_obs x n_vars = {adata.n_obs} x {adata.n_vars}")
-            
-            #make var unique
+        
             
             if f is not None:
                 st.write(f"Size: {f.size} bytes")
-                
+
+            
             
 
             st.subheader("Obs")
-            
             if not adata.obs.empty:
-                make_obs_unique = st.checkbox(label="Obs names make unique", key="btn_make_obs_unique", value=False)
-                if make_obs_unique:
-                    st.write("to implement")
+                make_obs_unique = st.checkbox(label="Obs names make unique", key="btn_make_obs_unique", value=False, on_change=self.obs_unique)
                 st.dataframe(adata.obs.head())
                 st.write(f"Showing 5 rows of {len(adata.obs.columns)} columns")
-                
             else:
                 st.text("No obs to show")
             
             st.subheader("Var")
-            
             if not adata.var.empty:
-                make_var_unique = st.checkbox(label="Var names make unique", key="btn_make_var_unique", value=False)
-                if make_var_unique:
-                    st.write("To implement")
+                make_var_unique = st.checkbox(label="Var names make unique", key="btn_make_var_unique", value=False, on_change=self.var_unique)
                 st.dataframe(adata.var.head())
                 st.write(f"Showing 5 rows of {len(adata.var.columns)} columns")
-                
             else:
                 st.text("No var to show")
                 
             
 
-        st.toast("Successfully uploaded file", icon='✅')
+        
         
         
 upload_page = Upload()

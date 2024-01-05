@@ -163,11 +163,7 @@ class Analysis:
                     with st.spinner(text="Computing PCA"):
                         sc.tl.pca(self.adata, svd_solver='arpack')
                         ax_pca = sc.pl.pca(self.adata, color=st.session_state.ms_pca_gene or self.columns[0])
-                        pca_container.pyplot(ax_pca)
-                        #TODO: add variance ratio
-                        # with st.expander(label="Show PCA variance ratio"):
-                        #     ax_variance_ratio = sc.pl.pca_variance_ratio(self.adata, log=True)
-                        #     st.pyplot(ax_variance_ratio)
+                        pca_container.pyplot(ax_pca)   
                         
                     subcol1, _, _, _ = st.columns(4)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
@@ -175,12 +171,44 @@ class Analysis:
                         with st.spinner(text="Computing PCA"):
                             sc.tl.pca(self.adata, svd_solver='arpack')
                             ax_pca = sc.pl.pca(self.adata, color=genes or self.columns[0])
-                            pca_container.pyplot(ax_pca)
-                            # with st.expander(label="Show PCA variance ratio"):
-                            #     ax_variance_ratio = sc.pl.pca_variance_ratio(self.adata, log=True)
-                            #     pca_container.pyplot(ax_variance_ratio)
+
             except Exception as e:
                 st.error(e)
+
+    def variance_ratio(self):
+        with self.col1:
+            try:
+                with st.form(key="variance_ratio_form"):
+                    st.subheader("Variance ratio")
+                    subcol1, subcol2 = st.columns(2)
+                    n_pcs = subcol1.number_input(label="n_pcs", min_value=1, max_value=50, value=30)
+                    log = subcol1.checkbox(label="Log", value=True)
+                    subcol1, _, _, _ = st.columns(4)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    empty = st.empty()
+                    if submit_btn:
+                        with st.spinner(text="Computing variance ratio"):
+                            sc.pl.pca_variance_ratio(adata, log=log)
+
+                            pcs = []
+                            pc_val = []
+
+                            for i, pc in enumerate(adata.uns['pca']['variance_ratio']):
+                                pcs.append(i+1)
+                                pc_val.append(pc)
+
+                            pcs = np.array(pcs)
+                            pc_val = np.array(pc_val)
+                            df = pd.DataFrame({'PC': pcs, 'value': pc_val})
+                            df["PC"] = df["PC"].astype("category")
+
+                            empty.empty()
+                            empty.scatter_chart(df[:n_pcs], x='PC', y='value', color="PC")
+            
+            except Exception as e:
+                print("Error ", e)
+                st.error(e)
+
 
 
     def tsne_graph(self):
@@ -275,6 +303,7 @@ try:
     analysis.tsne_graph()
     analysis.neighbourhood_graph()
     analysis.pca_graph()
+    analysis.variance_ratio()
 
     sidebar.show_preview()
     sidebar.export_script()

@@ -9,6 +9,7 @@ import scanpy as sc
 import gseapy
 import matplotlib.pyplot as plt
 from matplotlib_venn import venn3
+import altair as alt
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -34,10 +35,18 @@ class DGE:
         col1, col2, col3 = st.columns(3)
         with col1:
             self.add_embeddings()
+            self.upload_marker_genes()
         with col2:
             self.stat_tests()
-            
+            self.preview_marker_genes()
+
         self.visualize()
+        self.rank_genes_groups()
+        self.show_top_ranked_genes()
+        with col3:
+            self.do_umap()
+            
+        
 
     def stat_tests(self):
         try:
@@ -46,7 +55,7 @@ class DGE:
                 method = st.selectbox(label="Method", options=(['logreg', 't-test', 't-test_overestim_var', 'wilcoxon']), key='rb_method')
                 group_by = st.selectbox(label="Group by", options=st.session_state.adata_state.current.adata.obs_keys())
                 marker_genes_container = st.empty()
-                subcol1, _, _, _ = st.columns(4)
+                subcol1, _, _ = st.columns(3)
                 submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                 if submit_btn:
                     marker_genes_container.empty()
@@ -56,6 +65,61 @@ class DGE:
                         self.save_adata()
 
         except Exception as e:
+            st.error(e)
+
+    def upload_marker_genes(self):
+        try:
+            st.subheader("Upload marker genes file", help="")
+            marker_genes_upload = st.file_uploader(label="Upload csv file", type=['csv', 'tsv'])
+            if marker_genes_upload:
+                st.session_state['marker_genes_df'] = pd.read_csv(marker_genes_upload)
+            else:
+                st.code("Example format:\nmarkers,cell_type\nIL7R CCR7, Naive CD4+ T", language="csv")
+
+        except Exception as e:
+            print("Error: ", e)
+            st.error(e)
+
+    def preview_marker_genes(self):
+        try:
+            st.subheader("Preview")
+            if 'marker_genes_df' not in st.session_state:
+                st.info("Upload a file")
+                #st.markdown("""<div style='display: flex; flex-direction: column;'><p style='text-align: center; margin-top: 100px; color: #b0b0b0; whitespace: pre-line; justify-content: center; align-content: center; align-items: center;'>Upload a file</p></div>""", unsafe_allow_html=True)
+            else:
+                st.dataframe(st.session_state.marker_genes_df, width=500, height=220)
+        except Exception as e:
+            print("Error: ", e)
+
+    def do_umap(self):
+        try:
+            with st.form(key="do_umap"):
+                st.subheader("UMAP")
+                def run_umap(adata):
+                    with st.spinner(text="Running UMAP"):
+                        sc.pp.neighbors(adata, random_state=42)
+                        sc.tl.umap(adata, random_state=42)
+                        df_umap = pd.DataFrame({'umap1': adata.obsm['X_umap'][:,0], 'umap2': adata.obsm['X_umap'][:,1], 'color': adata.obs[f'{st.session_state.sb_umap_color_dge}']})  
+                        umap_empty.empty()
+                        umap_empty.scatter_chart(data=df_umap, x='umap1', y='umap2', color='color', size=18)
+                    
+                
+                index = 0      
+                for i, item in enumerate(self.adata.obs_keys()):
+                    if item.lower().replace("_", "").__contains__("leiden") or item.lower().replace("_", "").__contains__("louvain") or item.lower().replace("_", "").__contains__("celltype"): #give precedence to batch if present since it is relevant to preprocessing
+                        index = i           
+                umap_color = st.selectbox(label="Color", options=self.adata.obs_keys(), key="sb_umap_color_dge", index=index)
+                subcol1, _, _ = st.columns(3)
+                umap_dge_btn = subcol1.form_submit_button("Apply", use_container_width=True)
+                umap_empty = st.empty()
+                
+                run_umap(self.adata)
+                
+                if umap_dge_btn:
+                    run_umap(self.adata)
+
+        except Exception as e:
+            print("error: ", e)
             st.error(e)
 
     def add_embeddings(self):
@@ -81,29 +145,9 @@ class DGE:
 
 
 
-
-    def compare_tests(self):
-        try:
-            with st.form(key="Compare tests"):
-                st.subheader("Compare tests")
-                compare_tests_container = st.empty()
-                subcol1, _, _ = st.columns(3)
-                compare_tests_submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
-                if compare_tests_submit_btn:
-                    wc = sc.get.rank_genes_groups_df(self.adata, group='0', key='wilcoxon', pval_cutoff=0.01, log2fc_min=0)['names']
-                    tt = sc.get.rank_genes_groups_df(self.adata, group='0', key='t-test', pval_cutoff=0.01, log2fc_min=0)['names']
-                    tt_ov = sc.get.rank_genes_groups_df(self.adata, group='0', key='t-test_overestim_var', pval_cutoff=0.01, log2fc_min=0)['names']
-                    fig, venn_ax = plt.subplots()
-                    venn3([set(wc),set(tt),set(tt_ov)], ('Wilcox','T-test','T-test_ov'), ax=venn_ax)
-                    st.pyplot(venn_ax)
-           
-
-
-        except Exception as e:
-            st.error(e)
-
     def visualize(self):
         try:
+ 
             with st.form(key="visualize_form"):
 
                 st.subheader("Visualize plots")
@@ -112,11 +156,14 @@ class DGE:
                 method = input_col1.radio(label="Method", options=['t-test', 't-test_overestim_var', 'wilcoxon', 'logreg'])
                 n_genes = input_col2.text_input(label="n_genes", value=5, help="Number of genes to display in each cluster.")
                 group_by = input_col2.selectbox(label="Group by", options=st.session_state.adata_state.current.adata.obs_keys())
-                subcol1, _, _, _, _, _ = st.columns(6)
+                subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
                 viz_submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                 
                 if viz_submit_btn:
                     plt.style.use('dark_background')
+                    for obs in st.session_state.adata_state.current.adata.obs_keys():
+                        if obs.__contains__("leiden") or obs.__contains__("louvain"):
+                            st.session_state.adata_state.current.adata.obs[obs] = st.session_state.adata_state.current.adata.obs[obs].astype('category')
                     n_genes = int(n_genes)
                     heatmap, dotplot, stacked_violins, matrix_plot = st.tabs(['Heatmap', 'Dotplot', 'Stacked violins', 'Matrix plot'])
                     with st.spinner(text="Generating plots"):
@@ -135,6 +182,81 @@ class DGE:
    
 
         except Exception as e:
+            st.error(e)
+
+
+    def rank_genes_groups(self):
+        try:
+            with st.form(key="rank_genes_groups"):
+                st.subheader("Rank genes groups")
+                subcol1, subcol2, subcol3, _, _ = st.columns(5, gap="large")
+                method = subcol1.radio(label="Method", options=['t-test', 't-test_overestim_var', 'wilcoxon', 'logreg'])
+                group_by = subcol2.selectbox(label="Group by", options=st.session_state.adata_state.current.adata.obs_keys())
+                n_genes = subcol2.number_input(label="Number of genes", min_value=1, value=25, format="%i")
+                reference = subcol3.text_input(label="Reference", value="rest")
+                use_raw = subcol3.toggle(label="Use raw", value=False)
+                subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
+                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                if submit_btn:
+                    sc.tl.rank_genes_groups(st.session_state.adata_state.current.adata, groupby=group_by, method=method, use_raw=use_raw, reference=reference)
+                    #n_graphs = len(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['names'][0])
+                    subcol1_graph, subcol2_graph = st.columns(2, gap="large")
+                    columns = [subcol1_graph, subcol2_graph]
+                    reference = st.session_state.adata_state.current.adata.uns['rank_genes_groups']['params']['reference']
+
+                    names_df_all = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['names'])
+                    scores_df_all = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['scores'])
+                    pvals_df_all = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['pvals'])
+                    pvals_adj_df_all =pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['pvals_adj'])
+                    logfoldchanges_df_all = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['logfoldchanges'])
+
+                    for i, column in enumerate(names_df_all):
+                        with columns[i % 2]:
+                            st.markdown(f"""<div style='margin-left: 20px; display: flex; align-items: center; justify-content: center;'><h1 style='text-align: center; font-size: 2rem;'>{i} vs {reference}</h1></div>""", unsafe_allow_html=True)
+                            df = pd.DataFrame({'gene': names_df_all[column], 'score': scores_df_all[column], 'p value': pvals_df_all[column], 'p value adj': pvals_adj_df_all[column], 'logfoldchanges': logfoldchanges_df_all[column]})
+                            df["gene"] = df["gene"].astype("category")
+                            altair_chart = alt.Chart(df[:n_genes]).mark_circle(size=60).encode(
+                                x=alt.X('gene', type='nominal', sort=None),
+                                y='score',
+                                color=alt.Color('gene', legend=None),
+                                tooltip=['gene', 'score', 'p value', 'p value adj']
+                            ).interactive()
+                            st.altair_chart(altair_chart, use_container_width=True)
+                            
+        
+        except Exception as e:
+            print("Error ", e)
+            st.error(e)
+
+
+    def show_top_ranked_genes(self):
+        try:
+            with st.form(key="top_ranked_genes_form"):
+                st.subheader("Top ranked genes")
+                subcol1, _, _, _, _ = st.columns(5, gap="large")
+                num_of_genes = subcol1.number_input(label="Number of genes", min_value=1, step=1, format="%i", value=10)
+                show_p_value = st.toggle(label="Show P value", value=False)
+                subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
+                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                empty = st.empty()
+                if submit_btn:
+                    result = st.session_state.adata_state.current.adata.uns['rank_genes_groups']
+                    groups = result['names'].dtype.names
+                    df_p_values = pd.DataFrame(
+                        {group + '_' + key[:1]: result[key][group]
+                        for group in groups for key in ['names', 'pvals']}).head(num_of_genes)
+
+
+                    df = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['names']).head(num_of_genes)
+
+                    empty.empty()
+                    if show_p_value:
+                        empty.dataframe(df_p_values)
+                    else:
+                        empty.dataframe(df)
+
+        except Exception as e:
+            print("Error: ", e)
             st.error(e)
 
 
