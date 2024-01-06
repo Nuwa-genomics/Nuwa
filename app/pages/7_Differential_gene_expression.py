@@ -188,7 +188,7 @@ class DGE:
 
     def rank_genes_groups(self):
         try:
-            elbow_plots, violin_plots = st.tabs(['Elbow plots', 'Violin plots'])
+            elbow_plots, violin_plots, violin_plots_specific_genes = st.tabs(['Elbow plot', 'Violin plot', 'Violin plot (specific genes)'])
 
             with elbow_plots:
                 with st.form(key="rank_genes_groups_elbow"):
@@ -237,7 +237,6 @@ class DGE:
                     num_genes = subcol2.number_input(label="Number of genes", min_value=1, value=6, format="%i")
                     cluster1 = subcol1.selectbox(label="Compare group", options=np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique()), key="sb_cluster1_violin")
                     cluster2 = subcol1.selectbox(label="Compare group", options=np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique()), key="sb_cluster2_violin")
-                    #reference = subcol3.text_input(label="Reference", value="rest")
                     subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
 
@@ -247,8 +246,6 @@ class DGE:
                             subcol1_graph, subcol2_graph = st.columns(2, gap="large")
                             columns = [subcol1_graph, subcol2_graph]
 
-                            #for i in range(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].nunique()):
-                                #with columns[i % 2]:
                             st.markdown(f"""<div style='margin-left: 20px; display: flex; align-items: center; justify-content: center;'><h1 style='text-align: center; font-size: 2rem;'>{cluster1} vs {cluster2}</h1></div>""", unsafe_allow_html=True)
 
                             df = pd.DataFrame()
@@ -285,11 +282,41 @@ class DGE:
                             )
                             
                             fig.update_traces(meanline_visible=True)
-                            fig.update_layout(violingap=0, violinmode='overlay', xaxis_title="Gene", yaxis_title="Expression", legend_title="Group")
+                            fig.update_layout(violingap=0, violinmode='overlay', xaxis_title="Gene", yaxis_title="Expression", legend_title=st.session_state.sb_violin_cluster_group)
 
                             st.plotly_chart(fig, use_container_width=True)
 
-                            
+            with violin_plots_specific_genes:
+                with st.form(key="violin_plots_specific_genes"):
+                    st.subheader("Measure expression in genes across clusters")
+                    subcol1, subcol2, subcol3, _, _ = st.columns(5, gap="large")
+                    cluster = subcol1.selectbox(label="Group", options=st.session_state.adata_state.current.adata.obs_keys())
+                    genes = subcol2.multiselect(label="Genes", options=np.sort(st.session_state.adata_state.current.adata.var_names))
+                    subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    line_colors = ['#d1454c', '#8ee065', '#eda621', '#f071bf', '#9071f0', '#71e3f0', '#2f39ed', '#ed2f7b']
+
+                    if submit_btn:
+
+                        for i, gene in enumerate(genes):
+                            fig = go.Figure()
+
+                            groups = np.sort(st.session_state.adata_state.current.adata.obs[cluster].unique())
+                            for j, group in enumerate(groups):
+                                fig.add_trace(go.Violin(x=st.session_state.adata_state.current.adata.obs[cluster][st.session_state.adata_state.current.adata.obs[cluster] == group],
+                                    y=st.session_state.adata_state.current.adata.to_df()[gene],
+                                    legendgroup=group, scalegroup=group, name=group,
+                                    bandwidth=0.4,
+                                    line_color=line_colors[j % 8]
+                                    )
+                                )
+                                
+                            fig.update_traces(meanline_visible=True)
+                            fig.update_layout(violingap=0, violinmode='overlay', xaxis_title=cluster, yaxis_title="Expression", legend_title=cluster)
+
+                            st.markdown(f"""<div style='margin-left: 20px; display: flex; align-items: center; justify-content: center;'><h1 style='text-align: center; font-size: 2rem;'>{gene}</h1></div>""", unsafe_allow_html=True)
+
+                            st.plotly_chart(fig, use_container_width=True)
 
 
         except Exception as e:
