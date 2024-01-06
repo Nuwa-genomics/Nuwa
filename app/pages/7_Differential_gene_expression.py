@@ -10,6 +10,7 @@ import gseapy
 import matplotlib.pyplot as plt
 from matplotlib_venn import venn3
 import altair as alt
+import plotly.graph_objects as go
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -187,43 +188,110 @@ class DGE:
 
     def rank_genes_groups(self):
         try:
-            with st.form(key="rank_genes_groups"):
-                st.subheader("Rank genes groups")
-                subcol1, subcol2, subcol3, _, _ = st.columns(5, gap="large")
-                method = subcol1.radio(label="Method", options=['t-test', 't-test_overestim_var', 'wilcoxon', 'logreg'])
-                group_by = subcol2.selectbox(label="Group by", options=st.session_state.adata_state.current.adata.obs_keys())
-                n_genes = subcol2.number_input(label="Number of genes", min_value=1, value=25, format="%i")
-                reference = subcol3.text_input(label="Reference", value="rest")
-                use_raw = subcol3.toggle(label="Use raw", value=False)
-                subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
-                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
-                if submit_btn:
-                    sc.tl.rank_genes_groups(st.session_state.adata_state.current.adata, groupby=group_by, method=method, use_raw=use_raw, reference=reference)
-                    #n_graphs = len(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['names'][0])
-                    subcol1_graph, subcol2_graph = st.columns(2, gap="large")
-                    columns = [subcol1_graph, subcol2_graph]
-                    reference = st.session_state.adata_state.current.adata.uns['rank_genes_groups']['params']['reference']
+            elbow_plots, violin_plots = st.tabs(['Elbow plots', 'Violin plots'])
 
-                    names_df_all = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['names'])
-                    scores_df_all = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['scores'])
-                    pvals_df_all = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['pvals'])
-                    pvals_adj_df_all =pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['pvals_adj'])
-                    logfoldchanges_df_all = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['logfoldchanges'])
+            with elbow_plots:
+                with st.form(key="rank_genes_groups_elbow"):
+                    st.subheader("Rank genes groups")
+                    subcol1, subcol2, subcol3, _, _ = st.columns(5, gap="large")
+                    method = subcol1.radio(label="Method", options=['t-test', 't-test_overestim_var', 'wilcoxon', 'logreg'])
+                    group_by = subcol2.selectbox(label="Group by", options=st.session_state.adata_state.current.adata.obs_keys())
+                    n_genes = subcol2.number_input(label="Number of genes", min_value=1, value=25, format="%i")
+                    reference = subcol3.text_input(label="Reference", value="rest")
+                    use_raw = subcol3.toggle(label="Use raw", value=False)
+                    subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    if submit_btn:
+                        with st.spinner(text="Calculating plots"):
+                            sc.tl.rank_genes_groups(st.session_state.adata_state.current.adata, groupby=group_by, method=method, use_raw=use_raw, reference=reference)
+                            #n_graphs = len(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['names'][0])
+                            subcol1_graph, subcol2_graph = st.columns(2, gap="large")
+                            columns = [subcol1_graph, subcol2_graph]
+                            reference = st.session_state.adata_state.current.adata.uns['rank_genes_groups']['params']['reference']
 
-                    for i, column in enumerate(names_df_all):
-                        with columns[i % 2]:
-                            st.markdown(f"""<div style='margin-left: 20px; display: flex; align-items: center; justify-content: center;'><h1 style='text-align: center; font-size: 2rem;'>{i} vs {reference}</h1></div>""", unsafe_allow_html=True)
-                            df = pd.DataFrame({'gene': names_df_all[column], 'score': scores_df_all[column], 'p value': pvals_df_all[column], 'p value adj': pvals_adj_df_all[column], 'logfoldchanges': logfoldchanges_df_all[column]})
-                            df["gene"] = df["gene"].astype("category")
-                            altair_chart = alt.Chart(df[:n_genes]).mark_circle(size=60).encode(
-                                x=alt.X('gene', type='nominal', sort=None),
-                                y='score',
-                                color=alt.Color('gene', legend=None),
-                                tooltip=['gene', 'score', 'p value', 'p value adj']
-                            ).interactive()
-                            st.altair_chart(altair_chart, use_container_width=True)
+                            names_df_all = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['names'])
+                            scores_df_all = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['scores'])
+                            pvals_df_all = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['pvals'])
+                            pvals_adj_df_all =pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['pvals_adj'])
+                            logfoldchanges_df_all = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['logfoldchanges'])
+
+                            for i, column in enumerate(names_df_all):
+                                with columns[i % 2]:
+                                    st.markdown(f"""<div style='margin-left: 20px; display: flex; align-items: center; justify-content: center;'><h1 style='text-align: center; font-size: 2rem;'>{i} vs {reference}</h1></div>""", unsafe_allow_html=True)
+                                    df = pd.DataFrame({'gene': names_df_all[column], 'score': scores_df_all[column], 'p value': pvals_df_all[column], 'p value adj': pvals_adj_df_all[column], 'logfoldchanges': logfoldchanges_df_all[column]})
+                                    df["gene"] = df["gene"].astype("category")
+                                    altair_chart = alt.Chart(df[:n_genes]).mark_circle(size=60).encode(
+                                        x=alt.X('gene', type='nominal', sort=None),
+                                        y='score',
+                                        color=alt.Color('gene', legend=None),
+                                        tooltip=['gene', 'score', 'p value', 'p value adj']
+                                    ).interactive()
+                                    st.altair_chart(altair_chart, use_container_width=True)
+
+            with violin_plots:
+                col_group1, _, _, _ = st.columns(4)
+                col_group1.selectbox(label="Group", options=st.session_state.adata_state.current.adata.obs_keys(), key="sb_violin_cluster_group")
+                with st.form(key="rank_genes_groups_violin"):
+                    st.subheader("Violin plots")
+                    subcol1, subcol2, subcol3, _, _ = st.columns(5, gap="large")
+                    num_genes = subcol2.number_input(label="Number of genes", min_value=1, value=6, format="%i")
+                    cluster1 = subcol1.selectbox(label="Compare group", options=np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique()), key="sb_cluster1_violin")
+                    cluster2 = subcol1.selectbox(label="Compare group", options=np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique()), key="sb_cluster2_violin")
+                    #reference = subcol3.text_input(label="Reference", value="rest")
+                    subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+
+                    if submit_btn:
+                        with st.spinner(text="Calculating plots"):
+                            sc.pl.rank_genes_groups_violin(st.session_state.adata_state.current.adata, n_genes=n_genes, show=False)
+                            subcol1_graph, subcol2_graph = st.columns(2, gap="large")
+                            columns = [subcol1_graph, subcol2_graph]
+
+                            #for i in range(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].nunique()):
+                                #with columns[i % 2]:
+                            st.markdown(f"""<div style='margin-left: 20px; display: flex; align-items: center; justify-content: center;'><h1 style='text-align: center; font-size: 2rem;'>{cluster1} vs {cluster2}</h1></div>""", unsafe_allow_html=True)
+
+                            df = pd.DataFrame()
+
+                            gene_list_top_ranking = st.session_state.adata_state.current.adata.uns['rank_genes_groups']['names'][:num_genes]
+
+                            for gene in gene_list_top_ranking:
+                                gene = gene[0]
+                                expr = st.session_state.adata_state.current.adata.to_df()[gene]
+                                cluster = st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group]
+                                sub_df = pd.DataFrame({'gene': np.repeat(gene, len(expr)), 'expression': expr, 'cluster': cluster})
+                                df = pd.concat([df, sub_df])
+                                del sub_df
+                                del cluster
+                                del expr
+                                del gene
+
+
+                            fig = go.Figure()
+
+                            fig.add_trace(go.Violin(x=df['gene'][df['cluster'] == f'{cluster1}' ], 
+                                y=df['expression'][ df['cluster'] == f'{cluster1}' ],
+                                legendgroup=f'{cluster1}', scalegroup=f'{cluster1}', name=f'{cluster1}',
+                                side='negative',
+                                bandwidth=0.4,
+                                line_color='grey')
+                            )
+                            fig.add_trace(go.Violin(x=df['gene'][df['cluster'] == f'{cluster2}' ],
+                                y=df['expression'][ df['cluster'] == f'{cluster2}' ],
+                                legendgroup=f'{cluster2}', scalegroup=f'{cluster2}', name=f'{cluster2}',
+                                side='positive',
+                                bandwidth=0.4,
+                                line_color='#fc0377')
+                            )
                             
-        
+                            fig.update_traces(meanline_visible=True)
+                            fig.update_layout(violingap=0, violinmode='overlay', xaxis_title="Gene", yaxis_title="Expression", legend_title="Group")
+
+                            st.plotly_chart(fig, use_container_width=True)
+
+                            
+
+
         except Exception as e:
             print("Error ", e)
             st.error(e)
