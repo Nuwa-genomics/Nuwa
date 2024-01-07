@@ -236,12 +236,13 @@ class DGE:
                     subcol1, subcol2, subcol3, _, _ = st.columns(5, gap="large")
                     num_genes = subcol2.number_input(label="Number of genes", min_value=1, value=6, format="%i")
                     cluster1 = subcol1.selectbox(label="Compare group", options=np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique()), key="sb_cluster1_violin")
-                    cluster2 = subcol1.selectbox(label="Compare group", options=np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique()), key="sb_cluster2_violin")
+                    cluster2 = subcol1.selectbox(label="Compare group", options=np.append('rest', np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique())), key="sb_cluster2_violin")
                     subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
 
                     if submit_btn:
                         with st.spinner(text="Calculating plots"):
+                            sc.tl.rank_genes_groups(st.session_state.adata_state.current.adata, n_genes=n_genes, groupby=st.session_state.sb_violin_cluster_group, reference=cluster2)
                             sc.pl.rank_genes_groups_violin(st.session_state.adata_state.current.adata, n_genes=n_genes, show=False)
                             subcol1_graph, subcol2_graph = st.columns(2, gap="large")
                             columns = [subcol1_graph, subcol2_graph]
@@ -273,13 +274,24 @@ class DGE:
                                 bandwidth=0.4,
                                 line_color='grey')
                             )
-                            fig.add_trace(go.Violin(x=df['gene'][df['cluster'] == f'{cluster2}' ],
-                                y=df['expression'][ df['cluster'] == f'{cluster2}' ],
-                                legendgroup=f'{cluster2}', scalegroup=f'{cluster2}', name=f'{cluster2}',
-                                side='positive',
-                                bandwidth=0.4,
-                                line_color='#fc0377')
-                            )
+
+                         
+                            if cluster2 != "rest":
+                                fig.add_trace(go.Violin(x=df['gene'][df['cluster'] == f'{cluster2}'],
+                                    y=df['expression'][df['cluster'] == f'{cluster2}'],
+                                    legendgroup=f'{cluster2}', scalegroup=f'{cluster2}', name=f'{cluster2}',
+                                    side='positive',
+                                    bandwidth=0.4,
+                                    line_color='#fc0377')
+                                )
+                            elif cluster2 == "rest":
+                                fig.add_trace(go.Violin(x=df['gene'][df['cluster'] != f'{cluster1}'],
+                                    y=df['expression'][df['cluster'] != f'{cluster1}'],
+                                    legendgroup=f'{cluster2}', scalegroup=f'{cluster2}', name=f'{cluster2}',
+                                    side='positive',
+                                    bandwidth=0.4,
+                                    line_color='#fc0377')
+                                )
                             
                             fig.update_traces(meanline_visible=True)
                             fig.update_layout(violingap=0, violinmode='overlay', xaxis_title="Gene", yaxis_title="Expression", legend_title=st.session_state.sb_violin_cluster_group)
