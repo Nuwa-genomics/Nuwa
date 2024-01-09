@@ -9,6 +9,7 @@ import scvi
 import torch
 from rich import print
 from scib_metrics.benchmark import Benchmarker
+from scvi.model._utils import get_max_epochs_heuristic
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -47,6 +48,9 @@ class Integrate:
             self.scanvi_integrate()
         with int_col3:
             self.scvi_integrate_graphs()
+
+        self.scvi_metrics()
+        
             
 
 
@@ -95,6 +99,7 @@ class Integrate:
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
             if submit_btn:
                 with st.spinner(text="Integrating with Scanorama"):
+                    adatas = [st.session_state.adata_ref.adata, st.session_state.adata_target.adata]
                     scanorama.integrate_scanpy(adatas, dimred=50)
                     self.save_adata()
             
@@ -234,6 +239,9 @@ class Integrate:
             n_layers = input_col1.number_input(label="n_layers", min_value=1, step=1, format="%i", value=2)
             n_latent = input_col2.number_input(label="n_latent", min_value=1, step=1, format="%i", value=30)
             n_hidden = input_col3.number_input(label="n_hidden", min_value=1, step=1, format="%i", value=128)
+            input_col1, input_col2 = st.columns(2)
+            batch_size = input_col1.number_input(label="batch_size", min_value=1, step=8, value=128, format="%i")
+            max_epochs = input_col2.number_input(label="max_epochs", min_value=1, step=5, value=get_max_epochs_heuristic(st.session_state.adata_state.current.adata.n_obs), format="%i")
 
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
@@ -246,7 +254,7 @@ class Integrate:
 
                     scvi.model.SCVI.setup_anndata(st.session_state.adata_state.current.adata, layer=layer, batch_key=batch_key)
                     model = scvi.model.SCVI(st.session_state.adata_state.current.adata, n_layers=n_layers, n_latent=n_latent, n_hidden=n_hidden, gene_likelihood="nb")
-                    model.train(use_gpu = (self.device == "cuda"))  
+                    model.train(use_gpu = (self.device == "cuda"), batch_size=batch_size, max_epochs=max_epochs)  
 
                     #evaluate latent representation
 
@@ -273,6 +281,9 @@ class Integrate:
             n_layers = input_col1.number_input(label="n_layers", min_value=1, step=1, format="%i", value=2)
             n_latent = input_col2.number_input(label="n_latent", min_value=1, step=1, format="%i", value=30)
             n_hidden = input_col3.number_input(label="n_hidden", min_value=1, step=1, format="%i", value=128)
+            input_col1, input_col2 = st.columns(2)
+            max_epochs = input_col1.number_input(label="max epochs", value=get_max_epochs_heuristic(st.session_state.adata_state.current.adata.n_obs), format="%i", step=1)
+            n_samples_per_label = input_col2.number_input(label="n_samples_per_label", min_value=1, value=100, format="%i", step=1)
 
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
@@ -288,7 +299,7 @@ class Integrate:
                     unlabeled_category=unlabeled_category,
                 )
 
-                scanvi_model.train(max_epochs=20, n_samples_per_label=100)
+                scanvi_model.train(use_gpu = (self.device == "cuda"), max_epochs=max_epochs, n_samples_per_label=n_samples_per_label)
 
                 SCANVI_LATENT_KEY = "X_scANVI"
                 st.session_state.adata_state.current.adata.obsm[SCANVI_LATENT_KEY] = scanvi_model.get_latent_representation(st.session_state.adata_state.current.adata)
@@ -301,6 +312,8 @@ class Integrate:
         with st.form(key="scvi_integrate_graphs_form"):
             st.subheader("SCVI integration plots")
             is_embeddings = ("X_scVI" in st.session_state.adata_state.current.adata.obsm_keys())
+            if not is_embeddings:
+                st.info("No embeddings found for scVI.")
             input_col1, input_col2 = st.columns(2)
             colors = input_col1.multiselect(label="Colors", options=st.session_state.adata_state.current.adata.obs_keys(), disabled=(not is_embeddings))
             options = []
@@ -332,6 +345,45 @@ class Integrate:
                             else:
                                 df = pd.DataFrame({'umap1': st.session_state.adata_state.current.adata.obsm['X_scANVI'][:,0], 'umap2': st.session_state.adata_state.current.adata.obsm['X_scANVI'][:,1], 'color': st.session_state.adata_state.current.adata.obs[color]})
                                 st.scatter_chart(df, x='umap1', y='umap2', color='color', size=10)
+
+    def scvi_metrics(self):
+        with st.form(key="scvi_metrics_form"):
+            st.subheader("scVI integration metrics")
+            col1, col2, col3, _, _, _ = st.columns(6)
+            is_embeddings = ("X_scVI" in st.session_state.adata_state.current.adata.obsm_keys())
+            if not is_embeddings:
+                info_col1, _, _ = st.columns(3)
+                info_col1.info("No embeddings found for scVI.")
+            batch_key = col1.selectbox(label="batch_key", options=st.session_state.adata_state.current.adata.obs_keys(), disabled=(not is_embeddings))
+            label_key = col2.selectbox(label="Label key", options=st.session_state.adata_state.current.adata.obs_keys(), disabled=(not is_embeddings))
+            subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
+            submit_btn = subcol1.form_submit_button(label="Compute", use_container_width=True, disabled=(not is_embeddings))
+            if submit_btn:
+                with st.spinner(text="Computing metrics"):
+
+                    SCANVI_LATENT_KEY = "X_scANVI"
+                    SCVI_LATENT_KEY = "X_scVI"
+
+                    latent_keys = []
+                    if SCVI_LATENT_KEY in st.session_state.adata_state.current.adata.obsm_keys():
+                        latent_keys.append(SCVI_LATENT_KEY) 
+                    if SCANVI_LATENT_KEY in st.session_state.adata_state.current.adata.obsm_keys():
+                        latent_keys.append(SCANVI_LATENT_KEY)
+                    sc.tl.pca(st.session_state.adata_state.current.adata)
+                    latent_keys.append("X_pca")
+
+                    bm = Benchmarker(
+                        st.session_state.adata_state.current.adata,
+                        batch_key=batch_key,
+                        label_key=label_key,
+                        embedding_obsm_keys=latent_keys,
+                        n_jobs=-1,
+                    )
+                    
+                    bm.benchmark()
+                    df = bm.get_results(min_max_scale=False)
+                    st.dataframe(df)
+            
 
             
             
