@@ -4,6 +4,8 @@ bokeh==2.3.1
 gseapy==1.1.0
 h5py==3.8.0
 imageio==2.9.0   
+jax==0.4.23
+jaxlib==0.4.23
 leidenalg==0.9.1
 loompy==3.0.7
 louvain==0.8.1
@@ -16,12 +18,14 @@ psutil==5.9.4
 psycopg2-binary==2.9.9
 pybiomart==0.2.0
 pydantic==1.10.8
+pymde==0.1.18
 pytest==7.4.3
 python-dotenv==1.0.0
 python-igraph==0.10.4
 python-louvain==0.15 
 scanorama==1.7.4
 scanpy==1.9.5
+scib-metrics==0.5.0
 scikit-learn==1.2.1
 scikit-misc==0.3.0
 scikit-network==0.31.0
