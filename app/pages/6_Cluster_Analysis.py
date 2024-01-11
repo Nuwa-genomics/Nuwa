@@ -100,10 +100,14 @@ class Analysis:
                                 metadata_df = self.adata.obs
                                 cell_ids = rna_df_original.index.values
                                 plot_df = metadata_df.loc[metadata_df.index.isin(cell_ids)]
-                                embedding = umap.UMAP(random_state=0).fit_transform(encodings)
+                                embedding2d = umap.UMAP(random_state=0).fit_transform(encodings)
+                                embedding3d = umap.UMAP(random_state=0, n_components=3).fit_transform(encodings)
+
+                                st.session_state.adata_state.current.adata.obsm["X_citeseq_2d"] = embedding2d
+                                st.session_state.adata_state.current.adata.obsm["X_citeseq_3d"] = embedding3d
                                 
-                                plot_df["UMAP1"] = embedding[:, 0]
-                                plot_df["UMAP2"] = embedding[:, 1]
+                                plot_df["UMAP1"] = embedding2d[:, 0]
+                                plot_df["UMAP2"] = embedding2d[:, 1]
                             
                                 colors_var = reversed(self.adata.obs.columns)
                                 
