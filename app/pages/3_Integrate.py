@@ -94,14 +94,44 @@ class Integrate:
                     
     def scanorama_integrate(self):
         with st.form(key="scanorama_integrate_form"):
-            st.subheader("Integrate with Scanorama")
+            st.subheader("Integrate spatial data with Scanorama")
+            col1, col2 = st.columns(2)
+            label = col1.text_input(label="Label", value="library_id")
+            index_unique = col2.text_input(label="index_unique", value="-")
+            index = 0
+            for i, key in enumerate(st.session_state.adata_ref.uns_keys()):
+                if key.lower() == "spatial":
+                    index = i
+            spatial_key1 = col1.selectbox(label="Spatial key 1", options=st.session_state.adata_ref.uns_keys(), index=index)
+            for i, key in enumerate(st.session_state.adata_target.uns_keys()):
+                if key.lower() == "spatial":
+                    index = i
+            spatial_key2 = col2.selectbox(label="Spatial key 2", options=st.session_state.adata_target.uns_keys(), index=index)
+
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
             if submit_btn:
                 with st.spinner(text="Integrating with Scanorama"):
                     adatas = [st.session_state.adata_ref.adata, st.session_state.adata_target.adata]
-                    scanorama.integrate_scanpy(adatas, dimred=50)
-                    self.save_adata()
+
+                    adatas_cor = scanorama.correct_scanpy(adatas, return_dimred=True)
+
+                    adata_spatial = sc.concat(
+                        adatas_cor,
+                        label=label,
+                        uns_merge="unique",
+                        keys=[
+                            k
+                            for d in [
+                                adatas_cor[0].uns[spatial_key1],
+                                adatas_cor[1].uns[spatial_key2],
+                            ]
+                            for k, v in d.items()
+                        ],
+                        index_unique=index_unique,
+                    )
+                    
+                    #self.save_adata() TODO: find a way to save adata_spatial, how do we display to user?
             
             
     def bbknn(self):

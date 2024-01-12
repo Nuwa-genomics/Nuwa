@@ -8,6 +8,7 @@ from test_cluster_analysis import Test_Cluster_Analysis
 from test_tranjectory_inference import Test_Trajectory_Inference
 from test_spatial_transcriptomics import Test_Spatial_Transcriptomics
 from test_terminal import Test_Terminal
+from test_plotly import Test_Plotly
 
 from database.database import SessionLocal
 from sqlalchemy.orm import Session
@@ -150,6 +151,13 @@ try:
     print(f"{bcolors.BOLD}===============Test Terminal===============")
     terminal_test = Test_Terminal(session_state=spatial_transcriptomics_state)
     terminal_state = terminal_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
+
+    print()
+    print(f"{bcolors.BOLD}===============Test Plotly3D===============")
+    plotly_test = Test_Plotly(session_state=spatial_transcriptomics_state)
+    plotly_state = plotly_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
     
