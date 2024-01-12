@@ -88,6 +88,10 @@ class Test_Preprocess:
         self.test_doublet_prediction()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
+        self.test_cell_cycle_scoring()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         self.test_scale_data()
         assert not self.at.exception
@@ -266,6 +270,9 @@ class Test_Preprocess:
         
     def test_sampling_data(self):
         print(f"{bcolors.OKBLUE}test_sampling_adata {bcolors.ENDC}", end="")
+
+    def test_cell_cycle_scoring(self):
+        print(f"{bcolors.OKBLUE}test_cell_cycle_scoring {bcolors.ENDC}", end="")
 
     def get_final_session_state(self):
         return self.at.session_state

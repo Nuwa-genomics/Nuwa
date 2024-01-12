@@ -171,6 +171,10 @@ docker-compose -f tests.docker-compose.yml up --build
 - support other file types
 - Add other analysis scores/graphs
 
+## Contributing
+
+If you have a feature request, notice a bug or have issues running the app please let us know in the [Issues](https://github.com/ch1ru/Nuwa/issues) or [Discussions](https://github.com/ch1ru/Nuwa/discussions) tabs! Want to make a contribution? Make a pull request!
+
 ## Citations
 
 *[1] Lin, X., Tian, T., Wei, Z. et al. Clustering of single-cell multi-omics data with a multimodal deep learning method. Nat Commun 13, 7705 (2022). https://doi.org/10.1038/s41467-022-35031-9.*
