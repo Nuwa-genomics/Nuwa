@@ -185,6 +185,7 @@ finally:
     #remove files
     workspace_dir = os.getenv('WORKDIR')
     shutil.rmtree(workspace_dir, ignore_errors=True)
+    shutil.rmtree('figures', ignore_errors=True)
     
     print()
     print(f"{bcolors.BOLD}Tests Complete!{bcolors.ENDC}")

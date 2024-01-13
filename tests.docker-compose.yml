@@ -11,6 +11,7 @@ services:
     volumes:
       - ./app/.streamlit:/root/.streamlit
       - ./streamlit-volume:/streamlit-volume
+      - ./app/figures:/app/figures
     env_file:
       - .env
     environment:

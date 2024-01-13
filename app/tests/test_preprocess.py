@@ -12,7 +12,8 @@ from database.database import SessionLocal
 from sqlalchemy.orm import Session
 from database.schemas import schemas
 from utils.AdataState import AdataState
-
+from matplotlib.testing.compare import compare_images
+from pdf2image import convert_from_path
 import scanpy as sc
 
 class bcolors:
@@ -145,7 +146,16 @@ class Test_Preprocess:
         print(f"{bcolors.OKBLUE}test_filter_highest_expressed {bcolors.ENDC}", end="")
         self.at.number_input(key="n_top_genes").increment() #increase to 21
         self.at.button(key="FormSubmitter:form_highest_expr-Filter").click().run(timeout=100)
-        #TODO: Find a way to test if top genes are correct
+        #convert pdf to png
+        pdf_images = convert_from_path('figures/highest_expr_genes.pdf')
+
+        for idx in range(len(pdf_images)):
+            pdf_images[idx].save('figures/highest_expr_genes.png', 'PNG')
+
+        if(compare_images(expected="reference_figures/highest_expr_genes.png", actual="figures/highest_expr_genes.png", tol=0.001)):
+            #a non-null value means the images don't match
+            raise Exception("Highest expr plots don't match.")
+
         
     def test_highest_variable_genes(self):
         print(f"{bcolors.OKBLUE}test_highest_variable_genes {bcolors.ENDC}", end="")
@@ -159,6 +169,17 @@ class Test_Preprocess:
         for i, item in enumerate(adata.var.highly_variable):
             assert item == self.at.session_state.adata_state.current.adata.var.highly_variable[i]
         
+        #test plot
+        pdf_images = convert_from_path('figures/filter_genes_dispersion.pdf')
+
+        for idx in range(len(pdf_images)):
+            pdf_images[idx].save('figures/filter_genes_dispersion.png', 'PNG')
+
+        if(compare_images(expected="reference_figures/filter_genes_dispersion.png", actual="figures/filter_genes_dispersion.png", tol=0.001)):
+            #a non-null value means the images don't match
+            raise Exception("Highest expr plots don't match.")
+
+
     def test_filter_cells(self):
         print(f"{bcolors.OKBLUE}test_filter_cells {bcolors.ENDC}", end="")
         self.at.number_input(key="filter_cell_min_genes").set_value(200)
@@ -220,15 +241,12 @@ class Test_Preprocess:
         
     def test_normalize_data(self):
         print(f"{bcolors.OKBLUE}test_normalize_data {bcolors.ENDC}", end="")
-        #normalize total
         self.at.number_input(key="ni_target_sum").set_value(1)
         self.at.button(key="FormSubmitter:form_normalize_total-Apply").click().run(timeout=100)
         assert int(self.at.session_state.adata_state.current.adata.to_df().iloc[:, :].values.sum()) == len(self.at.session_state.adata_state.current.adata.obs)
         from_file_adata = sc.read(self.at.session_state.adata_state.current.filename)
         assert int(from_file_adata.to_df().iloc[:, :].values.sum()) == int(len(from_file_adata.obs))
-        #TODO: add per cell normalize test
 
-        
     def test_notes(self):
         print(f"{bcolors.OKBLUE}test_notes {bcolors.ENDC}", end="")
         self.at.selectbox(key="sb_adata_selection").select("mouse_mammary_epithelial").run(timeout=150)

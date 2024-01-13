@@ -58,7 +58,7 @@ class Preprocess:
 
             if submit_btn:
                 with st.spinner(text="Calculating highest expressed genes"):
-                    ax = sc.pl.highest_expr_genes(self.adata, n_top=num_genes)
+                    ax = sc.pl.highest_expr_genes(self.adata, n_top=num_genes, save=True)
                     st.pyplot(ax)
                         
                         
@@ -102,7 +102,7 @@ class Preprocess:
                         st.session_state["script_state"].add_script(f"sc.pp.highly_variable_genes(adata, min_mean={min_mean}, max_mean={max_mean}, min_disp=0.5)")
                         #make adata
                         self.save_adata()
-                        ax = sc.pl.highly_variable_genes(self.adata)
+                        ax = sc.pl.highly_variable_genes(self.adata, save=True)
                         st.pyplot(ax)
                         #add to script state
                         st.session_state["script_state"].add_script("sc.pl.highly_variable_genes(adata)")
@@ -111,44 +111,25 @@ class Preprocess:
 
     def normalize_counts(self):
         st.subheader("Normalization")
-        tab_total, tab_per_cell = st.tabs(['Total', 'Per cell'])
 
-        with tab_total:
-            with st.form(key="form_normalize_total"):
-                target_sum = st.number_input(label="Target sum", value=1, key="ni_target_sum")
-                subcol_input1, subcol_input2 = st.columns(2, gap="medium")
-                exclude_high_expr = subcol_input1.checkbox(label="Exclude highly_expr", value=False)
-                log_transform_total = subcol_input2.checkbox(label="Log transform", value=False)
+        with st.form(key="form_normalize_total"):
+            target_sum = st.number_input(label="Target sum", value=1, key="ni_target_sum")
+            subcol_input1, subcol_input2 = st.columns(2, gap="medium")
+            exclude_high_expr = subcol_input1.checkbox(label="Exclude highly_expr", value=False)
+            log_transform_total = subcol_input2.checkbox(label="Log transform", value=False)
 
-                subcol1, _, _ = st.columns(3)
-                submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+            subcol1, _, _ = st.columns(3)
+            submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
-                if submit_btn:
-                    sc.pp.normalize_total(self.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr)
-                    if log_transform_total:
-                        sc.pp.log1p(self.adata)
-                    #write to script state
-                    st.session_state["script_state"].add_script(f"#Normalize counts (total)\nsc.pp.normalize_total(adata, target_sum={target_sum}, exclude_highly_expressed={exclude_high_expr})")
-                    #make adata
-                    self.save_adata()
-                    st.toast("Normalized data", icon='✅')
-        with tab_per_cell:
-            with st.form(key="form_normalize_per_cell"):
-                counts_per_cell_after = st.number_input(label="Counts per cell after")
-                log_transform_per_cell = st.checkbox(label="Log transform", value=False)
-
-                subcol1, _, _ = st.columns(3)
-                submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
-
-                if submit_btn:
-                    sc.pp.normalize_per_cell(self.adata, counts_per_cell_after=counts_per_cell_after)
-                    if log_transform_per_cell:
-                        sc.pp.log1p(self.adata)
-                    #write to script state
-                    st.session_state["script_state"].add_script(f"#Normalize counts (per cell)\nsc.pp.normalize_per_cell(adata, counts_per_cell_after={counts_per_cell_after})")
-                    #make adata
-                    self.save_adata()
-                    st.toast("Normalized data", icon='✅')
+            if submit_btn:
+                sc.pp.normalize_total(self.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr)
+                if log_transform_total:
+                    sc.pp.log1p(self.adata)
+                #write to script state
+                st.session_state["script_state"].add_script(f"#Normalize counts (total)\nsc.pp.normalize_total(adata, target_sum={target_sum}, exclude_highly_expressed={exclude_high_expr})")
+                #make adata
+                self.save_adata()
+                st.toast("Normalized data", icon='✅')
 
     def filter_cells(self):
         with st.form(key="form_filter_cells"):
