@@ -1,3 +1,5 @@
+[![](https://dcbadge.vercel.app/api/server/wBDavdWp8n)](https://discord.gg/wBDavdWp8n)
+
 <div style='display: flex;' align="center">
     <img src="screenshots/logo.png" width='500'></img>
 </div>
@@ -40,11 +42,6 @@ Then visit http://localhost in your browser.
 ## Docs
 
 See our [**Documentation**](https://ch1ru.github.io/Nuwa/) for more information and tutorials.
-
-## Discord
-
-Come join our discord!\
-[![](https://dcbadge.vercel.app/api/server/wBDavdWp8n)](https://discord.gg/wBDavdWp8n)
 
 ## Common issues
 
