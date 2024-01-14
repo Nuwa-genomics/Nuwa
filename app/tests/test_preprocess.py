@@ -122,7 +122,6 @@ class Test_Preprocess:
         
         
         
-        
     def test_add_and_delete_adata(self):
         print(f"{bcolors.OKBLUE}test_add_and_delete_data {bcolors.ENDC}", end="")
         self.at.text_input(key="ti_new_adata_name").input("adata_test")
