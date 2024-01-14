@@ -83,12 +83,13 @@ class Preprocess:
     def filter_highly_variable_genes(self):
         try:
             with st.form(key="form_highly_variable"):
-                st.subheader("Show highly variable genes")
+                st.subheader("Highly variable genes")
                 min_mean = st.number_input(label="min mean", value=0.0125, key="input_highly_variable_min_mean")
                 max_mean = st.number_input(label="max mean", value=3.0, key="input_highly_variable_max_mean")
+                remove = st.toggle(label="Remove non-variable genes", value=False, help="By default, highly variable genes are only annoted. This option will remove genes without highly variable expression.")
                 fn = 'figures/filter_genes_dispersion.pdf'
                 subcol1, _, _ = st.columns(3)
-                submit_btn = subcol1.form_submit_button(label="Filter", use_container_width=True)
+                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
 
                 if submit_btn:
                     with st.spinner(text="Calculating highly variable genes"):
@@ -100,6 +101,10 @@ class Preprocess:
                         st.session_state["script_state"].add_script("sc.pp.normalize_total(adata, target_sum=1e4)")
                         st.session_state["script_state"].add_script("sc.pp.log1p(adata)")
                         st.session_state["script_state"].add_script(f"sc.pp.highly_variable_genes(adata, min_mean={min_mean}, max_mean={max_mean}, min_disp=0.5)")
+                        
+                        if remove:
+                            self.adata = self.adata[:, self.adata.var.highly_variable]
+                        
                         #make adata
                         self.save_adata()
                         ax = sc.pl.highly_variable_genes(self.adata, save=True)
@@ -178,28 +183,49 @@ class Preprocess:
 
 
     def recipes(self):
-        with st.form(key="form_recipes"):
-            st.subheader("Preprocess Recipes")
-            recipe = st.selectbox(label="Recipe", key="sb_pp_recipe", options=(['Seurat', 'Weinreb17', 'Zheng17']))
-            subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True)
-            
-            if submit_btn:
-                if recipe == 'Seurat':
-                    sc.pp.recipe_seurat(self.adata) 
+        st.subheader("Preprocess Recipes")
+        seurat_tab, weinreb17_tab, zheng17_tab = st.tabs(['Seurat', 'Weinreb17', 'Zheng17'])
+        with seurat_tab:
+            with st.form(key="form_seurat"):
+                st.write("Parameters")
+                log = st.checkbox(label="Log", value=False)
+                subcol1, _, _ = st.columns(3)
+                submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True)
+                
+                if submit_btn:
+                    sc.pp.recipe_seurat(self.adata, log=log) 
                     st.session_state["script_state"].add_script("#Apply preprocess recipe\nsc.pp.recipe_seurat(adata)")
-                elif recipe == 'Weinreb17':
-                    sc.pp.recipe_weinreb17(self.adata) 
+                    self.save_adata()
+                    st.toast(f"Applied recipe: Seurat", icon='✅')
+        
+        with weinreb17_tab:
+            with st.form(key="form_weinreb17"):
+                st.write("Parameters")
+                col1, col2, col3 = st.columns(3)
+                mean_threshold = col1.number_input(label="Mean threshold", value=0.01, step=0.01)
+                cv_threshold = col2.number_input(label="CV threshold", value=2.0, step=1.0)
+                n_pcs = col3.number_input(label="n_pcs", min_value=1, value=50, step=1, format="%i")
+                log = st.checkbox(label="Log", value=False)
+                subcol1, _, _ = st.columns(3)
+                submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True)
+                if submit_btn:
+                    sc.pp.recipe_weinreb17(self.adata, log=log, mean_threshold=mean_threshold, cv_threshold=cv_threshold, n_pcs=n_pcs)
                     st.session_state["script_state"].add_script("#Apply preprocess recipe\nsc.pp.recipe_weinreb17(adata)")
-                elif recipe == 'Zheng17':
-                    sc.pp.recipe_zheng17(self.adata)
-                    st.session_state["script_state"].add_script("#Apply preprocess recipe\nsc.pp.recipe_zheng17(adata)")
-                else:
-                    st.error("Recipe not found")
+                    self.save_adata()
+                    st.toast(f"Applied recipe: Weinreb17", icon='✅')
 
-                #make adata
-                self.save_adata()
-                st.toast(f"Applied recipe: {st.session_state.sb_pp_recipe}", icon='✅')
+        with zheng17_tab:
+            with st.form(key="form_zheng17"):
+                st.write("Parameters")
+                n_top_genes = st.number_input(label="n_top_genes", key="ni_zheng17_n_genes", min_value=1, max_value=self.adata.n_vars, value=1000 if self.adata.n_vars >= 1000 else self.adata.n_vars)
+                log = st.checkbox(label="Log", value=False)
+                subcol1, _, _ = st.columns(3)
+                submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True)
+                if submit_btn:
+                    sc.pp.recipe_zheng17(self.adata, log=log, n_top_genes=n_top_genes)
+                    st.session_state["script_state"].add_script("#Apply preprocess recipe\nsc.pp.recipe_zheng17(adata)")
+                    self.save_adata()
+                    st.toast(f"Applied recipe: Zheng17", icon='✅')
 
     
     def annotate_mito(self):
@@ -369,38 +395,43 @@ class Preprocess:
         with st.form(key="scrublet_form"):
             st.subheader("Doublet Prediction")
             st.write("Use Scrublet to remove cells predicted to be doublets.")
-            sim_doublet_ratio = st.number_input(label="Sim doublet ratio", value=2, key="ni_sim_doublet_ratio")
-            expected_doublet_rate = st.number_input(label="Expected doublet rate", value=0.05, key="ni_expected_doublet_rate")
+            col1, col2, col3 = st.columns(3)
+            sim_doublet_ratio = col1.number_input(label="Sim doublet ratio", value=2.00, key="ni_sim_doublet_ratio")
+            expected_doublet_rate = col2.number_input(label="Exp doublet rate", value=0.05, key="ni_expected_doublet_rate")
+            stdev_doublet_rate = col3.number_input(label="stdev_doublet_rate", value=0.02, key="ni_stdev_doublet_rate")
+            batch_key = st.selectbox(label="Batch key", key="sb_scrublet_batch_key", options=np.append('None', self.adata.obs_keys()))
             subcol1, _, _ = st.columns(3)
             scrublet_submit = subcol1.form_submit_button(label="Filter", use_container_width=True)
 
             if scrublet_submit:
                 with st.spinner("Running scrublet"):
-                    adata_scrublet = sc.external.pp.scrublet(self.adata, sim_doublet_ratio=sim_doublet_ratio, expected_doublet_rate=expected_doublet_rate)
+                    if batch_key == 'None':
+                        batch_key = None
+                    sc.external.pp.scrublet(self.adata, sim_doublet_ratio=sim_doublet_ratio, 
+                        expected_doublet_rate=expected_doublet_rate, stdev_doublet_rate=stdev_doublet_rate, batch_key=batch_key, random_state=42)
                     #write to script state
                     st.session_state["script_state"].add_script(f"#Detect doublets with scrublet\nadata_scrublet = sc.external.pp.scrublet(adata, sim_doublet_ratio={sim_doublet_ratio}, expected_doublet_rate={expected_doublet_rate})")
-                    self.adata = adata_scrublet #TODO: only temporary, change to saving separately
                     #make adata
                     self.save_adata()
                     st.toast("Completed doublet predictions", icon="✅")
                     
                     
     def regress_out(self):
-        def regress_out_btn():
-            if st.session_state.ms_regress_out_keys:
-                sc.pp.regress_out(self.adata, keys=st.session_state.ms_regress_out_keys)
-                #write to script state
-                st.session_state["script_state"].add_script(f"#Regress out\nsc.pp.regress_out(adata, keys={st.session_state.ms_regress_out_keys})")
-                st.toast("Successfully regressed out data", icon="✅")
-                self.save_adata()
-            else:
-                st.toast("No option selected, not regressing data.", icon="ℹ️")
         with st.form(key="regress_out_form"):
             st.subheader("Regress out", help="Regress out (mostly) unwanted sources of variation. Uses simple linear regression. This is inspired by Seurat's regressOut function in R [Satija15]. Note that this function tends to overcorrect in certain circumstances as described in :issue:526.")
             st.write("Uses linear regression to remove unwanted sources of variation.")
             regress_keys = st.multiselect(label="Keys", options=self.adata.obs_keys(), key="ms_regress_out_keys")
             subcol1, _, _ = st.columns(3)
-            regress_out_btn = subcol1.form_submit_button(label="Apply", on_click=regress_out_btn, use_container_width=True)
+            submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+            if submit_btn:
+                if st.session_state.ms_regress_out_keys:
+                    sc.pp.regress_out(self.adata, keys=regress_keys)
+                    #write to script state
+                    st.session_state["script_state"].add_script(f"#Regress out\nsc.pp.regress_out(adata, keys={st.session_state.ms_regress_out_keys})")
+                    st.toast("Successfully regressed out data", icon="✅")
+                    self.save_adata()
+                else:
+                    st.toast("No option selected, not regressing data.", icon="ℹ️")
             
             
     def scale_to_unit_variance(self):
@@ -457,7 +488,11 @@ class Preprocess:
     def batch_effect_removal(self):
         with st.form(key="batch_effect_removal_form"):
             st.subheader("Batch effect correction", help="Uses Combat to correct non-biological differences caused by batch effect.")
-            key = st.selectbox(label="Key", options=self.adata.obs_keys(), key="sb_batch_effect_key")
+            index = 0
+            for i, obs in enumerate(self.adata.obs_keys()):
+                if obs.lower().replace("_", "").__contains__("batch"):
+                    index = i
+            key = st.selectbox(label="Key", options=self.adata.obs_keys(), key="sb_batch_effect_key", index=index)
             covariates = st.multiselect(placeholder="Optional", label="Covariates", options=self.adata.obs_keys())
             subcol1, _, _ = st.columns(3)
             btn_batch_effect_removal = subcol1.form_submit_button(label="Apply", use_container_width=True)
@@ -478,9 +513,9 @@ class Preprocess:
             def run_pca(adata):
                 with st.spinner(text="Running PCA"):
                     sc.pp.pca(adata, random_state=42)
-                    df_pca = pd.DataFrame({'pca1': adata.obsm['X_pca'][:,0], 'pca2': adata.obsm['X_pca'][:,1], 'color': adata.obs[f'{st.session_state.sb_pca_color_pp}']})  
+                    st.session_state['pp_df_pca'] = pd.DataFrame({'pca1': adata.obsm['X_pca'][:,0], 'pca2': adata.obsm['X_pca'][:,1], 'color': adata.obs[f'{st.session_state.sb_pca_color_pp}']})  
                     pca_empty.empty()
-                    pca_empty.scatter_chart(data=df_pca, x='pca1', y='pca2', color='color', size=18)
+                    pca_empty.scatter_chart(data=st.session_state['pp_df_pca'], x='pca1', y='pca2', color='color', size=18)
                 
                
             index = 0      

@@ -15,6 +15,8 @@ from utils.AdataState import AdataState
 from matplotlib.testing.compare import compare_images
 from pdf2image import convert_from_path
 import scanpy as sc
+import numpy as np
+import pandas as pd
 
 class bcolors:
     HEADER = '\033[95m'
@@ -65,6 +67,10 @@ class Test_Preprocess:
         self.test_filter_genes()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
+        self.test_doublet_prediction()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         self.test_pp_recipe()
         assert not self.at.exception
@@ -83,10 +89,6 @@ class Test_Preprocess:
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         self.test_batch_effect_removal_and_pca()
-        assert not self.at.exception
-        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
-        
-        self.test_doublet_prediction()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
 
@@ -161,7 +163,7 @@ class Test_Preprocess:
         print(f"{bcolors.OKBLUE}test_highest_variable_genes {bcolors.ENDC}", end="")
         self.at.number_input(key="input_highly_variable_min_mean").set_value(0.0125)
         self.at.number_input(key="input_highly_variable_max_mean").set_value(3.00)
-        self.at.button(key="FormSubmitter:form_highly_variable-Filter").click().run(timeout=100)
+        self.at.button(key="FormSubmitter:form_highly_variable-Run").click().run(timeout=100)
         adata = sc.read_h5ad('/app/data/bct_raw.h5ad')
         sc.pp.normalize_total(adata, target_sum=1e4)
         sc.pp.log1p(adata)
@@ -208,14 +210,27 @@ class Test_Preprocess:
         
     def test_pp_recipe(self):
         print(f"{bcolors.OKBLUE}test_pp_recipe {bcolors.ENDC}", end="")
-        self.at.selectbox(key="sb_pp_recipe").select("Seurat")
-        self.at.button(key="FormSubmitter:form_recipes-Apply").click().run(timeout=100)
-        
+        self.at.number_input(key="ni_zheng17_n_genes").set_value(1100).run()
+        self.at.button(key="FormSubmitter:form_zheng17-Apply").click().run(timeout=100)
+        assert self.at.session_state.adata_state.current.adata.n_vars == 1100
+
+
     def test_doublet_prediction(self):
         print(f"{bcolors.OKBLUE}test_doublet_prediction {bcolors.ENDC}", end="")
-        self.at.number_input(key="ni_sim_doublet_ratio").set_value(2)
-        self.at.number_input(key="ni_expected_doublet_rate").set_value(0.05)
+        adata = self.at.session_state.adata_state.current.adata.copy()
+        self.at.number_input(key="ni_sim_doublet_ratio").set_value(2.10).run()
+        self.at.number_input(key="ni_expected_doublet_rate").set_value(0.06).run()
+        self.at.number_input(key="ni_stdev_doublet_rate").set_value(0.02).run()
+        self.at.selectbox(key="sb_scrublet_batch_key").select("BATCH")
         self.at.button(key="FormSubmitter:scrublet_form-Filter").click().run(timeout=100)
+
+        sc.external.pp.scrublet(adata, sim_doublet_ratio=2.1, expected_doublet_rate=0.06, stdev_doublet_rate=0.02, batch_key="BATCH", random_state=42)
+
+        for i, score in enumerate(adata.obs.doublet_score):
+            assert score == self.at.session_state.adata_state.current.adata.obs.doublet_score[i]
+        for i, pred in enumerate(adata.obs.predicted_doublet):
+            assert pred == self.at.session_state.adata_state.current.adata.obs.predicted_doublet[i]
+
         
     def test_annot_mito(self):
         print(f"{bcolors.OKBLUE}test_annot_mito {bcolors.ENDC}", end="")
@@ -278,12 +293,23 @@ class Test_Preprocess:
         
     def test_batch_effect_removal_and_pca(self):
         print(f"{bcolors.OKBLUE}test_batch_effect_removal_and_adata {bcolors.ENDC}", end="")
-        adata_original = self.at.session_state.adata_state.current.adata
-        sc.pp.combat(adata_original, key='BATCH', inplace=False)
-        sc.pp.pca(adata_original)
-        self.at.selectbox(key="sb_batch_effect_key").select("BATCH")
+        adata_original = self.at.session_state.adata_state.current.adata.copy()
+        sc.pp.combat(adata_original, key='BATCH')
+        sc.pp.pca(adata_original, random_state=42)
+        self.at.selectbox(key="sb_batch_effect_key").select("BATCH").run()
         self.at.button(key="FormSubmitter:batch_effect_removal_form-Apply").click().run(timeout=500)
-        assert adata_original.obsm['X_pca'].all() == self.at.session_state.adata_state.current.adata.obsm['X_pca'].all() #TODO: make sure this works
+        #first test pca in combat
+        for i, item in enumerate(adata_original.obsm['X_pca']):
+            assert np.array_equal(item, self.at.session_state.adata_state.current.adata.obsm['X_pca'][i])
+
+        #next test correct pca plot is generated
+        df = pd.DataFrame({'pca1': adata_original.obsm['X_pca'][:,0], 'pca2': adata_original.obsm['X_pca'][:,1], 'color': adata_original.obs[f'{self.at.session_state.sb_pca_color_pp}']})  
+        self.at.selectbox(key="sb_pca_color_pp").select("BATCH").run()
+        self.at.button(key="FormSubmitter:pca_pp_form-Apply").click().run(timeout=100)
+        assert np.array_equal(self.at.session_state['pp_df_pca']['pca1'], df['pca1'])
+        assert np.array_equal(self.at.session_state['pp_df_pca']['pca2'], df['pca2'])
+        assert np.array_equal(self.at.session_state['pp_df_pca']['color'], df['color'])
+        
         
         
     def test_sampling_data(self):
