@@ -43,7 +43,8 @@ See our [**Documentation**](https://ch1ru.github.io/Nuwa/) for more information 
 
 ## Discord
 
-Come join our [discord](https://discord.gg/wBDavdWp8n)
+Come join our discord!
+[![](https://dcbadge.vercel.app/api/server/wBDavdWp8n)](https://discord.gg/wBDavdWp8n)
 
 ## Common issues
 
