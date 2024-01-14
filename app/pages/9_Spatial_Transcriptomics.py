@@ -1,4 +1,3 @@
-import pickle
 import streamlit as st
 import scanpy as sc
 import squidpy as sq
