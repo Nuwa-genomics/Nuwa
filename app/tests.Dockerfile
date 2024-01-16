@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     poppler-utils \
     && rm -rf /var/lib/apt/lists/*
+#streamlit environment variables
 ENV STREAMLIT_SERVER_MAX_UPLOAD_SIZE=100000
 #install miniconda
 ENV CONDA_DIR /opt/conda

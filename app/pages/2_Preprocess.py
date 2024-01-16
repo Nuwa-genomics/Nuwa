@@ -16,7 +16,8 @@ from database.schemas import schemas
 from utils.AdataState import AdataState
 from time import sleep
 import os
-
+import re
+import plotly.graph_objects as go
 
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
@@ -595,50 +596,112 @@ class Preprocess:
                             st.session_state["script_state"].add_script(f"df = pd.DataFrame('{gene} count': adata.obs['gene-counts'], '{batch_key_sex_pred}': adata.obs['{batch_key_sex_pred}'])")
                   
     def cell_cycle_scoring(self):
+        st.subheader("Cell cycle score")
+        col1, col2, col3 = st.columns(3)
+        col1.file_uploader(label="Cell cycle genes", type=["csv", "tsv"], accept_multiple_files=False, key="cell_cycle_file_uploader", help="File must be a csv with the gene name and corresponding phase. Fore example: \ngenes,phase\n0,MCM5,s_genes\n1,PCNA,s_genes\n2,TYMS,s_genes\nNote: csv files may also have an index and header.")
+     
         with st.form(key="cell_cycle_scoring_form"):
-            st.subheader("Cell cycle score")
 
-            form_col1, form_col2, form_col3 = st.columns(3, gap="large")
-
-            with form_col1:
-                st.write("①Upload a file containing cell cycle genes.")
-                csv_file = st.file_uploader(label="Cell cycle genes", type="csv", accept_multiple_files=False, key="cell_cycle_file_uploader", help="File must be a csv with the gene name and corresponding phase. Fore example: \ngenes,phase\n0,MCM5,s_genes\n1,PCNA,s_genes\n2,TYMS,s_genes\nNote: csv files may also have an index and header.")
+            form_col1, form_col2, form_col3, form_col4 = st.columns(4, gap="large")
             
-            with form_col2:
-                st.write("②Select columns")
-                subcol_input1, subcol_input2 = st.columns(2)
-                gene_column_index = subcol_input1.number_input(label="Gene column", format="%.0f", placeholder="Column index of genes", help="Specify which column contains the gene names.")
-                phase_column_index = subcol_input2.number_input(label="Phase column", format="%.0f", placeholder="Column index of phase", help="Specify which column contains the phase (e.g. s phase)")
-                index_column_index = subcol_input1.number_input(label="Index column (optional)", format="%.0f", placeholder="Leave blank if no index", help="Specify an index column for csv (usually 0).")
-                delimiter = subcol_input2.text_input(label="Delimiter", placeholder="By default uses ','", max_chars=1, value=",")
+            if not st.session_state.cell_cycle_file_uploader:
+                info_col1, info_col2, info_col3 = st.columns(3)
+                info_col1.info("No file uploaded. CSV must include header values.")
+            else:
+                delim = "\t" if st.session_state.cell_cycle_file_uploader.type == "tsv" else ","
+                file = st.session_state.cell_cycle_file_uploader
+                st.session_state["pp_cell_cycle_marker_genes_df"] = pd.read_csv(file, delimiter=delim)
+                df = st.session_state["pp_cell_cycle_marker_genes_df"]
 
-            with form_col3:
-                st.write("③Select 'group by' field (options)")
-                subcol_input1, subcol_input2 = st.columns(2)
-                group_by = subcol_input1.selectbox(label="Group by", options=np.append('None', self.adata.obs_keys()))
-                has_header = st.checkbox(label="Has header", value=True)
+                form_col1.write("Preview")
+                form_col1.dataframe(df.head(4), use_container_width=True)
+
+                form_col2.write("Columns")
+                gene_column = form_col2.selectbox(label="Gene column", options=df.columns, help="Specify which column contains the gene names.")
+                phase_column = form_col2.selectbox(label="Phase column", options=df.columns, help="Specify which column contains the phase (e.g. s phase)")
+                
+                form_col3.write("Plot")
+                group_by = form_col3.selectbox(label="Group by", options=np.append('None', self.adata.obs_keys()))
             
-            subcol1, _, _, _, _, _ = st.columns(6)
-            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+            subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not "pp_cell_cycle_marker_genes_df" in st.session_state))
             cell_cycle_container = st.empty()
 
             if submit_btn:
-                header = 0 if has_header else None
-                df = pd.read_csv(csv_file, delimiter=delimiter, index_col=int(index_column_index), header=header)
-                gene_column_name = df.columns[int(gene_column_index)]
-                phase_column_name = df.columns[int(phase_column_index)]
-                s_genes = df[df[phase_column_name].str.contains("'s_genes' || 's genes' || 's gene' || 's_gene' || 's-gene' || 's-genes'", regex=True)][gene_column_name].values
-                g2m_genes = df[df[phase_column_name].str.contains("'s_genes' || 's genes' || 's gene' || 's_gene' || 's-gene' || 's-genes'", regex=True)][gene_column_name].values
-                #cell_cycle_genes = [x for x in cell_cycle_genes if x in self.adata.var_names]
-                self.adata.raw = self.adata
-                sc.pp.normalize_per_cell(self.adata, counts_per_cell_after=1e4)
-                sc.pp.log1p(self.adata)
-                sc.pp.scale(self.adata)
-                if group_by == 'None':
-                    group_by = None
-                sc.tl.score_genes_cell_cycle(self.adata, s_genes=s_genes, g2m_genes=g2m_genes)
-                cell_cycle_ax = sc.pl.violin(self.adata, ['S_score', 'G2M_score'], jitter=0.4, groupby = group_by, rotation=45)
-                cell_cycle_container.pyplot(cell_cycle_ax)
+                with st.spinner(text="Running cell cycle scoring"):
+                    delim = "\t" if st.session_state.cell_cycle_file_uploader.type == "tsv" else ","
+                    df = st.session_state["pp_cell_cycle_marker_genes_df"]
+
+                    gene_column_index = df.columns.get_loc(gene_column)
+                    phase_column_index = df.columns.get_loc(phase_column)
+
+                    s_genes = df.iloc[:, phase_column_index].str.contains("s", flags=re.IGNORECASE, regex=True)
+                    g2m_genes = df.iloc[:, phase_column_index].str.contains("g2m", flags=re.IGNORECASE, regex=True)
+
+                    s_genes = df[s_genes].iloc[:, gene_column_index].values
+                    g2m_genes = df[g2m_genes].iloc[:, gene_column_index].values
+
+                    #cell_cycle_genes = [x for x in cell_cycle_genes if x in self.adata.var_names]
+                    self.adata.raw = self.adata
+                    sc.pp.normalize_per_cell(self.adata, counts_per_cell_after=1e4)
+                    sc.pp.log1p(self.adata)
+                    sc.pp.scale(self.adata)
+                    if group_by == 'None':
+                        group_by = None
+                    sc.tl.score_genes_cell_cycle(self.adata, s_genes=s_genes, g2m_genes=g2m_genes)
+
+                    #cell_cycle_ax = sc.pl.violin(self.adata, ['S_score', 'G2M_score'], jitter=0.4, groupby = group_by, rotation=45)
+                    #cell_cycle_container.pyplot(cell_cycle_ax)
+
+                    fig = go.Figure()
+
+                    s_score_df = pd.DataFrame({'phase': np.repeat('S_score', len(self.adata.obs['S_score'])), 'score': self.adata.obs['S_score']})
+                    g2m_score_df = pd.DataFrame({'phase': np.repeat('G2M_score', len(self.adata.obs['G2M_score'])), 'score': self.adata.obs['G2M_score']})
+
+                    violin_df = pd.concat([s_score_df, g2m_score_df])
+
+                    if group_by != None:
+
+                        violin_df["group"] = self.adata.obs[group_by]
+
+                        fig.add_trace(go.Violin(x=violin_df['group'][violin_df['phase'] == 'S_score'], 
+                            y=violin_df['score'][violin_df['phase'] == 'S_score'],
+                            legendgroup='S', scalegroup='S', name='S',
+                            bandwidth=0.4, line_color='blue')
+                        )
+
+                        fig.add_trace(go.Violin(x=violin_df['group'][violin_df['phase'] == 'G2M_score'], 
+                            y=violin_df['score'][violin_df['phase'] == 'G2M_score'],
+                            legendgroup='G2M', scalegroup='G2M', name='G2M',
+                            bandwidth=0.4, line_color='orange')
+                        )
+
+                        fig.update_traces(meanline_visible=True)
+                        fig.update_layout(violingap=0, violinmode='group', xaxis_title=group_by, yaxis_title="Score", legend_title="Phase") #add legend title
+
+                    else:
+
+                        fig.add_trace(go.Violin(x=s_score_df['phase'], 
+                            y=s_score_df['score'],
+                            legendgroup='S', scalegroup='S', name='S',
+                            bandwidth=0.4, line_color='blue')
+                        )
+
+                        fig.add_trace(go.Violin(x=g2m_score_df['phase'], 
+                            y=g2m_score_df['score'],
+                            legendgroup='G2M', scalegroup='G2M', name='G2M',
+                            bandwidth=0.4, line_color='orange')
+                        )
+
+                        fig.update_traces(meanline_visible=True)
+                        fig.update_layout(violingap=0, violinmode='overlay', xaxis_title="Phase", yaxis_title="Score", legend_title="Phase") #add legend title
+
+                        
+
+                    
+                    st.markdown("""<div style='margin-left: 20px; display: flex; align-items: center; justify-content: center;'><h1 style='text-align: center; font-size: 2rem;'>Cell cycle score</h1></div>""", unsafe_allow_html=True)
+
+                    st.plotly_chart(fig, use_container_width=True)
 
 
 try:
@@ -674,7 +737,8 @@ try:
         preprocess.annotate_hb()
         preprocess.pca()
         preprocess.scale_to_unit_variance()
-    
+        
+        
     preprocess.cell_cycle_scoring()
         
 
