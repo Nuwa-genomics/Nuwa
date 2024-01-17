@@ -50,8 +50,6 @@ class Analysis:
         self.col1, self.col2 = st.columns(2, gap="medium")
 
         self.adata = adata
-        
-        self.columns = adata.to_df().columns
 
         self.conn: SessionLocal = SessionLocal()
 
@@ -161,12 +159,21 @@ class Analysis:
                 with st.form(key="pca_cluster_form"):
                     st.subheader("PCA")
                     plt.style.use('dark_background')
-                    genes = st.multiselect(label="Gene", options=self.columns, default=(self.columns[0], self.columns[1]), key="ms_pca_gene", max_selections=24)
+                    genes = st.multiselect(label="Gene", options=self.adata.var_names, default=(self.adata.var_names[0], self.adata.var_names[1]), key="ms_pca_gene", max_selections=24)
                     pca_container = st.empty()
+                    info_container = st.empty()
                     
                     with st.spinner(text="Computing PCA"):
                         sc.tl.pca(self.adata, svd_solver='arpack')
-                        ax_pca = sc.pl.pca(self.adata, color=st.session_state.ms_pca_gene or self.columns[0])
+                        colors = st.session_state.ms_pca_gene or self.adata.var_names[0]
+                        use_raw = True
+                        if self.adata.raw:
+                            for var in self.adata.var_names:
+                                if not (self.adata.raw.var_names.__contains__(var)):
+                                    use_raw = False
+                                    info_container.info("Gene ID format has been changed, setting 'use_raw' to false.")
+                                    break
+                        ax_pca = sc.pl.pca(self.adata, color=colors, use_raw=use_raw)
                         pca_container.pyplot(ax_pca)   
                         
                     subcol1, _, _, _ = st.columns(4)
@@ -174,7 +181,16 @@ class Analysis:
                     if submit_btn:
                         with st.spinner(text="Computing PCA"):
                             sc.tl.pca(self.adata, svd_solver='arpack')
-                            ax_pca = sc.pl.pca(self.adata, color=genes or self.columns[0])
+                            colors = genes or [self.adata.var_names[0]]
+                            use_raw = True
+                            if self.adata.raw:
+                                for var in self.adata.var_names:
+                                    if not (self.adata.raw.var_names.__contains__(var)):
+                                        use_raw = False
+                                        info_container.info("Gene ID format has been changed, setting 'use_raw' to false.")
+                                        break
+                            ax_pca = sc.pl.pca(self.adata, color=colors, use_raw=use_raw)
+                            pca_container.pyplot(ax_pca) 
 
             except Exception as e:
                 st.error(e)
@@ -256,20 +272,30 @@ class Analysis:
                 with st.form(key="nhood_graph_form"):
                     st.subheader("Neighbourhood graph")
                     
-                    umap_options = np.append(self.columns, 'leiden')
-                    genes = st.multiselect(label='Gene', options=(umap_options), key="ms_umap_select_gene", default=["leiden", self.columns[0]], max_selections=24) 
+                    umap_options = np.append(self.adata.var_names, 'leiden')
+                    genes = st.multiselect(label='Gene', options=(umap_options), key="ms_umap_select_gene", default=["leiden", self.adata.var_names[0]], max_selections=24) 
                         
-                    nhood_container = st.empty() 
+                    nhood_container = st.empty()
+                    info_container = st.empty() 
                     
                     with st.spinner(text="Computing neighbourhood graph"):
                                 
+                        colors = genes or 'leiden'
+                        use_raw = True
+                        if self.adata.raw:
+                            for var in self.adata.var_names:
+                                if not (self.adata.raw.var_names.__contains__(var)):
+                                    use_raw = False
+                                    info_container.info("Gene ID format has been changed, setting 'use_raw' to false.")
+                                    break
+
                         sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
                         sc.tl.leiden(self.adata) 
                         sc.tl.paga(self.adata)
-                        sc.pl.paga(self.adata, plot=False)  # remove `plot=False` if you want to see the coarse-grained graph
+                        sc.pl.paga(self.adata, use_raw=use_raw, plot=False)
                         sc.tl.umap(self.adata, init_pos='paga')
-                            
-                        ax_umap = sc.pl.umap(self.adata, color=genes or 'leiden')
+
+                        ax_umap = sc.pl.umap(self.adata, color=colors, use_raw=use_raw)
 
                         nhood_container.pyplot(ax_umap)
                         
@@ -279,14 +305,23 @@ class Analysis:
                         
                     if submit_btn:
                         with st.spinner(text="Computing neighbourhood graph"):
+
+                            colors = genes or 'leiden'
+                            use_raw = True
+                            if self.adata.raw:
+                                for var in self.adata.var_names:
+                                    if not (self.adata.raw.var_names.__contains__(var)):
+                                        use_raw = False
+                                        info_container.info("Gene ID format has been changed, setting 'use_raw' to false.")
+                                        break
                                 
                             sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
                             sc.tl.leiden(self.adata) 
                             sc.tl.paga(self.adata)
-                            sc.pl.paga(self.adata, plot=False)  # remove `plot=False` if you want to see the coarse-grained graph
+                            sc.pl.paga(self.adata, use_raw=use_raw, plot=False)
                             sc.tl.umap(self.adata, init_pos='paga')
                             
-                            ax_umap = sc.pl.umap(self.adata, color=genes or 'leiden')
+                            ax_umap = sc.pl.umap(self.adata, color=colors, use_raw=use_raw)
 
                             nhood_container.pyplot(ax_umap)
 

@@ -271,7 +271,7 @@ class Upload:
             if file is not None:
                 st.write(f"Size: {file.size} bytes")
         
-            st.subheader("Gene format")
+            
             Sidebar.gene_format()
 
             st.subheader("Obs")

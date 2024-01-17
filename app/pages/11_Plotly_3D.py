@@ -39,11 +39,10 @@ try:
     
     adata = st.session_state.adata_state.current.adata
 
-    if 'leiden' not in adata.obs_keys() and 'X_umap' not in adata.obsm_keys():
-        with st.spinner(text="Computing embeddings"):
-            sc.pp.neighbors(st.session_state.adata_state.current.adata)
-            sc.tl.leiden(st.session_state.adata_state.current.adata)
-            sc.tl.umap(st.session_state.adata_state.current.adata, n_components=3)
+    with st.spinner(text="Computing embeddings"):
+        sc.pp.neighbors(st.session_state.adata_state.current.adata)
+        sc.tl.leiden(st.session_state.adata_state.current.adata)
+        sc.tl.umap(st.session_state.adata_state.current.adata, n_components=3)
 
 
     def set_adata():

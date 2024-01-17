@@ -166,6 +166,7 @@ class Sidebar:
                     st.toast("Changed format to gene symbols", icon='✅')
 
             with st.sidebar:
+                st.subheader("Gene format")
                 st.toggle(label="Ensembl ID", value=(format == "ensembl"), key="toggle_gene_format", on_change=change_gene_format)
 
         except Exception as e:
@@ -242,6 +243,7 @@ class Sidebar:
             else:
                 st.selectbox(label="Current Experiment:", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection", on_change=set_adata, index=st.session_state.adata_state.get_index_of_current())
 
+                Sidebar.gene_format()
                 
             
             self.download_adata_expander()
