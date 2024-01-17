@@ -9,6 +9,7 @@ from database.database import SessionLocal
 from sqlalchemy.orm import Session
 from utils.AdataState import AdataState
 from pathlib import Path
+from utils.Gene_info import Gene_info
 
 class Sidebar:
     def __init__(self):
@@ -135,6 +136,38 @@ class Sidebar:
                 notes=notes,
             ))
             
+        except Exception as e:
+            st.error(e)
+            print("Error: ", e)
+
+
+    @staticmethod
+    def gene_format():
+        try:
+            format = ""
+            for var in st.session_state.adata_state.current.adata.var_names[:5]:
+                if not var.startswith('ENS'):
+                    format = "gene_symbol"
+                else:
+                    format = "ensembl"
+
+            def change_gene_format():
+                gene_info = Gene_info(st.session_state.adata_state.current.adata)
+                if st.session_state.toggle_gene_format: #change to gene ensembl format
+                    gene_info.convert_symbols_to_ensembl()
+                else:
+                    gene_info.convert_enseml_to_symbols() #change format to gene symbols
+                    
+                st.session_state.adata_state.current.adata.var = gene_info.adata.var
+
+                if st.session_state.toggle_gene_format:
+                    st.toast("Changed format to Ensembl IDs", icon='✅')
+                else:
+                    st.toast("Changed format to gene symbols", icon='✅')
+
+            with st.sidebar:
+                st.toggle(label="Ensembl ID", value=(format == "ensembl"), key="toggle_gene_format", on_change=change_gene_format)
+
         except Exception as e:
             st.error(e)
             print("Error: ", e)

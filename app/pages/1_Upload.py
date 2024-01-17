@@ -13,6 +13,7 @@ from utils.AdataState import AdataState
 from utils.ScriptState import ScriptState
 import loompy as lmp
 import glob
+from components.sidebar import Sidebar
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬')
 
@@ -219,60 +220,73 @@ class Upload:
 
     def show_anndata(self, adata, f = None, filename = ""):
         try:
+            new_dataset = False #this could be original dataset, test to see if it's different from adata state
             
-            if filename == "":
-                filename = f.name.split(".")[0]
+            if 'adata_state' in st.session_state:
+                if st.session_state.adata_state.current.adata_name != filename.replace(" ", "_"): #if user is loading in new dataset we want to replace current
+                    new_dataset = True
+            
+            if ('adata_state' not in st.session_state) or new_dataset:
+                if filename == "":
+                    filename = f.name.split(".")[0]
+                    
+                filename = filename.replace(" ", "_") #files must not contain spaces
                 
-            filename = filename.replace(" ", "_") #files must not contain spaces
-            
-            #upload raw adata
-            sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'uploads', f'{filename}.h5ad'), adata=adata)
-            
-            adata.raw = adata
-            active_adata = AdataModel(
-                work_id = st.session_state.current_workspace.id, 
-                adata_name=f"{filename}", adata=adata, 
-                filename=os.path.join(os.getenv('WORKDIR'), 'adata', f'{filename}.h5ad')
-            )
-            st.session_state["adata_state"] = AdataState(active=active_adata)
-            
-            #see if dataset already in db
-            if self.first_load: #TODO: this doesn't take into account loading a new dataset into original workspace. adata definition won't show
-                if f != None:
-                    st.session_state["script_state"].add_script(f"#Uploaded adata should be added here. Adata used for current experiment was {filename}.h5ad\n")
-                else:
-                    st.session_state["script_state"].add_script(f"#Uploaded adata should be added here.\n")
+                #upload raw adata
+                sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'uploads', f'{filename}.h5ad'), adata=adata)
                 
+                adata.raw = adata
+                active_adata = AdataModel(
+                    work_id = st.session_state.current_workspace.id, 
+                    adata_name=f"{filename}", adata=adata, 
+                    filename=os.path.join(os.getenv('WORKDIR'), 'adata', f'{filename}.h5ad')
+                )
+                st.session_state["adata_state"] = AdataState(active=active_adata)
+                
+                #see if dataset already in db
+                if self.first_load: #TODO: this doesn't take into account loading a new dataset into original workspace. adata definition won't show
+                    if f != None:
+                        st.session_state["script_state"].add_script(f"#Uploaded adata should be added here. Adata used for current experiment was {filename}.h5ad\n")
+                    else:
+                        st.session_state["script_state"].add_script(f"#Uploaded adata should be added here.\n")
+
+                st.toast("Successfully uploaded file", icon='✅')
+                
+                
+            self.show_sidebar_preview(f)
             
-            st.toast("Successfully uploaded file", icon='✅')
+            
 
         except ValidationError as e:
             st.error(e)
 
-        with st.sidebar:
-            st.subheader("File info")
-            st.write(f"AnnData object with n_obs x n_vars = {adata.n_obs} x {adata.n_vars}")
         
-            
-            if f is not None:
-                st.write(f"Size: {f.size} bytes")
+    def show_sidebar_preview(self, file):
+        
+        with st.sidebar:
 
+            st.subheader("File info")
+            st.write(f"AnnData object with n_obs x n_vars = {st.session_state.adata_state.current.adata.n_obs} x {st.session_state.adata_state.current.adata.n_vars}")
             
-            
+            if file is not None:
+                st.write(f"Size: {file.size} bytes")
+        
+            st.subheader("Gene format")
+            Sidebar.gene_format()
 
             st.subheader("Obs")
-            if not adata.obs.empty:
+            if not st.session_state.adata_state.current.adata.obs.empty:
                 make_obs_unique = st.checkbox(label="Obs names make unique", key="btn_make_obs_unique", value=False, on_change=self.obs_unique)
-                st.dataframe(adata.obs.head())
-                st.write(f"Showing 5 rows of {len(adata.obs.columns)} columns")
+                st.dataframe(st.session_state.adata_state.current.adata.obs.head())
+                st.write(f"Showing 5 rows of {len(st.session_state.adata_state.current.adata.obs.columns)} columns")
             else:
                 st.text("No obs to show")
             
             st.subheader("Var")
-            if not adata.var.empty:
+            if not st.session_state.adata_state.current.adata.var.empty:
                 make_var_unique = st.checkbox(label="Var names make unique", key="btn_make_var_unique", value=False, on_change=self.var_unique)
-                st.dataframe(adata.var.head())
-                st.write(f"Showing 5 rows of {len(adata.var.columns)} columns")
+                st.dataframe(st.session_state.adata_state.current.adata.var.head())
+                st.write(f"Showing 5 rows of {len(st.session_state.adata_state.current.adata.var.columns)} columns")
             else:
                 st.text("No var to show")
                 

@@ -99,14 +99,16 @@ class Integrate:
             label = col1.text_input(label="Label", value="library_id")
             index_unique = col2.text_input(label="index_unique", value="-")
             index = 0
-            for i, key in enumerate(st.session_state.adata_ref.uns_keys()):
-                if key.lower() == "spatial":
-                    index = i
-            spatial_key1 = col1.selectbox(label="Spatial key 1", options=st.session_state.adata_ref.uns_keys(), index=index)
-            for i, key in enumerate(st.session_state.adata_target.uns_keys()):
-                if key.lower() == "spatial":
-                    index = i
-            spatial_key2 = col2.selectbox(label="Spatial key 2", options=st.session_state.adata_target.uns_keys(), index=index)
+            if 'uns' in st.session_state.adata_ref:
+                for i, key in enumerate(st.session_state.adata_ref.uns_keys()):
+                    if key.lower() == "spatial":
+                        index = i
+                spatial_key1 = col1.selectbox(label="Spatial key 1", options=st.session_state.adata_ref.uns_keys(), index=index)
+            if 'uns' in st.session_state.adata_target:
+                for i, key in enumerate(st.session_state.adata_target.uns_keys()):
+                    if key.lower() == "spatial":
+                        index = i
+                spatial_key2 = col2.selectbox(label="Spatial key 2", options=st.session_state.adata_target.uns_keys(), index=index)
 
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
