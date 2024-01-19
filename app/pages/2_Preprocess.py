@@ -602,12 +602,12 @@ class Preprocess:
      
         with st.form(key="cell_cycle_scoring_form"):
 
-            form_col1, form_col2, form_col3, form_col4 = st.columns(4, gap="large")
+            form_col1, form_col2, form_col3 = st.columns(3, gap="large")
             
             if not st.session_state.cell_cycle_file_uploader:
                 info_col1, info_col2, info_col3 = st.columns(3)
                 info_col1.info("No file uploaded. CSV must include header values.")
-            else:
+            elif st.session_state.cell_cycle_file_uploader: 
                 delim = "\t" if st.session_state.cell_cycle_file_uploader.type == "tsv" else ","
                 file = st.session_state.cell_cycle_file_uploader
                 st.session_state["pp_cell_cycle_marker_genes_df"] = pd.read_csv(file, delimiter=delim)
@@ -617,11 +617,14 @@ class Preprocess:
                 form_col1.dataframe(df.head(4), use_container_width=True)
 
                 form_col2.write("Columns")
-                gene_column = form_col2.selectbox(label="Gene column", options=df.columns, help="Specify which column contains the gene names.")
-                phase_column = form_col2.selectbox(label="Phase column", options=df.columns, help="Specify which column contains the phase (e.g. s phase)")
+                gene_column = form_col2.selectbox(label="Gene column", options=df.columns, help="Specify which column contains the gene names.", key="sb_gene_col_cell_cycle")
+                phase_column = form_col2.selectbox(label="Phase column", options=df.columns, help="Specify which column contains the phase (e.g. s phase)", key="sb_phase_col_cell_cycle")
                 
                 form_col3.write("Plot")
-                group_by = form_col3.selectbox(label="Group by", options=np.append('None', self.adata.obs_keys()))
+                group_by = form_col3.selectbox(label="Group by", options=np.append('None', self.adata.obs_keys()), key="sb_group_cell_cycle")
+                plot_col1, plot_col2 = form_col3.columns(2)
+                bandwidth = plot_col1.number_input(label="Bandwidth", min_value=0.1, max_value=1.0, value=0.4, step=0.1)
+                jitter = plot_col2.number_input(label="Jitter", min_value=0.1, max_value=1.0, value=0.4, step=0.1)
             
             subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not "pp_cell_cycle_marker_genes_df" in st.session_state))
@@ -650,6 +653,7 @@ class Preprocess:
                         group_by = None
                     sc.tl.score_genes_cell_cycle(self.adata, s_genes=s_genes, g2m_genes=g2m_genes)
 
+                    #using matplotlib
                     #cell_cycle_ax = sc.pl.violin(self.adata, ['S_score', 'G2M_score'], jitter=0.4, groupby = group_by, rotation=45)
                     #cell_cycle_container.pyplot(cell_cycle_ax)
 
@@ -667,13 +671,13 @@ class Preprocess:
                         fig.add_trace(go.Violin(x=violin_df['group'][violin_df['phase'] == 'S_score'], 
                             y=violin_df['score'][violin_df['phase'] == 'S_score'],
                             legendgroup='S', scalegroup='S', name='S',
-                            bandwidth=0.4, line_color='blue')
+                            bandwidth=bandwidth, jitter=jitter, line_color='blue')
                         )
 
                         fig.add_trace(go.Violin(x=violin_df['group'][violin_df['phase'] == 'G2M_score'], 
                             y=violin_df['score'][violin_df['phase'] == 'G2M_score'],
                             legendgroup='G2M', scalegroup='G2M', name='G2M',
-                            bandwidth=0.4, line_color='orange')
+                            bandwidth=bandwidth, jitter=jitter, line_color='orange')
                         )
 
                         fig.update_traces(meanline_visible=True)
@@ -684,13 +688,13 @@ class Preprocess:
                         fig.add_trace(go.Violin(x=s_score_df['phase'], 
                             y=s_score_df['score'],
                             legendgroup='S', scalegroup='S', name='S',
-                            bandwidth=0.4, line_color='blue')
+                            bandwidth=bandwidth, jitter=jitter, line_color='blue')
                         )
 
                         fig.add_trace(go.Violin(x=g2m_score_df['phase'], 
                             y=g2m_score_df['score'],
                             legendgroup='G2M', scalegroup='G2M', name='G2M',
-                            bandwidth=0.4, line_color='orange')
+                            bandwidth=bandwidth, jitter=jitter, line_color='orange')
                         )
 
                         fig.update_traces(meanline_visible=True)

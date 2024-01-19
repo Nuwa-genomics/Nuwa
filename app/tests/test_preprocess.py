@@ -92,7 +92,7 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
 
-        self.test_cell_cycle_scoring()
+        #self.test_cell_cycle_scoring()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
@@ -316,6 +316,11 @@ class Test_Preprocess:
 
     def test_cell_cycle_scoring(self):
         print(f"{bcolors.OKBLUE}test_cell_cycle_scoring {bcolors.ENDC}", end="")
+        #TODO: Figure out how to run this test, can't simulate loading a file
+        self.at.selectbox(key="sb_gene_col_cell_cycle").select("genes").run()
+        self.at.selectbox(key="sb_phase_col_cell_cycle").select("phase").run()
+        self.at.selectbox(key="sb_group_cell_cycle").select("BATCH").run()
+        self.at.button(key="FormSubmitter:cell_cycle_scoring_form-Run").click().run()
 
     def get_final_session_state(self):
         return self.at.session_state
