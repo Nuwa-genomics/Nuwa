@@ -51,6 +51,10 @@ class Test_Preprocess:
         self.test_filter_highest_expressed()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
+        self.test_scale_data()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         self.test_normalize_data()
         assert not self.at.exception
@@ -93,10 +97,6 @@ class Test_Preprocess:
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
 
         #self.test_cell_cycle_scoring()
-        assert not self.at.exception
-        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
-        
-        self.test_scale_data()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
@@ -289,7 +289,14 @@ class Test_Preprocess:
         
     def test_scale_data(self):
         print(f"{bcolors.OKBLUE}test_scale_adata {bcolors.ENDC}", end="")
+        self.at.button(key="FormSubmitter:scale_to_unit_variance_form-Apply").click().run(timeout=100)
+
+        #assert each row is equal to scaled value, then check the mean is 0
+        assert round(self.at.session_state.adata_state.current.adata.to_df().mean().mean(), ndigits=3) == 0.0
+        assert round(self.at.session_state.adata_state.current.adata.to_df().std().mean(), ndigits=3) == 1.0
+
         
+
     def test_batch_effect_removal_and_pca(self):
         print(f"{bcolors.OKBLUE}test_batch_effect_removal_and_adata {bcolors.ENDC}", end="")
         adata_original = self.at.session_state.adata_state.current.adata.copy()

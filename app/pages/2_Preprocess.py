@@ -394,8 +394,7 @@ class Preprocess:
 
     def run_scrublet(self):
         with st.form(key="scrublet_form"):
-            st.subheader("Doublet Prediction")
-            st.write("Use Scrublet to remove cells predicted to be doublets.")
+            st.subheader("Doublet Prediction", help="Use Scrublet to remove cells predicted to be doublets.")
             col1, col2, col3 = st.columns(3)
             sim_doublet_ratio = col1.number_input(label="Sim doublet ratio", value=2.00, key="ni_sim_doublet_ratio")
             expected_doublet_rate = col2.number_input(label="Exp doublet rate", value=0.05, key="ni_expected_doublet_rate")
@@ -419,8 +418,7 @@ class Preprocess:
                     
     def regress_out(self):
         with st.form(key="regress_out_form"):
-            st.subheader("Regress out", help="Regress out (mostly) unwanted sources of variation. Uses simple linear regression. This is inspired by Seurat's regressOut function in R [Satija15]. Note that this function tends to overcorrect in certain circumstances as described in :issue:526.")
-            st.write("Uses linear regression to remove unwanted sources of variation.")
+            st.subheader("Regress out", help="Uses linear regression to remove unwanted sources of variation.")
             regress_keys = st.multiselect(label="Keys", options=self.adata.obs_keys(), key="ms_regress_out_keys")
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
@@ -452,35 +450,55 @@ class Preprocess:
                     st.toast("Max value cannot be blank", icon="❌")
             
     
-    def sample_data(self):
-        st.subheader("Sample data")
-        downsample_tab, subsample_tab = st.tabs(['Downsample', 'Subsample'])
-        
-        with downsample_tab:
-            with st.form(key="downsample_form"):
-                st.subheader("Downsample counts")
-                st.write("Downsample counts from count matrix.")
-                counts_per_cell = st.number_input(label="Counts per cell")
-                total_counts = st.number_input(label="Total counts")
+
+    def downsample_data(self):
+        st.subheader("Downsample data")
+        counts_per_cell, total_counts = st.tabs(["counts_per_cell", "total_counts"])
+        with counts_per_cell:
+            with st.form(key="downsample_form_counts_per_cell"):
+                counts_per_cell = st.number_input(label="Counts per cell", help="Target total counts per cell. If a cell has more than 'counts_per_cell', it will be downsampled to this number. Resulting counts can be specified on a per cell basis by passing an array.Should be an integer or integer ndarray with same length as number of obs.")
                 subcol1, _, _ = st.columns(3)
-                btn_downsample = subcol1.form_submit_button(label="Apply", use_container_width=True)
-                if btn_downsample:
-                    sc.pp.downsample_counts(self.adata, counts_per_cell=counts_per_cell, total_counts=total_counts)
+                btn_downsample_counts_per_cell = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                if btn_downsample_counts_per_cell:
+                    sc.pp.downsample_counts(self.adata, counts_per_cell=counts_per_cell)
                     #write to script state
-                    st.session_state["script_state"].add_script(f"#Downsample dataset\nsc.pp.downsample_counts(adata, counts_per_cell={counts_per_cell}, total_counts={total_counts})")
+                    st.session_state["script_state"].add_script(f"#Downsample dataset\nsc.pp.downsample_counts(adata, counts_per_cell={counts_per_cell})")
                     self.save_adata()
-                    st.toast("Successfully downsampled data", icon="✅")
-            
-        with subsample_tab:
-            with st.form(key="subsample_form"):
-                st.subheader("Subsample counts")
-                st.write("Subsample to a fraction of the number of observations.")
-                n_obs = st.number_input(label="n obs")
-                fraction = st.number_input(label="subsample_fraction")
+                    st.toast("Successfully downsampled data per cell", icon="✅")
+        with total_counts:
+            with st.form(key="downsample_form_total_counts"):
+                total_counts = st.number_input(label="Total counts", help="Target total counts. If the count matrix has more than total_counts it will be downsampled to have this number.")
                 subcol1, _, _ = st.columns(3)
-                btn_subsample = subcol1.form_submit_button(label="Apply", use_container_width=True)
-                if btn_subsample:
-                    sc.pp.subsample(self.adata, n_obs=st.session_state.ni_n_obs, fraction=st.session_state.ni_subsample_fraction)
+                btn_downsample_total_counts = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                if btn_downsample_total_counts:
+                    sc.pp.downsample_counts(self.adata, total_counts=total_counts)
+                    #write to script state
+                    st.session_state["script_state"].add_script(f"#Downsample dataset\nsc.pp.downsample_counts(adata, total_counts={total_counts})")
+                    self.save_adata()
+                    st.toast("Successfully downsampled data by total counts", icon="✅")
+
+            
+    def subsample_data(self):
+        st.subheader("Subsample data")
+        n_obs, fraction = st.tabs(["n_obs", "fraction"])
+        with n_obs:
+            with st.form(key="subsample_form_n_obs"):
+                n_obs = st.number_input(label="n obs", help="Subsample to this number of observations.")
+                subcol1, _, _ = st.columns(3)
+                btn_subsample_n_obs = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                if btn_subsample_n_obs:
+                    sc.pp.subsample(self.adata, n_obs=st.session_state.ni_n_obs)
+                    #write to script session
+                    st.session_state["script_state"].add_script(f"#Subsample dataset\nsc.pp.subsample(adata, n_obs={st.session_state.ni_n_obs}, fraction={st.session_state.ni_subsample_fraction})")
+                    self.save_adata()
+                    st.toast("Successfully subsampled data", icon="✅")
+        with fraction:
+            with st.form(key="subsample_form_fraction"):
+                fraction = st.number_input(label="subsample_fraction", help="Subsample this fraction of the number of observations.")
+                subcol1, _, _ = st.columns(3)
+                btn_subsample_fraction = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                if btn_subsample_fraction:
+                    sc.pp.subsample(self.adata, fraction=st.session_state.ni_subsample_fraction)
                     #write to script session
                     st.session_state["script_state"].add_script(f"#Subsample dataset\nsc.pp.subsample(adata, n_obs={st.session_state.ni_n_obs}, fraction={st.session_state.ni_subsample_fraction})")
                     self.save_adata()
@@ -509,7 +527,6 @@ class Preprocess:
     def pca(self):
         with st.form(key="pca_pp_form"):
             st.subheader("PCA")
-            st.write("Run PCA for guiding preprocessing.")
             
             def run_pca(adata):
                 with st.spinner(text="Running PCA"):
@@ -721,7 +738,8 @@ try:
         preprocess.filter_highly_variable_genes()
         preprocess.normalize_counts()
         preprocess.regress_out()
-        preprocess.sample_data()
+        preprocess.subsample_data()
+        preprocess.downsample_data()
         
 
     with col2:
