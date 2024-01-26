@@ -54,13 +54,28 @@ E: Release file for http://archive.ubuntu.com/ubuntu/dists/focal-updates/InRelea
 
 Preprocess 10x genomics reads using scanpy's preprocessing module:
 - Filter genes and cell metrics 
-- Annotate and filter mitochrondrial and ribosomal genes 
+- Annotate and filter mitochrondrial, ribosomal and heamoglobin genes 
 - Show highly variable genes
 - Show most expressed genes
-- Normalize and logarithmize data
+- Normalize, logarithmize and scale data
+- Doublet detection
+- Batch effect correction
+- Cell cycle scoring
 - Apply recipes to quickly preprocess data
 
-![preprocess](screenshots/preprocess.png "Preprocess data")
+![preprocess](screenshots/preprocess1.png "Preprocess data")
+![preprocess](screenshots/preprocess2.png "Preprocess data")
+
+## Dataset integration
+
+Integrate a variety of dataset types using Scanpy's external integration libraries and SCVI toolkit, along with useful pandas data manipulation for dataframes.
+
+![integrate](screenshots/integrate1.png "Integrate datasets")
+
+You can also train a deep learning model to integrate datasets using SCVI and scANVI.
+
+![integrate](screenshots/integrate2.png "Integrate datasets")
+
 
 ## Build model
 
@@ -83,6 +98,20 @@ Cluster analysis consists of:
 - Locate marker genes
 
 ![Analysis](screenshots/analysis.png "Analysis")
+
+## Differential gene expression
+
+Differential gene expression looks at how genes are expressed compared to the rest of the dataset. This includes useful matrix plots, dot plots and violin vlots to visualise this. You can also choose which clusters and statistical tests to run the DE analysis.
+
+![Differential gene expression](screenshots/de1.png "DE analysis")
+
+Elbow plots for comparing clusters:
+
+![Differential gene expression elbow plot](screenshots/de2.png "DE analysis elbow")
+
+Interactive violin plots for individual genes or clusters:
+
+![Differential gene expression violin plot](screenshots/de3.png "DE analysis violin")
 
 ## Trajectory Inference
 

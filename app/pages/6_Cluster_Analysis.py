@@ -199,7 +199,7 @@ class Analysis:
         with self.col1:
             try:
                 with st.form(key="variance_ratio_form"):
-                    st.subheader("Variance ratio")
+                    st.subheader("PCA variance ratio")
                     subcol1, subcol2 = st.columns(2)
                     n_pcs = subcol1.number_input(label="n_pcs", min_value=1, max_value=50, value=30)
                     log = subcol1.checkbox(label="Log", value=True)

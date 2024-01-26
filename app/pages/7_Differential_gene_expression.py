@@ -301,7 +301,7 @@ class DGE:
             with violin_plots_specific_genes:
                 with st.form(key="violin_plots_specific_genes"):
                     st.subheader("Measure expression in genes across clusters")
-                    subcol1, subcol2, subcol3, _, _ = st.columns(5, gap="large")
+                    subcol1, subcol2, subcol3, _ = st.columns(4, gap="large")
                     cluster = subcol1.selectbox(label="Group", options=st.session_state.adata_state.current.adata.obs_keys())
                     genes = subcol2.multiselect(label="Genes", options=np.sort(st.session_state.adata_state.current.adata.var_names))
                     subcol1, _, _, _, _, _, _, _, _ = st.columns(9)

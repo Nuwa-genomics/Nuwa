@@ -700,8 +700,6 @@ class Preprocess:
                         fig.update_traces(meanline_visible=True)
                         fig.update_layout(violingap=0, violinmode='overlay', xaxis_title="Phase", yaxis_title="Score", legend_title="Phase") #add legend title
 
-                        
-
                     
                     st.markdown("""<div style='margin-left: 20px; display: flex; align-items: center; justify-content: center;'><h1 style='text-align: center; font-size: 2rem;'>Cell cycle score</h1></div>""", unsafe_allow_html=True)
 
@@ -758,6 +756,3 @@ except KeyError as ke:
 except Exception as e:
     print('Error: ', e)
     st.error(e)
-
-
-
