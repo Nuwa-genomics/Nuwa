@@ -136,6 +136,12 @@ View expression profiles while retaining spatial information. Currently includes
 
 ![Spatial transcriptomics](screenshots/spatial.png "Spatial transcriptomics screenshot")
 
+## Plotly 3D
+
+A 3D interactive chart for visualising cluster embeddings.
+
+![Plotly chart](screenshots/plotly.mov "Plotly chart")
+
 ## Access bioconda evironment
 
 You can access the docker container by running:
