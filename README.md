@@ -140,7 +140,10 @@ View expression profiles while retaining spatial information. Currently includes
 
 A 3D interactive chart for visualising cluster embeddings.
 
-![Plotly chart](screenshots/plotly.mov "Plotly chart")
+![plotly.webm](screenshots/plotly.mov)
+
+[plotly.webm](https://github.com/ch1ru/Nuwa/assets/48340051/2b089ef7-88d1-4693-a069-c7b70de758d9)
+
 
 ## Access bioconda evironment
 
