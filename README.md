@@ -25,7 +25,7 @@ git clone https://github.com/ch1ru/Nuwa.git && cd Nuwa
 
 2.Install and configure [Nvidia container toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) for docker
 
-3.Bring up container using CUDA dockerfile: 
+3.Bring up containers using CUDA dockerfile: 
 ```bash
 docker-compose -f cuda.docker-compose.yml up -d --build
 ```
@@ -54,7 +54,7 @@ E: Release file for http://archive.ubuntu.com/ubuntu/dists/focal-updates/InRelea
 
 Preprocess 10x genomics reads using scanpy's preprocessing module:
 - Filter genes and cell metrics 
-- Annotate and filter mitochrondrial, ribosomal and heamoglobin genes 
+- Annotate and filter mitochrondrial, ribosomal and haemoglobin genes 
 - Show highly variable genes
 - Show most expressed genes
 - Normalize, logarithmize and scale data
@@ -101,7 +101,7 @@ Cluster analysis consists of:
 
 ## Differential gene expression
 
-Differential gene expression looks at how genes are expressed compared to the rest of the dataset. This includes useful matrix plots, dot plots and violin vlots to visualise this. You can also choose which clusters and statistical tests to run the DE analysis.
+Differential gene expression looks at how genes are expressed compared to the rest of the dataset. This includes useful matrix plots, dot plots and violin vlots to visualise variable expression. You can also choose which clusters and statistical tests to run the DE analysis.
 
 ![Differential gene expression](screenshots/de1.png "DE analysis")
 
