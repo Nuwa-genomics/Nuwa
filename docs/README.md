@@ -26,13 +26,15 @@ Navigate to http://localhost to use the app. Files are mounted to the streamlit-
 
 ## Features
 
-- Shortcodes (Toasts card, mermaid)
-- Pages Plugins (emoji, gist, avatar, mentions)
-- Auto generate sidebar
-- [Attribute List Definitions](https://kramdown.gettalong.org/syntax.html#attribute-list-definitions) (Primer/css utilities, Font Awesome 4)
-- Service worker (caches)
-- SEO (404, robots.txt, sitemap.xml)
-- Canonical Link (Open Graph, Twitter Card, Schema data)
+- Upload scRNA expression matrices in multiple formats (h5ad, mtx, loom supported) including built-in datasets and online datasets using their EBI accession key
+- Preprocess data (includes mito, ribo and haem annotation, cell & gene filtering, highly variable genes, data scaling and normalization, cell-cycle scoring, batch effect correction, doublet detection, downsampling, subsampling and automated preprocessing recipes included in scanpy.)
+- Integrate different dataset types using BBKNN, scanorama and Ingest
+- Visualise differential gene expression using multiple statistical tests across clusters or individual genes
+- A variety of deep learning models such as doublet detection with Solo and cluster analysis using Cite-seq autoencoder. Adjustable hyperparameters and hardware devices
+- Trajectory inference on data and easily adding PAGA embeddings to data
+- Spatial transcriptomics with metrics such as Ripley and Centrality scoring
+- 3D interactive chart to view generated clusters
+- Terminal to interact with the docker container running a bioconda environment
 
 
 ## License
