@@ -1,8 +1,8 @@
 # Nuwa
 
+[![](https://dcbadge.vercel.app/api/server/wBDavdWp8n)](https://discord.gg/wBDavdWp8n)
 [![Stars](https://img.shields.io/github/stars/ch1ru/nuwa?logo=GitHub&color=yellow)](https://github.com/ch1ru/nuwa/stargazers)
 ![CI](https://github.com/ch1ru/nuwa/actions/workflows/run_tests.yml/badge.svg?branch=main)
-[![](https://dcbadge.vercel.app/api/server/wBDavdWp8n)](https://discord.gg/wBDavdWp8n)
 
 A bioinformatics web tool built with scanpy for genomics data processing and analysis.
 
@@ -12,7 +12,7 @@ Currently in beta version, **not** recommended for use in research or commercial
 
 ## What it does?
 
-Nuwa is an open-source, graphical web tool for scRNA seq analysis. It primarily focuses on functionality available in the Scanpy library, but also includes other software packages as well as several deep learning models. Users must run the web server locally using our docker compose files and then access it in the browser.
+Nuwa is an open-source, graphical web tool for single cell RNA seq analysis. It primarily focuses on functionality available in the Scanpy library, but also includes other software packages as well as several deep learning models. Users must run the web server locally using our docker compose files and then access it in the browser.
 
 ## Quick start
 
