@@ -1,7 +1,10 @@
 [![](https://dcbadge.vercel.app/api/server/wBDavdWp8n)](https://discord.gg/wBDavdWp8n)
 
 <div style='display: flex;' align="center">
-    <img src="screenshots/logo.png" width='500'></img>
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="screenshots/logo.png">
+        <img src="screenshots/logo_black.png" width='500'></img>
+    </picture>
 </div>
 
 A bioinformatics web tool built with streamlit and scanpy for genomics data processing and analysis 🧬🐍. 
