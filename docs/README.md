@@ -14,9 +14,24 @@ Nuwa aims to integrate several deep learning models in a visual, easy to use int
 ```bash
 #clone repo
 git clone https://github.com/ch1ru/Nuwa.git && cd Nuwa
-#If you have a Nvidia GPU
+```
+
+```note
+## If using a GPU
+If you are planning to use a GPU for faster training:
+- Make sure cuda drivers are installed on the host machine.
+- Install and configure [Nvidia container toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) for docker
+```
+
+Then bring up containers:
+
+for GPU:
+```bash
 docker-compose -f cuda.docker-compose.yml up -d --build
-#Or if you have a CPU
+```
+
+Or for CPU only:
+```bash
 docker-compose -f cpu.docker-compose.yml up -d --build
 ```
 
