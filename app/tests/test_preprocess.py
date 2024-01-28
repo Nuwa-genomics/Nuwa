@@ -100,7 +100,11 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        self.test_sampling_data()
+        self.test_downsampling_data()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
+        self.test_subsampling_data()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
@@ -317,9 +321,34 @@ class Test_Preprocess:
         assert np.array_equal(self.at.session_state['pp_df_pca']['color'], df['color'])
         
         
-        
-    def test_sampling_data(self):
+    def test_downsampling_data(self):
         print(f"{bcolors.OKBLUE}test_sampling_adata {bcolors.ENDC}", end="")
+
+        self.at.number_input(key="ni_downsample_total_counts").set_value(1000)
+        self.at.button(key="Formsubmitter:downsample_form_total_counts-Apply").click().run(timeout=100)
+        assert self.at.session_state.adata_state.current.adata.to_df().sum().sum() == 1000
+
+        self.at.number_input(key="ni_downsample_counts_per_cell").set_value(1.5)
+        self.at.button(key="FormSubmitter:downsample_form_counts_per_cell-Apply").click().run(timeout=100)
+        assert self.at.session_state.adata_state.current.adata.n_obs * 1.5 == self.at.session_state.adata_state.current.adata.to_df().sum().sum()
+
+
+    def test_subsampling_data(self):
+        print(f"{bcolors.OKBLUE}test_sampling_adata {bcolors.ENDC}", end="")
+
+        original_n_obs = self.at.session_state.adata_state.current.adata.n_obs
+        fraction = 0.9
+        self.at.number_input(key="ni_subsample_fraction").set_value(fraction).run(timeout=100)
+        self.at.button(key="FormSubmitter:subsample_form_fraction-Apply").click().run(timeout=100)
+        subsampled_n_obs = self.at.session_state.adata_state.current.adata.n_obs
+        assert float(subsampled_n_obs) == original_n_obs * fraction
+
+        original_n_obs = self.at.session_state.adata_state.current.adata
+        n_obs = round(original_n_obs * 0.9)
+        self.at.number_input(key="ni_subsample_n_obs").set_value(n_obs).run(timeout=100)
+        self.at.button(key="FormSubmitter:subsample_form_n_obs-Apply").click().run(timeout=100)
+        assert self.at.session_state.adata_state.current.adata.n_obs == n_obs
+
 
     def test_cell_cycle_scoring(self):
         print(f"{bcolors.OKBLUE}test_cell_cycle_scoring {bcolors.ENDC}", end="")
@@ -332,10 +361,5 @@ class Test_Preprocess:
     def get_final_session_state(self):
         return self.at.session_state
     
-        
-
-
-
-
-
+    
         

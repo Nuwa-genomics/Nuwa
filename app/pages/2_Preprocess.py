@@ -456,7 +456,7 @@ class Preprocess:
         counts_per_cell, total_counts = st.tabs(["counts_per_cell", "total_counts"])
         with counts_per_cell:
             with st.form(key="downsample_form_counts_per_cell"):
-                counts_per_cell = st.number_input(label="Counts per cell", help="Target total counts per cell. If a cell has more than 'counts_per_cell', it will be downsampled to this number. Resulting counts can be specified on a per cell basis by passing an array.Should be an integer or integer ndarray with same length as number of obs.")
+                counts_per_cell = st.number_input(label="Counts per cell", key="ni_downsample_counts_per_cell", help="Target total counts per cell. If a cell has more than 'counts_per_cell', it will be downsampled to this number. Resulting counts can be specified on a per cell basis by passing an array.Should be an integer or integer ndarray with same length as number of obs.")
                 subcol1, _, _ = st.columns(3)
                 btn_downsample_counts_per_cell = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_downsample_counts_per_cell:
@@ -467,7 +467,7 @@ class Preprocess:
                     st.toast("Successfully downsampled data per cell", icon="✅")
         with total_counts:
             with st.form(key="downsample_form_total_counts"):
-                total_counts = st.number_input(label="Total counts", help="Target total counts. If the count matrix has more than total_counts it will be downsampled to have this number.")
+                total_counts = st.number_input(label="Total counts", key="ni_downsample_total_counts", help="Target total counts. If the count matrix has more than total_counts it will be downsampled to have this number.")
                 subcol1, _, _ = st.columns(3)
                 btn_downsample_total_counts = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_downsample_total_counts:
@@ -483,7 +483,7 @@ class Preprocess:
         n_obs, fraction = st.tabs(["n_obs", "fraction"])
         with n_obs:
             with st.form(key="subsample_form_n_obs"):
-                n_obs = st.number_input(label="n obs", help="Subsample to this number of observations.")
+                n_obs = st.number_input(label="n obs", key="ni_subsample_n_obs", help="Subsample to this number of observations.")
                 subcol1, _, _ = st.columns(3)
                 btn_subsample_n_obs = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_subsample_n_obs:
@@ -494,7 +494,7 @@ class Preprocess:
                     st.toast("Successfully subsampled data", icon="✅")
         with fraction:
             with st.form(key="subsample_form_fraction"):
-                fraction = st.number_input(label="subsample_fraction", help="Subsample this fraction of the number of observations.")
+                fraction = st.number_input(label="subsample_fraction", key="ni_subsample_fraction", help="Subsample this fraction of the number of observations.")
                 subcol1, _, _ = st.columns(3)
                 btn_subsample_fraction = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_subsample_fraction:

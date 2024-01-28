@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from database.schemas import schemas
 from utils.AdataState import AdataState
 from utils.ScriptState import ScriptState
+from utils.session_cache import load_data_from_cache, cache_data_to_session
 import loompy as lmp
 import glob
 from components.sidebar import Sidebar
@@ -98,7 +99,10 @@ class Upload:
 
         except KeyError as ke:
             print("KeyError: ", ke)
-            st.error("Couldn't find workspace in session, have you selected one?")
+            if(st.session_state == {}):
+                load_data_from_cache()
+            else:
+                st.error("Couldn't find workspace in session, have you selected one?")
             
         
 
@@ -255,6 +259,7 @@ class Upload:
                 
             self.show_sidebar_preview(f)
             
+            cache_data_to_session()
             
 
         except ValidationError as e:

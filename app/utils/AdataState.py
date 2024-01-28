@@ -12,7 +12,6 @@ import os
 class AdataState:
     def __init__(self, active: AdataModel, insert_into_db=True):
         self.conn: Session = SessionLocal()
-        self.conn
         self.workspace_id = active.work_id
         #set initial value for current adata. This won't include timestamp or id so needs to be reinitialised.
         self.current = active
@@ -60,7 +59,9 @@ class AdataState:
             adata_list = [AdataModel(work_id=adata.work_id, id=adata.id, filename=adata.filename, notes=adata.notes, created=adata.created, adata_name=adata.adata_name) for adata in adatas]
             return adata_list
         
+        st.info("Finished loading")
         adata = self.conn.query(schemas.Adata).filter(schemas.Adata.work_id == workspace_id).filter(schemas.Adata.adata_name == adata_name).first()
+        
        
         if adata:
             return AdataModel(work_id=adata.work_id, id=adata.id, filename=adata.filename, notes=adata.notes, created=adata.created, adata_name=adata.adata_name, adata=sc.read_h5ad(adata.filename))

@@ -4,11 +4,11 @@
     <img src="screenshots/logo.png" width='500'></img>
 </div>
 
-A bioinformatics web tool built with scanpy for genomics data processing and analysis 🧬🐍. 
+A bioinformatics web tool built with streamlit and scanpy for genomics data processing and analysis 🧬🐍. 
 
 ### \*\*Work in progress! ⚠️\*\*
 
-Deep neural networks have many potential use cases for genomic analyses including quality control, dimensionality reduction or even spatial transcriptomics. Nuwa aims to integrate several deep learning models in a visual, easy to use interface with other filtering and data analysis familiar to most scanpy users. 
+Deep neural networks have many potential use cases for genomic analyses including quality control, dimensionality reduction or even spatial transcriptomics. Nuwa aims to integrate several deep learning models in a visual, easy to use interface with other filtering and data analysis familiar to scanpy users. 
 
 ## Getting Started
 
@@ -92,10 +92,10 @@ Automatically selects a Cuda capable GPU for faster training if one is available
 
 Cluster analysis consists of:
 - Autoencoder cluster plot
+- tSNE cluster plot
 - Principal Component Analysis of selected genes
 - Variance ratio of principal components
 - Neighbourhood graph
-- Locate marker genes
 
 ![Analysis](screenshots/analysis.png "Analysis")
 

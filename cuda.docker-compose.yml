@@ -10,6 +10,7 @@ services:
     restart: on-failure
     volumes:
       - ./app/.streamlit:/root/.streamlit
+      - ./app/tmp:/app/tmp
       - ./streamlit-volume:/streamlit-volume
     env_file:
       - .env
@@ -19,6 +20,7 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
+      - TMP_DIR=/app/tmp
     ports:
       - ${SERVER_ADDR}:${HOST_PORT}:8501
     deploy:

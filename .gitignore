@@ -4,6 +4,7 @@ postgresql/data
 app/ml/DeepST/Results
 app/figures
 app/datasets
+app/tmp
 __pycache__
 streamlit-volume
 .pytest_cache
