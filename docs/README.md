@@ -7,9 +7,11 @@ A bioinformatics web tool built with scanpy for genomics data processing and ana
 
 ## What it does?
 
-Nuwa aims to integrate several deep learning models in a visual, easy to use interface with other filtering and data analysis familiar to most scanpy users.
+Nuwa is an open-source, graphical web tool for scRNA seq analysis. It primarily focuses on functionality available in the Scanpy library, but also includes other software packages as well as several deep learning models. Users must run the web server locally using our docker compose files and then access it in the browser.
 
 ## Quick start
+
+**Clone the repo:**
 
 ```bash
 #clone repo
@@ -23,7 +25,7 @@ If you are planning to use a GPU for faster training:
 - Install and configure [Nvidia container toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) for docker
 ```
 
-Then bring up containers:
+**Then bring up containers:**
 
 for GPU:
 ```bash
