@@ -11,6 +11,7 @@ services:
     volumes:
       - ./app/.streamlit:/root/.streamlit
       - ./streamlit-volume:/streamlit-volume
+      - ./app/tmp:/app/tmp
     env_file:
       - .env
     environment:
