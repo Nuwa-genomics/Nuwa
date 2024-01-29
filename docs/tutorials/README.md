@@ -1,8 +1,8 @@
 ---
-sort: 1
+sort: 3
 ---
 
-# PBMC3K
+# Tutorials
 
 ```
 {% raw %}{% include list.liquid all=true %}{% endraw %}
@@ -11,4 +11,3 @@ sort: 1
 ```
 
 {% include list.liquid all=true %}
-
