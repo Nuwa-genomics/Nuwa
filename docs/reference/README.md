@@ -1,9 +1,4 @@
-
----
-sort: 2
----
-
-# Documentation
+# Reference
 
 ```
 {% raw %}{% include list.liquid all=true %}{% endraw %}
