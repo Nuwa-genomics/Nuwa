@@ -12,7 +12,7 @@ Currently in beta version, **not** recommended for use in research or commercial
 
 ## What it does?
 
-Nuwa is an open-source, graphical web tool for single cell RNA seq analysis. It primarily focuses on functionality available in the Scanpy library, but also includes other software packages as well as several deep learning models. Users must run the web server locally using our docker compose files and then access it in the browser.
+Nuwa is an open-source, graphical web tool for single cell RNA seq analysis. It primarily focuses on functions available within the Scanpy library, but also incorporates other software packages and deep learning models. Nuwa runs on a local web server which users access in their browser. 
 
 ## Quick start
 
