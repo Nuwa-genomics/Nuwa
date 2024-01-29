@@ -3,7 +3,7 @@ import os
 import glob
 
 
-root = "../app/pages"
+root = "app/pages"
 
 python_files = glob.glob("*.py", root_dir=root)
 print(python_files)
@@ -37,7 +37,7 @@ for file in python_files:
                     if ast.get_docstring(method):
                         print(ast.get_docstring(method))
                         
-                        f = open(f"./reference/{class_.name}/{method.name}.md", "w")
+                        f = open(f"./docs/reference/{class_.name}/{method.name}.md", "w")
                         f.write(f"## {method.name}\n```{ast.get_docstring(method)}```")
                         f.close()
                     else:
