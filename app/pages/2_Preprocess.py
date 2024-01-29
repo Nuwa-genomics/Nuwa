@@ -56,7 +56,7 @@ class Preprocess:
         
         Parameters
         ----------
-        n_top_genes
+        n_top_genes : int
             Number of top gene symbols to show.
         """
         with st.form(key="form_highest_expr"):

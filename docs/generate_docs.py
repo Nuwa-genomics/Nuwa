@@ -35,19 +35,19 @@ for file in python_files:
                 for method in methods:
                     print(method.name)
                     if ast.get_docstring(method):
-                        markdown = f"## {method.name}"
                         docstring_raw = ast.get_docstring(method)
                         docstring = parse(docstring_raw)
+                        markdown = f"## {method.name}\n{docstring.short_description}"
 
                         #parameters
                         if len(docstring.params) > 0:
-                            markdown = markdown + "## Parameters"
+                            markdown = markdown + "\n## Parameters"
                             for i, param in enumerate(docstring.params):
-                                markdown += f"```{docstring.params[i].arg_name}: {docstring.params[i].type_name}```"
+                                markdown += f"\n```{docstring.params[i].arg_name}: {docstring.params[i].type_name}```"
                                 markdown += docstring.params[i].description
                         
                         f = open(f"./docs/reference/{class_.name}/{method.name}.md", "w")
-                        f.write(f"## {method.name}\n{ast.get_docstring(method)}")
+                        f.write(markdown)
                         f.close()
                     else:
                         print("WARNING: No Doctype")
