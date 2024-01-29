@@ -2,10 +2,8 @@ import ast
 import os
 import glob
 
-path = r'*.py'
-files = []
-root = "../app/pages"
 
+root = "../app/pages"
 
 python_files = glob.glob("*.py", root_dir=root)
 print(python_files)
@@ -38,6 +36,10 @@ for file in python_files:
                     print(method.name)
                     if ast.get_docstring(method):
                         print(ast.get_docstring(method))
+                        
+                        f = open(f"./reference/{class_.name}/{method.name}.md", "w")
+                        f.write(f"```{ast.get_docstring(method)}```")
+                        f.close()
                     else:
                         print("WARNING: No Doctype")
 
