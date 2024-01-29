@@ -6,6 +6,7 @@ import warnings
 import numpy as np
 
 from models.AdataModel import AdataModel
+from utils.plotting import highest_expr_genes_box_plot
 from components.sidebar import *
 from datetime import datetime
 
@@ -42,8 +43,7 @@ class Preprocess:
         self.adata = adata
         self.conn: Session = SessionLocal()
         st.title("Preprocess")
-        
-        
+    
         
     def save_adata(self):
         sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'adata', st.session_state.adata_state.current.adata_name), adata=self.adata)
@@ -51,16 +51,24 @@ class Preprocess:
          
 
     def filter_highest_expr_genes(self):
+        """
+        Fraction of counts assigned to each gene over all cells. Computes, for each gene, the fraction of counts assigned to that gene within a cell. The n_top genes with the highest mean fraction over all cells are plotted as boxplots.
+        
+        Parameters
+        ----------
+        n_top_genes
+            Number of top gene symbols to show.
+        """
         with st.form(key="form_highest_expr"):
             st.subheader("Show highest expressed genes")
-            num_genes = st.number_input(label="Number of genes", min_value=1, max_value=100, value=20, key="n_top_genes")
+            n_top_genes = st.number_input(label="Number of genes", min_value=1, max_value=100, value=20, key="ni:pp:highly_variable:n_top_genes")
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Filter", use_container_width=True)
 
             if submit_btn:
                 with st.spinner(text="Calculating highest expressed genes"):
-                    ax = sc.pl.highest_expr_genes(self.adata, n_top=num_genes, save=True)
-                    st.pyplot(ax)
+                    fig = highest_expr_genes_box_plot(self.adata, n_top=n_top_genes)
+                    st.plotly_chart(fig)
                         
                         
     def remove_genes(self):
