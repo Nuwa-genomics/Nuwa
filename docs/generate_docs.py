@@ -38,7 +38,7 @@ for file in python_files:
                         print(ast.get_docstring(method))
                         
                         f = open(f"./reference/{class_.name}/{method.name}.md", "w")
-                        f.write(f"```{ast.get_docstring(method)}```")
+                        f.write(f"## {method.name}\n```{ast.get_docstring(method)}```")
                         f.close()
                     else:
                         print("WARNING: No Doctype")
