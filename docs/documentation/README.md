@@ -3,7 +3,7 @@
 sort: 2
 ---
 
-# API
+# Documentation
 
 ```
 {% raw %}{% include list.liquid all=true %}{% endraw %}
