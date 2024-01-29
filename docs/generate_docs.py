@@ -1,7 +1,7 @@
 import ast
 import os
 import glob
-
+from docstring_parser import parse
 
 root = "app/pages"
 
@@ -35,10 +35,19 @@ for file in python_files:
                 for method in methods:
                     print(method.name)
                     if ast.get_docstring(method):
-                        print(ast.get_docstring(method))
+                        markdown = f"## {method.name}"
+                        docstring_raw = ast.get_docstring(method)
+                        docstring = parse(docstring_raw)
+
+                        #parameters
+                        if len(docstring.params) > 0:
+                            markdown = markdown + "## Parameters"
+                            for i, param in enumerate(docstring.params):
+                                markdown += f"```{docstring.params[i].arg_name}: {docstring.params[i].type_name}```"
+                                markdown += docstring.params[i].description
                         
                         f = open(f"./docs/reference/{class_.name}/{method.name}.md", "w")
-                        f.write(f"## {method.name}\n```{ast.get_docstring(method)}```")
+                        f.write(f"## {method.name}\n{ast.get_docstring(method)}")
                         f.close()
                     else:
                         print("WARNING: No Doctype")
