@@ -1,7 +1,3 @@
----
-sort: 1
----
-
 # Installation
 
 ## 1. Install Docker Compose 🐋
