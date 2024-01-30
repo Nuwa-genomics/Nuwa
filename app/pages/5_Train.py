@@ -108,8 +108,6 @@ class Train:
        
         elif(isinstance(self.model['model'], solo_model)):
             st.session_state["trained_model"] = self.model['model'].train(callback=self.train_pgb_non_specific)
-        elif(isinstance(self.model['model'], DeepSTModel)):
-            st.session_state["trained_model"] = self.model['model'].run(callback=self.train_pgb_non_specific)
 
 try:
     adata = st.session_state.adata_state.current.adata

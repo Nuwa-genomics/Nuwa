@@ -139,12 +139,6 @@ class Cluster_analysis:
                                     self.save_adata(name="adata_solo")
                                     st.toast("Removed doublet predictions", icon='✅')
 
-                    elif(isinstance(trained_model, DeepSTModel)):
-                        with st.spinner(text="Preparing embeddings"):
-                            st.subheader("DeepST model")
-                            ax_df = trained_model.get_adata_df()
-                            st.scatter_chart(ax_df, x='fr1', y='fr2', color='color', height=600)
-
 
                     else:
                         st.error("Unknown model")

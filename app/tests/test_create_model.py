@@ -45,10 +45,7 @@ class Test_Create_Model:
                 assert self.at.session_state.model_obj["lr"] == 0.0015
                 assert self.at.session_state.model_obj["n_epochs"] == 10
                 assert self.at.session_state.model_obj["train_size"] == 0.11
-                
-            elif model == "DeepST (identify spatial domains)":
-                self.at.number_input(key="ni_deepst_epochs").set_value(10).run(timeout=100)
-                self.at.number_input(key="ni_deepst_preepochs").set_value(10).run(timeout=100)
+
             else:
                 print("Error: Unknown model")
                 assert self.at.exception
