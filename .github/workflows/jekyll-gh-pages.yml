@@ -26,12 +26,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Update docs
         run: |
           pip install docstring-parser==0.15
           python docs/generate_docs.py
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Build with Jekyll
