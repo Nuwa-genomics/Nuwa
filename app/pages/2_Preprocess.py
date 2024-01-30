@@ -39,6 +39,17 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
 class Preprocess:
+    """
+    Apply preprocessing on raw data for more effective analysis and detecting biological signal.
+    
+    Attributes
+    ----------
+    conn: Session
+        Connection to postgresql database.
+    adata: Anndata
+        Gene expression matrix. 
+    """
+
     def __init__(self, adata):
         self.adata = adata
         self.conn: Session = SessionLocal()

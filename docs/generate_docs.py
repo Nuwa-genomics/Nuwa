@@ -26,10 +26,7 @@ classes_ordered = ["Upload", "Preprocess", "Integrate", "Create_CiteSeq_model", 
 for cls in classes_ordered:
     os.mkdir(f"./docs/reference/{cls}")
 
-#populate with readmes
-for i, dir in enumerate(classes_ordered):
-    with open(f"./docs/reference/{dir}/README.md", "w") as f:
-        f.write(f"---\nsort: {i+1}\n---\n# {dir.replace('_', ' ')}\n\n{{% include list.liquid all=true %}}")
+
 
 
 src_root = "app/pages" #root folder for source code
@@ -56,6 +53,11 @@ for file in python_files:
             class_definitions = [node for node in module.body if isinstance(node, ast.ClassDef)]
             for class_ in class_definitions:
                 print("\nClass name:", class_.name)
+
+                if os.path.exists(f'./docs/reference/{class_.name}'):
+                    with open(f"./docs/reference/{class_.name}/README.md", "w") as f:
+                        f.write(f"---\nsort: {classes_ordered.index(class_.name)}\n---\n# {class_.name.replace('_', ' ')}\n\n{parse(ast.get_docstring(class_)).short_description}\n\n{{% include list.liquid all=true %}}")
+
                 methods = [n for n in class_.body if isinstance(n, ast.FunctionDef)]
                 for method in methods:
                     print(method.name)
