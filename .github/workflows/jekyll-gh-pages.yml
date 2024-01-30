@@ -32,6 +32,11 @@ jobs:
         run: |
           pip install docstring-parser==0.15
           python docs/generate_docs.py
+      - name: Commit and push changes
+        run: |
+          git add -A
+          git commit -m "updated docs"
+          git push
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Build with Jekyll
