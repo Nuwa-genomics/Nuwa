@@ -58,6 +58,10 @@ class Preprocess:
         ----------
         n_top_genes : int
             Number of top gene symbols to show.
+
+        Examples
+        --------
+        [screenshot](file/name/here)
         """
         with st.form(key="form_highest_expr"):
             st.subheader("Show highest expressed genes")
