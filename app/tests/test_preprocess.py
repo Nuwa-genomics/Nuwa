@@ -149,7 +149,7 @@ class Test_Preprocess:
         
     def test_filter_highest_expressed(self):
         print(f"{bcolors.OKBLUE}test_filter_highest_expressed {bcolors.ENDC}", end="")
-        self.at.number_input(key="n_top_genes").increment() #increase to 21
+        self.at.number_input(key="ni:pp:highly_variable:n_top_genes").increment() #increase to 21
         self.at.button(key="FormSubmitter:form_highest_expr-Filter").click().run(timeout=100)
         #convert pdf to png
         pdf_images = convert_from_path('figures/highest_expr_genes.pdf')

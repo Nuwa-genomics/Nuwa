@@ -85,7 +85,7 @@ for file in python_files:
                             markdown = markdown + f"\n```python\n{docstring.examples[i].description}\n```"
                         
                         
-                        f = open(f"./docs/reference/{class_.name}/{method.name.replace('_', '_')}.md", "w")
+                        f = open(f"./docs/reference/{class_.name}/{method.name}.md", "w")
                         f.write(markdown)
                         f.close()
                     else:

@@ -76,8 +76,8 @@ class Preprocess:
 
         Example
         -------
-        import os
-        import scanpy as sc
+        >>> import scanpy as sc
+        >>> sc.pl.highest_expr_genes(adata, n_top=20)
         """
         with st.form(key="form_highest_expr"):
             st.subheader("Show highest expressed genes")
@@ -87,6 +87,7 @@ class Preprocess:
 
             if submit_btn:
                 with st.spinner(text="Calculating highest expressed genes"):
+                    st.session_state["script_state"].add_script(f"\n#Show highest expr genes\nsc.pl.highest_expr_genes(adata, n_top=20)\n")
                     fig = highest_expr_genes_box_plot(self.adata, n_top=n_top_genes)
                     st.plotly_chart(fig)
                         
