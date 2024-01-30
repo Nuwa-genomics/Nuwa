@@ -41,6 +41,7 @@ for file in python_files:
 
                         #screenshots
                         if len(docstring.examples) > 0:
+                            markdown += "\n## Web view"
                             for i, example in enumerate(docstring.examples):
                                 markdown += f"\n{docstring.examples[i].description}"
                     
