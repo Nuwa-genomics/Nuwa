@@ -35,36 +35,32 @@ python_files = glob.glob("*.py", root_dir=src_root)
 
 for file in python_files:
         with open(os.path.join(src_root, file)) as fd:
-            print()
-            print(file)
-            print("Functions:")
             file_contents = fd.read()
             module = ast.parse(file_contents)
                 
+            #functions not contained in a class
             function_definitions = [node for node in module.body if isinstance(node, ast.FunctionDef)]
             for f in function_definitions:
-                print(f.name)
                 if ast.get_docstring(f):
-                    print(ast.get_docstring(f))
+                    #print(ast.get_docstring(f))
+                    raise NotImplemented
                 else:
-                     print("WARNING: No Doctype")
+                     print(f"WARNING: No Doctype: {f.name} in {file}")
                 
 
             class_definitions = [node for node in module.body if isinstance(node, ast.ClassDef)]
             for class_ in class_definitions:
-                print("\nClass name:", class_.name)
 
                 if os.path.exists(f'./docs/reference/{class_.name}'):
                     with open(f"./docs/reference/{class_.name}/README.md", "w") as f:
-                        f.write(f"---\nsort: {classes_ordered.index(class_.name)}\n---\n# {class_.name.replace('_', ' ')}\n\n{parse(ast.get_docstring(class_)).short_description}\n\n{{% include list.liquid all=true %}}")
+                        f.write(f"---\nsort: {classes_ordered.index(class_.name)}\n---\n# {class_.name.replace('_', ' ')}\n\n{parse(ast.get_docstring(class_)).short_description}\n\n## Methods:\n\n{{% include list.liquid all=true %}}")
 
                 methods = [n for n in class_.body if isinstance(n, ast.FunctionDef)]
                 for method in methods:
-                    print(method.name)
                     if ast.get_docstring(method):
                         docstring_raw = ast.get_docstring(method)
                         docstring = parse(docstring_raw)
-                        markdown = f"# {method.name}\n{docstring.short_description}"
+                        markdown = f"# {method.name.replace('_', ' ')}\n{docstring.short_description}"
 
                         #parameters
                         if len(docstring.params) > 0:
@@ -89,11 +85,11 @@ for file in python_files:
                             markdown = markdown + f"\n```python\n{docstring.examples[i].description}\n```"
                         
                         
-                        f = open(f"./docs/reference/{class_.name}/{method.name}.md", "w")
+                        f = open(f"./docs/reference/{class_.name}/{method.name.replace('_', '_')}.md", "w")
                         f.write(markdown)
                         f.close()
                     else:
-                        print("WARNING: No Docstring")
+                        print(f"WARNING: No Docstring: {class_.name}.{method.name}")
 
                     
 
