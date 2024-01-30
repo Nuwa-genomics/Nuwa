@@ -61,7 +61,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image::![screenshot](https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/highest_expr_genes.png)
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/highest_expr_genes.png
 
         Example
         -------

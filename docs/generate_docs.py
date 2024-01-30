@@ -40,6 +40,12 @@ for file in python_files:
                         docstring = parse(docstring_raw)
                         markdown = f"## {method.name}\n{docstring.short_description}"
 
+                        #parameters
+                        if len(docstring.params) > 0:
+                            markdown = markdown + "\n### Parameters"
+                            for i, param in enumerate(docstring.params):
+                                markdown += f"\n```{docstring.params[i].arg_name}: {docstring.params[i].type_name}``` {docstring.params[i].description}"
+
                         #screenshots
                         if len(docstring.examples) > 0:
                             markdown += "\n### Web view"
@@ -48,15 +54,9 @@ for file in python_files:
                                 if docstring.meta[i].args[0] == 'notes':    
                                     #capture image string according to numpy docstring format
                                     image_md = re.split(r'image::\s*', docstring.meta[i].description)[-1]
-                                    markdown += f"\n{image_md}"
+                                    markdown += f"\n<img alt='{method.name}_screenshot' src='{image_md}' width='300' height='500'>"
                     
-                        #parameters
-                        if len(docstring.params) > 0:
-                            markdown = markdown + "\n### Parameters"
-                            for i, param in enumerate(docstring.params):
-                                markdown += f"\n```{docstring.params[i].arg_name}: {docstring.params[i].type_name}``` {docstring.params[i].description}"
-
-
+                        
                         #python equivalent
                         markdown = markdown + "\n### Python equivalent"
                         for i, example in enumerate(docstring.examples):
