@@ -6,7 +6,7 @@ app/figures
 app/datasets
 app/tmp
 docs/reference/Preprocess/*.md
-!README.md
+docs/reference/Preprocess/!README.md
 __pycache__
 streamlit-volume
 .pytest_cache
