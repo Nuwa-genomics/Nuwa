@@ -44,7 +44,7 @@ for file in python_files:
                         if len(docstring.params) > 0:
                             markdown = markdown + "\n## Parameters"
                             for i, param in enumerate(docstring.params):
-                                markdown += f"\n```{docstring.params[i].arg_name}: {docstring.params[i].type_name}``` {docstring.params[i].description}"
+                                markdown += f"\n```{docstring.params[i].arg_name}: {docstring.params[i].type_name}``` {docstring.params[i].description}\n---"
 
                         #screenshots
                         if len(docstring.examples) > 0:
