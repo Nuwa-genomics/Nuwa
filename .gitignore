@@ -5,8 +5,7 @@ app/ml/DeepST/Results
 app/figures
 app/datasets
 app/tmp
-docs/reference
-!README.md
+docs/reference/!README.md
 __pycache__
 streamlit-volume
 .pytest_cache
