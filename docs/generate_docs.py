@@ -1,6 +1,7 @@
 import ast
 import os
 import glob
+import re
 from docstring_parser import parse
 
 root = "app/pages"
@@ -41,15 +42,25 @@ for file in python_files:
 
                         #screenshots
                         if len(docstring.examples) > 0:
-                            markdown += "\n## Web view"
-                            for i, example in enumerate(docstring.examples):
-                                markdown += f"\n{docstring.examples[i].description}"
+                            markdown += "\n### Web view"
+                            for i, example in enumerate(docstring.meta):
+                                #look in notes heading
+                                if docstring.meta[i].args[0] == 'notes':    
+                                    #capture image string according to numpy docstring format
+                                    image_md = re.split(r'image::\s*', docstring.meta[i].description)[-1]
+                                    markdown += f"\n{image_md}"
                     
                         #parameters
                         if len(docstring.params) > 0:
-                            markdown = markdown + "\n## Parameters"
+                            markdown = markdown + "\n### Parameters"
                             for i, param in enumerate(docstring.params):
                                 markdown += f"\n```{docstring.params[i].arg_name}: {docstring.params[i].type_name}``` {docstring.params[i].description}"
+
+
+                        #python equivalent
+                        markdown = markdown + "\n### Python equivalent"
+                        for i, example in enumerate(docstring.examples):
+                            markdown = markdown + f"\n```python\n{docstring.examples[i].description}\n```"
                         
                         
                         f = open(f"./docs/reference/{class_.name}/{method.name}.md", "w")

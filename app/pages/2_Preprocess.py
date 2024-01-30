@@ -59,9 +59,13 @@ class Preprocess:
         n_top_genes : int
             Number of top gene symbols to show.
 
-        Examples
-        --------
-        ![screenshot](https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/highest_expr_genes.png)
+        Notes
+        -----
+        .. image::![screenshot](https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/highest_expr_genes.png)
+
+        Example
+        -------
+        import os
         """
         with st.form(key="form_highest_expr"):
             st.subheader("Show highest expressed genes")
