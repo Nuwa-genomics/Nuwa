@@ -66,6 +66,7 @@ class Preprocess:
         Example
         -------
         import os
+        import scanpy as sc
         """
         with st.form(key="form_highest_expr"):
             st.subheader("Show highest expressed genes")
