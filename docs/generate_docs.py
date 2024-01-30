@@ -4,16 +4,17 @@ import glob
 import re
 from docstring_parser import parse
 
-root = "app/pages"
+########################################################################################################
+# This is a script to generate documentation from docstrings. Must be run from 'Nuwa' directory.       #
+# NOTE: Automatically run as part of the github actions workflow and does not need to be run manually. #
+########################################################################################################
 
-python_files = glob.glob("*.py", root_dir=root)
-print(python_files)
+src_root = "app/pages" #root folder for source code
 
-
+python_files = glob.glob("*.py", root_dir=src_root)
 
 for file in python_files:
-
-        with open(os.path.join(root, file)) as fd:
+        with open(os.path.join(src_root, file)) as fd:
             print()
             print(file)
             print("Functions:")
