@@ -23,7 +23,7 @@ with open('css/common.css') as f:
                 """
     st.markdown(common_style, unsafe_allow_html=True)
 
-class Spatial_Transcriptomics:
+class Spatial_transcriptomics:
     def __init__(self, adata):
         self.adata = adata
 
@@ -211,7 +211,7 @@ try:
     sidebar = Sidebar()
     sidebar.show()
 
-    spatial_t = Spatial_Transcriptomics(adata)
+    spatial_t = Spatial_transcriptomics(adata)
     spatial_t.draw_page()
     sidebar.show_preview()
     sidebar.export_script()

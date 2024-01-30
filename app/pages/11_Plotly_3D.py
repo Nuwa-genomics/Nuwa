@@ -19,7 +19,7 @@ with open('css/common.css') as f:
                 """
     st.markdown(common_style, unsafe_allow_html=True)
 
-class Plotly3D:
+class Plotly_3D:
     def __init__(self, adata, df):
         self.adata = adata
         self.df = df
@@ -76,7 +76,7 @@ try:
             
 
     if 'plotly_df' in st.session_state:
-        plotly_3d = Plotly3D(adata, st.session_state.plotly_df)
+        plotly_3d = Plotly_3D(adata, st.session_state.plotly_df)
     else:
         st.info("Run compute plot with selected embeddings to generate a 3D plot.")
 

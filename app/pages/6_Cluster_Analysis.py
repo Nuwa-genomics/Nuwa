@@ -42,7 +42,7 @@ common_style = """
 st.markdown(common_style, unsafe_allow_html=True)
 
 
-class Analysis:
+class Cluster_analysis:
     def __init__(self, adata):
 
         st.title("Analysis")
@@ -336,7 +336,7 @@ try:
     sidebar = Sidebar()
     sidebar.show()
 
-    analysis = Analysis(adata)
+    analysis = Cluster_analysis(adata)
 
     analysis.autoencoder_cluster_plot()
     analysis.tsne_graph()

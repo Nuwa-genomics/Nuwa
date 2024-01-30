@@ -28,7 +28,7 @@ with open('css/common.css') as f:
     st.markdown(common_style, unsafe_allow_html=True)
 
 
-class CreateCiteSeqModel:
+class Create_CiteSeq_model:
     def __init__(self, adata):
         self.adata = adata
         
@@ -153,7 +153,7 @@ class CreateCiteSeqModel:
         st.session_state.model_obj["model"] = model
         st.session_state.model_obj["n_features"] = n_features
 
-class CreateSoloModel:
+class Create_Solo_model:
     def __init__(self, adata):
         self.adata = adata
 
@@ -214,7 +214,7 @@ class CreateSoloModel:
         self.build_model()
 
 
-class CreateDeepSTModel:
+class Create_DeepST_model:
     def __init__(self, adata):
         self.adata = adata
 
@@ -288,7 +288,7 @@ class CreateDeepSTModel:
         
 
 def create_citeseq(adata):
-    create_model = CreateCiteSeqModel(adata)
+    create_model = Create_CiteSeq_model(adata)
 
     create_model.init_device()
 
@@ -304,7 +304,7 @@ def create_citeseq(adata):
     st.json(st.session_state.model_obj, expanded=False)
 
 def create_solo(adata):
-    create_model = CreateSoloModel(adata)
+    create_model = Create_Solo_model(adata)
 
     create_model.init_device()
 
@@ -318,7 +318,7 @@ def create_solo(adata):
     st.json(st.session_state.model_obj, expanded=False)
 
 def create_deepst(adata):
-    create_model = CreateDeepSTModel(adata)
+    create_model = Create_DeepST_model(adata)
 
     create_model.init_device()
 

@@ -23,7 +23,7 @@ with open('css/common.css') as f:
     st.markdown(common_style, unsafe_allow_html=True)
 
 
-class DGE:
+class Differential_gene_expression:
     def __init__(self, adata):
         self.adata = adata
         self.draw_page()
@@ -375,7 +375,7 @@ try:
 
     sidebar.show_preview()
 
-    dge = DGE(st.session_state.adata_state.current.adata.copy())
+    dge = Differential_gene_expression(st.session_state.adata_state.current.adata.copy())
 
     sidebar.export_script()
     sidebar.delete_experiment_btn()

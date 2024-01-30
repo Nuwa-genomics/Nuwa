@@ -10,20 +10,17 @@ import shutil
 # NOTE: Automatically run as part of the github actions workflow and does not need to be run manually. #
 ########################################################################################################
 
-
-
 if os.path.exists('./docs/reference'):
     shutil.rmtree('./docs/reference') #remove old
 
-
+# create root folder for API reference
 os.mkdir('./docs/reference')
-    
 
 #write main mardown file
 with open(f"./docs/reference/README.md", "w") as f:
     f.write("# Reference\n\n{% include list.liquid all=true %}")
 
-classes_ordered = ["Upload", "Preprocess", "Integrate", "Cluster_analysis", "Differential_gene_expression", "Trajectory_inference", "Spatial_transcriptomics", "Terminal", "Plotly_chart_3D", "Utils"]
+classes_ordered = ["Upload", "Preprocess", "Integrate", "Create_CiteSeq_model", "Create_Solo_model", "Create_DeepST_model", "Cluster_analysis", "Differential_gene_expression", "Trajectory_inference", "Spatial_transcriptomics", "Terminal", "Plotly_3D", "Utils"]
 
 #make the sub dirs
 for cls in classes_ordered:

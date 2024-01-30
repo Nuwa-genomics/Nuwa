@@ -22,7 +22,7 @@ with open('css/common.css') as f:
                 """
     st.markdown(common_style, unsafe_allow_html=True)
 
-class Trajectory_Inference:
+class Trajectory_inference:
     def __init__(self, adata):
         try:
             self.adata = adata
@@ -223,7 +223,7 @@ try:
 
     sidebar.show()
 
-    tji = Trajectory_Inference(adata)
+    tji = Trajectory_inference(adata)
 
     tji.draw_page()
 
