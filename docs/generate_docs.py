@@ -3,20 +3,27 @@ import os
 import glob
 import re
 from docstring_parser import parse
+import shutil
 
 ########################################################################################################
 # This is a script to generate documentation from docstrings. Must be run from 'Nuwa' directory.       #
 # NOTE: Automatically run as part of the github actions workflow and does not need to be run manually. #
 ########################################################################################################
 
-if not os.path.exists('./docs/reference'):
-    os.mkdir('./docs/reference')
+
+
+if os.path.exists('./docs/reference'):
+    shutil.rmtree('./docs/reference') #remove old
+
+
+os.mkdir('./docs/reference')
+    
 
 #write main mardown file
 with open(f"./docs/reference/README.md", "w") as f:
     f.write("# Reference\n\n{% include list.liquid all=true %}")
 
-classes_ordered = ["upload", "preprocess", "integrate", "cluster_analysis", "differential_gene_expression", "trajectory_inference", "spatial_transcriptomics", "terminal", "plotly", "utils"]
+classes_ordered = ["Upload", "Preprocess", "Integrate", "Cluster_analysis", "Differential_gene_expression", "Trajectory_inference", "Spatial_transcriptomics", "Terminal", "Plotly_chart_3D", "Utils"]
 
 #make the sub dirs
 for cls in classes_ordered:
@@ -25,7 +32,7 @@ for cls in classes_ordered:
 #populate with readmes
 for i, dir in enumerate(classes_ordered):
     with open(f"./docs/reference/{dir}/README.md", "w") as f:
-        f.write(f"---\nsort: {i}\n---\n# Deep learning models\n\n{{% include list.liquid all=true %}}")
+        f.write(f"---\nsort: {i+1}\n---\n# {dir.replace('_', ' ')}\n\n{{% include list.liquid all=true %}}")
 
 
 src_root = "app/pages" #root folder for source code
@@ -83,7 +90,7 @@ for file in python_files:
                             markdown = markdown + f"\n```python\n{docstring.examples[i].description}\n```"
                         
                         
-                        f = open(f"./docs/reference/{class_.name.lower()}/{method.name}.md", "w")
+                        f = open(f"./docs/reference/{class_.name}/{method.name}.md", "w")
                         f.write(markdown)
                         f.close()
                     else:
