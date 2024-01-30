@@ -76,8 +76,8 @@ class Preprocess:
 
         Example
         -------
-        >>> import scanpy as sc
-        >>> sc.pl.highest_expr_genes(adata, n_top=20)
+        import scanpy as sc
+        sc.pl.highest_expr_genes(adata, n_top=20)
         """
         with st.form(key="form_highest_expr"):
             st.subheader("Show highest expressed genes")
