@@ -76,7 +76,7 @@ for file in python_files:
                                 if docstring.meta[i].args[0] == 'notes':    
                                     #capture image string according to numpy docstring format
                                     image_md = re.split(r'image::\s*', docstring.meta[i].description)[-1]
-                                    markdown += f"\n<img alt='{method.name}_screenshot' src='{image_md}' width='300' height='500'>"
+                                    markdown += f"\n<img style='border-radius:30px;' alt='{method.name}_screenshot' src='{image_md}' width='300' height='500'>"
                     
                         
                         #python equivalent

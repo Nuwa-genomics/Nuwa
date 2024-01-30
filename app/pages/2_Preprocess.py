@@ -93,6 +93,29 @@ class Preprocess:
                         
                         
     def remove_genes(self):
+        """
+        Remove a gene from the dataset. Preserves the complete var names in raw attribute.
+
+        Parameters
+        ----------
+        remove_genes: List[str]
+            A list of gene names to remove.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/highest_expr_genes.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        remove_genes_list = ['malat1']
+        for gene in remove_genes_list:
+            remove_genes = self.adata.var_names.str.startswith(gene)
+            remove = np.array(remove_genes)
+            keep = np.invert(remove)
+            adata = self.adata[:,keep]
+        """
         with st.form(key="remove_genes_form"):
             st.subheader("Remove genes")
             remove_genes = st.multiselect(label="Genes", options=self.adata.var_names)
