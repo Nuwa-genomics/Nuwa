@@ -38,6 +38,11 @@ for file in python_files:
                         docstring_raw = ast.get_docstring(method)
                         docstring = parse(docstring_raw)
                         markdown = f"## {method.name}\n{docstring.short_description}"
+
+                        #screenshots
+                        if len(docstring.examples) > 0:
+                            for i, example in enumerate(docstring.examples):
+                                markdown += f"\n{docstring.examples[i].description}"
                     
                         #parameters
                         if len(docstring.params) > 0:
@@ -45,18 +50,12 @@ for file in python_files:
                             for i, param in enumerate(docstring.params):
                                 markdown += f"\n```{docstring.params[i].arg_name}: {docstring.params[i].type_name}``` {docstring.params[i].description}"
                         
-                        if len(docstring.examples) > 0:
-                            for i, example in enumerate(docstring.examples):
-                                markdown += f"\n{docstring.examples[i].description}"
-
+                        
                         f = open(f"./docs/reference/{class_.name}/{method.name}.md", "w")
                         f.write(markdown)
                         f.close()
                     else:
-                        print("WARNING: No Doctype")
+                        print("WARNING: No Docstring")
 
-            print()
-            print()
-            print()
                     
 

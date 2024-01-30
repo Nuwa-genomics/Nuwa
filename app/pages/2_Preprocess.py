@@ -61,7 +61,7 @@ class Preprocess:
 
         Examples
         --------
-        [screenshot](file/name/here)
+        ![screenshot](https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/highest_expr_genes.png)
         """
         with st.form(key="form_highest_expr"):
             st.subheader("Show highest expressed genes")
