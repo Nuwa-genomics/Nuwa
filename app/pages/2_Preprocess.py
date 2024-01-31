@@ -398,12 +398,50 @@ class Preprocess:
 
 
     def recipes(self):
+        """
+        Apply a standard preprocessing recipe to the data.
+
+        Parameters
+        ----------
+        recipe: str
+            Type of preprocessing recipe to apply. Available options are Seurat, Weinrev17 and Zheng17.
+
+        log: bool
+            Apply log tranform to data. If data is already logarithmized, set this to False.
+
+        n_top_genes: int
+            Number of genes to keep. Used for Zheng17 recipe.
+
+        mean_threshold: float
+            mean value for threshold. Used for Weinreb17 recipe.
+
+        cv_threshold: float
+            cv value for threshold. Used for Weinreb17 recipe.
+
+        n_pcs: int
+            Number of principle components to include. Used for Weinreb17 recipe.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/recipes.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        # Seurat recipe
+        sc.pp.recipe_seurat(self.adata, log=True) 
+        # Weinreb17 recipe
+        sc.pp.recipe_weinreb17(self.adata, log=True, mean_threshold=0.01, cv_threshold=2, n_pcs=50)
+        # Zheng17 recipe
+        sc.pp.recipe_zheng17(self.adata, log=True, n_top_genes=1000)
+        """
         st.subheader("Preprocess Recipes")
         seurat_tab, weinreb17_tab, zheng17_tab = st.tabs(['Seurat', 'Weinreb17', 'Zheng17'])
         with seurat_tab:
             with st.form(key="form_seurat"):
                 st.write("Parameters")
-                log = st.checkbox(label="Log", value=False)
+                log = st.checkbox(label="Log", value=True)
                 subcol1, _, _ = st.columns(3)
                 submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True)
                 
