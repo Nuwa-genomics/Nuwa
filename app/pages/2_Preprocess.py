@@ -298,30 +298,84 @@ class Preprocess:
                 st.toast("Normalized data", icon='✅')
 
     def filter_cells(self):
+        """
+        Filter cell outliers based on counts and numbers of genes expressed.
+
+        Parameters
+        ----------
+        min_counts: int
+            Minimum number of counts required for a cell to pass filtering.
+
+        max_counts: int
+            Maximum number of counts required for a cell to pass filtering.
+
+        min_genes: int
+            Minimum number of genes expressed required for a cell to pass filtering.
+
+        max_genes: int
+            Maximum number of genes expressed required for a cell to pass filtering.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/filter_cells.png
+
+        Example
+        -------
+        import scanpy as sc
+        
+        sc.pp.filter_cells(adata, max_genes=None, min_genes=200, max_counts=None, min_counts=None)
+        """
         with st.form(key="form_filter_cells"):
             st.subheader("Filter Cells")
             subcol1, subcol2 = st.columns(2)
             with subcol1:
-                min_count = st.number_input(label="Min count", min_value=1, value=None, key="filter_cell_min_count")
+                min_counts = st.number_input(label="Min counts", min_value=1, value=None, key="filter_cell_min_counts")
                 min_genes = st.number_input(label="min genes for cell", min_value=1, value=None, key="filter_cell_min_genes")
 
             with subcol2:
-                max_count = st.number_input(label="Max count", min_value=1, value=None, key="filter_cell_max_count")
+                max_counts = st.number_input(label="Max counts", min_value=1, value=None, key="filter_cell_max_counts")
                 max_genes = st.number_input(label="max genes for cell", min_value=1, value=None, key="filter_cell_max_genes")
       
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
             if submit_btn:
-                sc.pp.filter_cells(self.adata, max_genes=max_genes, min_genes=min_genes, max_counts=max_count, min_counts=min_count)
+                sc.pp.filter_cells(self.adata, max_genes=max_genes, min_genes=min_genes, max_counts=max_counts, min_counts=min_counts)
                 #write to script state
-                st.session_state["script_state"].add_script(f"#Filter cells\nsc.pp.filter_cells(adata, max_genes={max_genes}, min_genes={min_genes}, max_counts={max_count}, min_counts={min_count})")
+                st.session_state["script_state"].add_script(f"#Filter cells\nsc.pp.filter_cells(adata, max_genes={max_genes}, min_genes={min_genes}, max_counts={max_counts}, min_counts={min_counts})")
                 #make adata
                 self.save_adata()
                 st.toast("Filtered cells", icon='✅')
 
 
     def filter_genes(self):
+        """
+        Filter genes based on number of cells or counts.
+
+        Parameters
+        ----------
+        min_counts: int
+            Minimum number of counts required for a gene to pass filtering.
+
+        max_counts: int
+            Maximum number of counts required for a gene to pass filtering.
+
+        min_cells: int
+            Minimum number of cells expressed required for a gene to pass filtering.
+
+        max_cells: int
+            Maximum number of cells expressed required for a gene to pass filtering.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/filter_genes.png
+
+        Example
+        -------
+        import scanpy as sc
+        
+        sc.pp.filter_genes(adata, max_cells=None, min_cells=None, max_counts=None, min_counts=3)
+        """
         with st.form(key="form_filter_genes"):
             st.subheader("Filter Genes")
             subcol1, subcol2 = st.columns(2)
