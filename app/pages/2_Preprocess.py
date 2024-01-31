@@ -246,19 +246,49 @@ class Preprocess:
             st.toast(f"Failed to normalize data: {e}", icon="❌")
 
     def normalize_counts(self):
-        st.subheader("Normalization")
+        """
+        Normalize gene expression counts by setting the count per cell to a desired value
+
+        Parameters
+        ----------
+        target_sum: float
+            The new gene counts will sum to this value. 
+
+        exclude_high_expr: bool
+            Exclude (very) highly expressed genes for the computation of the normalization factor (size factor) for each cell. 
+            A gene is considered highly expressed, if it has more than max_fraction of the total counts in at least one cell. 
+            The not-excluded genes will sum up to target_sum.
+
+        log_tranform: bool
+            Logarithmize data after normalization.
+
+        max_fraction: float
+            If exclude_highly_expressed=True, consider cells as highly expressed that have more counts than max_fraction of the 
+            original total counts in at least one cell.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/normalize_counts.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        sc.pp.normalize_total(adata, target_sum=1, exclude_highly_expressed=False, max_fraction=0.05)
+        """
 
         with st.form(key="form_normalize_total"):
-            target_sum = st.number_input(label="Target sum", value=1, key="ni_target_sum")
+            st.subheader("Normalization")
             subcol_input1, subcol_input2 = st.columns(2, gap="medium")
+            target_sum = subcol_input1.number_input(label="Target sum", value=1.0, key="ni:pp:normalize_counts:target_sum")
+            max_fraction = subcol_input2.number_input(label="Max fraction", key="ni:pp:normalize_counts:max_fraction", value=0.050, min_value=0.001, max_value=1.000)
             exclude_high_expr = subcol_input1.checkbox(label="Exclude highly_expr", value=False)
             log_transform_total = subcol_input2.checkbox(label="Log transform", value=False)
-
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
             if submit_btn:
-                sc.pp.normalize_total(self.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr)
+                sc.pp.normalize_total(self.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr, max_fraction=max_fraction)
                 if log_transform_total:
                     sc.pp.log1p(self.adata)
                 #write to script state
