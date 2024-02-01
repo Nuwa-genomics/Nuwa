@@ -722,6 +722,25 @@ class Preprocess:
                     
                     
     def regress_out(self):
+        """
+        Regress out unwanted sources of variation using linear regression. This is inspired by Seurat's regressOut function in R [Satija15]. Note that this function tends to overcorrect in certain circumstances.
+        
+        Parameters
+        ----------
+        keys: List[str]
+            Keys for observation annotation on which to regress on.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/regress_out.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        regress_keys = ['percent_mt', 'percent_ribo']
+        sc.pp.regress_out(self.adata, keys=regress_keys)
+        """
         with st.form(key="regress_out_form"):
             st.subheader("Regress out", help="Uses linear regression to remove unwanted sources of variation.")
             regress_keys = st.multiselect(label="Keys", options=self.adata.obs_keys(), key="ms_regress_out_keys")
