@@ -247,7 +247,7 @@ class Preprocess:
 
     def normalize_counts(self):
         """
-        Normalize gene expression counts by setting the count per cell to a desired value
+        Normalize gene expression counts by setting the count per cell to a desired value.
 
         Parameters
         ----------
@@ -646,8 +646,7 @@ class Preprocess:
 
     def run_scrublet(self):
         """
-        Predict if an observation (cell) is likely to be a doublet and remove from the dataset. Doublets arise when multiple cells are mistaken as a single cell in droplet-based
-        technologies. This affects biological signal, for example during PCA doublets may form separate clusters not reflecting biological difference.
+        Predict if an observation (cell) is likely to be a doublet and remove from the dataset. Doublets arise when multiple cells are mistaken as a single cell in droplet-based technologies. This affects biological signal, for example during PCA doublets may form separate clusters not reflecting biological difference.
 
         Parameters
         ----------
