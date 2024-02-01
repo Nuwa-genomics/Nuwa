@@ -798,6 +798,28 @@ class Preprocess:
     
 
     def downsample_data(self):
+        """
+        If counts_per_cell is specified, each cell will downsampled. If total_counts is specified, expression matrix will be downsampled to contain at most total_counts.
+
+        Parameters
+        ----------
+        counts_per_cell: float
+            Target total counts per cell. If a cell has more than 'counts_per_cell', it will be downsampled to this number. Resulting counts can be specified on a per cell basis by passing an array.Should be an integer or integer ndarray with same length as number of obs.
+        
+        total_counts: float
+            Target total counts. If the count matrix has more than total_counts it will be downsampled to have this number.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/downsample.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        sc.pp.downsample_counts(adata, counts_per_cell=1, total_counts=None, random_state=42)
+        # counts now equal the total number of observations(cell)
+        """
         st.subheader("Downsample data")
         counts_per_cell, total_counts = st.tabs(["counts_per_cell", "total_counts"])
         with counts_per_cell:
@@ -806,7 +828,7 @@ class Preprocess:
                 subcol1, _, _ = st.columns(3)
                 btn_downsample_counts_per_cell = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_downsample_counts_per_cell:
-                    sc.pp.downsample_counts(self.adata, counts_per_cell=counts_per_cell)
+                    sc.pp.downsample_counts(self.adata, counts_per_cell=counts_per_cell, random_state=42)
                     #write to script state
                     st.session_state["script_state"].add_script(f"#Downsample dataset\nsc.pp.downsample_counts(adata, counts_per_cell={counts_per_cell})")
                     self.save_adata()
@@ -817,7 +839,7 @@ class Preprocess:
                 subcol1, _, _ = st.columns(3)
                 btn_downsample_total_counts = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_downsample_total_counts:
-                    sc.pp.downsample_counts(self.adata, total_counts=total_counts)
+                    sc.pp.downsample_counts(self.adata, total_counts=total_counts, random_state=42)
                     #write to script state
                     st.session_state["script_state"].add_script(f"#Downsample dataset\nsc.pp.downsample_counts(adata, total_counts={total_counts})")
                     self.save_adata()
@@ -825,6 +847,30 @@ class Preprocess:
 
             
     def subsample_data(self):
+        """
+        Subsample to a fraction of the number of observations.
+
+        Parameters
+        ----------
+        n_obs: int
+            Subsample to this number of observations.
+        
+        fraction: float
+            Subsample to this fraction of the number of observations.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/subsample.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        # subsample data to 90% of original size (n_obs has no effect here)
+        sc.pp.subsample(adata, n_obs=None, fraction=0.9, random_state=42)
+        # subsample data to 1000 observations (fraction has no effect here)
+        sc.pp.subsample(adata, n_obs=1000, fraction=None, random_state=42)
+        """
         st.subheader("Subsample data")
         n_obs, fraction = st.tabs(["n_obs", "fraction"])
         with n_obs:
@@ -833,7 +879,7 @@ class Preprocess:
                 subcol1, _, _ = st.columns(3)
                 btn_subsample_n_obs = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_subsample_n_obs:
-                    sc.pp.subsample(self.adata, n_obs=st.session_state.ni_n_obs)
+                    sc.pp.subsample(self.adata, n_obs=st.session_state.ni_n_obs, random_state=42)
                     #write to script session
                     st.session_state["script_state"].add_script(f"#Subsample dataset\nsc.pp.subsample(adata, n_obs={st.session_state.ni_n_obs}, fraction={st.session_state.ni_subsample_fraction})")
                     self.save_adata()
@@ -844,7 +890,7 @@ class Preprocess:
                 subcol1, _, _ = st.columns(3)
                 btn_subsample_fraction = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_subsample_fraction:
-                    sc.pp.subsample(self.adata, fraction=st.session_state.ni_subsample_fraction)
+                    sc.pp.subsample(self.adata, fraction=st.session_state.ni_subsample_fraction, random_state=42)
                     #write to script session
                     st.session_state["script_state"].add_script(f"#Subsample dataset\nsc.pp.subsample(adata, n_obs={st.session_state.ni_n_obs}, fraction={st.session_state.ni_subsample_fraction})")
                     self.save_adata()
