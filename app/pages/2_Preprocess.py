@@ -897,6 +897,29 @@ class Preprocess:
                     st.toast("Successfully subsampled data", icon="✅")
                     
     def batch_effect_removal(self):
+        """
+        Uses ComBat for batch effect correction [Johnson07]_ [Leek12]_ [Pedersen12]_. Corrects for batch effects by fitting linear models, gains statistical power via an EB framework where information is borrowed across genes. This uses the implementation combat.py_ [Pedersen12]_.
+
+        Parameters
+        ----------
+        key: str
+            The batch key.
+
+        covariates: List[str]
+            Additional covariates besides the batch variable such as adjustment variables or biological condition. 
+            This parameter refers to the design matrix X in Equation 2.1 in [Johnson07]_ and to the mod argument in the original combat function in the sva R package. 
+            Note that not including covariates may introduce bias or lead to the removal of biological signal in unbalanced designs.
+        
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/batch_effect_removal.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        sc.pp.combat(adata, key="batch", covariates=None)
+        """
         with st.form(key="batch_effect_removal_form"):
             st.subheader("Batch effect correction", help="Uses Combat to correct non-biological differences caused by batch effect.")
             index = 0
@@ -917,6 +940,25 @@ class Preprocess:
                 
                 
     def pca(self):
+        """
+        Computes PCA coordinates, loadings and variance decomposition. Uses the implementation of *scikit-learn* [Pedregosa11]_. This may be useful in the preprocessing stage, for example looking at batch effect or effect of doublets when forming clusters.
+
+        Parameters
+        ----------
+        color: str
+            PCA color. If the observation is categorical, this will group clusters into discreet colours. If observation is continuous, this will colour data on a scale represented by the colour bar.
+        
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/pca.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        sc.pp.pca(adata, random_state=42)
+        sc.pl.pca(adata, color="batch")
+        """
         with st.form(key="pca_pp_form"):
             st.subheader("PCA")
             
