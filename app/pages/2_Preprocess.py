@@ -988,65 +988,79 @@ class Preprocess:
                 run_pca(self.adata)
                 
     
-    def predict_sex(self):
+    def measure_gene_counts(self):
+        """
+        Measure counts of genes within the whole dataset or compare across cell populations by supplying an obs key. 
+
+        Parameters
+        ----------
+        gene: str
+            The gene name to measure.
+
+        obs_key: str
+            Name of observation. This will measure gene counts within a sub-population.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/measure_gene_counts.png
+
+        Example
+        -------
+        import scanpy as sc
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+
+        # single dataset
+        gene = 'XIST'
+        adata.obs["gene-counts"] = adata.X[:,adata.var_names.str.match(f'{gene}')].toarray()
+        arr = np.array(['dataset'])
+        df = pd.DataFrame({f'{gene} count': adata.obs["gene-counts"], "Dataset": np.repeat(arr, adata.n_obs)})
+        ax.bar(df['dataset'], df[f'{gene} count'])
+        plt.show()
+        """
         
         st.subheader("Measure gene counts")
-        single_dataset, subsample = st.tabs(['Current dataset', 'Subsample'])
+        single_dataset, subsample = st.tabs(['Whole dataset', 'Subsample'])
         
         with single_dataset:
-            with st.form(key="sex_predict_single_dataset"):
+            with st.form(key="measure_gene_counts_single_dataset"):
                 st.subheader("Collective counts across dataset")
-                options = np.append(['total_counts', 'n_genes_by_counts'], self.adata.var_names)
-                gene = st.selectbox(label="Gene (e.g. XIST for detecting sex)", options=options)
+                options = self.adata.var_names
+                genes = st.multiselect(label="Gene (e.g. XIST for detecting sex)", options=options)
                 subcol_btn1, _, _ = st.columns(3)
                 submit_btn = subcol_btn1.form_submit_button(label="Run", use_container_width=True)
                 if submit_btn:
                     with st.spinner(text="Locating genes"):
-                        if gene == "total_counts" or gene == "n_genes_by_counts":
-                            arr = np.array([f'{st.session_state.adata_state.current.adata_name}'])
-                            df = pd.DataFrame({f"{gene}": self.adata.obs[gene], "Dataset": np.repeat(arr, self.adata.n_obs)})
-                            bar_chart, violin_plot = st.tabs(['Bar chart', 'Violin plot'])
-                            bar_chart.bar_chart(data=df, x="Dataset", y=f"{gene}")
-                            with violin_plot:
-                                violin_plot_single_dataset = sc.pl.violin(self.adata, [f'{gene}'], jitter=0.4, rotation = 45)
-                                st.pyplot(violin_plot_single_dataset)
-                        else:
-                            self.adata.obs["gene-counts"] = self.adata.X[:,self.adata.var_names.str.match(f'{gene}')].toarray()
-                            arr = np.array([f'{st.session_state.adata_state.current.adata_name}'])
-                            df = pd.DataFrame({f'{gene} count': self.adata.obs["gene-counts"], "Dataset": np.repeat(arr, self.adata.n_obs)})
-                            st.bar_chart(data=df, x="Dataset", y=f'{gene} count')
-                            #write to script state
-                            st.session_state["script_state"].add_script("#Measure gene counts in single dataset")
-                            st.session_state["script_state"].add_script(f"adata.obs['gene-counts'] = adata.X[:,adata.var_names.str.match('{gene}')].toarray()")
-                            st.session_state["script_state"].add_script(f"arr = np.array(['{st.session_state.adata_state.current.adata_name}'])")
-                            st.session_state["script_state"].add_script(f"df = pd.DataFrame('{gene} count': adata.obs['gene-counts'], 'Dataset': np.repeat(arr, adata.n_obs))")
+                        df_whole_ds = pd.DataFrame({'genes': genes, 'counts': [self.adata.to_df()[gene].sum() for gene in genes]})
+                        st.bar_chart(df_whole_ds, x='genes', y='counts', color='genes')
+                        #write to script state
+                        st.session_state["script_state"].add_script("#Measure gene counts in single dataset")
+                        # st.session_state["script_state"].add_script(f"df_whole_ds = pd.DataFrame({{'genes': {genes}, 'counts': {[self.adata.to_df()[gene].sum() for gene in genes]}}})")
+                        # st.session_state["script_state"].add_script(f"arr = np.array(['{st.session_state.adata_state.current.adata_name}'])")
+                        # st.session_state["script_state"].add_script(f"df = pd.DataFrame('{gene} count': adata.obs['gene-counts'], 'Dataset': np.repeat(arr, adata.n_obs))")
         with subsample:
-            with st.form(key="sex_predict_multiple_datasets"):
+            with st.form(key="measure_gene_counts_multiple_datasets"):
                 st.subheader("Subsample counts in dataset")
-                gene_options = np.append(['total_counts', 'n_genes_by_counts'], self.adata.var_names)
-                batch_key_sex_pred = st.selectbox(label="Obs key", options=self.adata.obs_keys(), key="sb_sex_pred_batch_key")
+                gene_options = self.adata.var_names
+                batch_key_measure_gene_counts = st.selectbox(label="Obs key", options=self.adata.obs_keys(), key="sb_sex_pred_batch_key")
                 gene = st.selectbox(label="Gene (e.g. XIST for detecting sex)", options=gene_options)
                 subcol_btn1, _, _ = st.columns(3)
                 submit_btn = subcol_btn1.form_submit_button(label="Run", use_container_width=True)
                 if submit_btn:
                     with st.spinner(text="Locating genes"):
-                        if gene == "total_counts" or gene == "n_genes_by_counts":
-                            df = pd.DataFrame({f'{gene}': self.adata.obs[f"{gene}"], f"{batch_key_sex_pred}": self.adata.obs[f"{batch_key_sex_pred}"]})
-                            bar_chart, violin_plot = st.tabs(['Bar chart', 'violin plot'])
-                            bar_chart.bar_chart(data=df, x=f"{batch_key_sex_pred}", y=f'{gene}')
-                            with violin_plot:
-                                violin_plot_subsample_dataset = sc.pl.violin(self.adata, [f'{gene}'], jitter=0.4, groupby = f'{batch_key_sex_pred}', rotation = 45)
-                                st.pyplot(violin_plot_subsample_dataset)
-                        else:
-                            self.adata.obs["gene-counts"] = self.adata.X[:,self.adata.var_names.str.match(f'{gene}')].toarray()
-                            df = pd.DataFrame({f'{gene} count': self.adata.obs["gene-counts"], f"{batch_key_sex_pred}": self.adata.obs[f"{batch_key_sex_pred}"]})
-                            st.bar_chart(data=df, x=f"{batch_key_sex_pred}", y=f'{gene} count')
-                            #write to script state
-                            st.session_state["script_state"].add_script("#Measure gene counts across datasets")
-                            st.session_state["script_state"].add_script(f"adata.obs['gene-counts'] = adata.X[:,adata.var_names.str.match('{gene}')].toarray()")
-                            st.session_state["script_state"].add_script(f"df = pd.DataFrame('{gene} count': adata.obs['gene-counts'], '{batch_key_sex_pred}': adata.obs['{batch_key_sex_pred}'])")
+                        df_subsample = pd.DataFrame({f'{gene} count': self.adata.to_df()[gene], f"{batch_key_measure_gene_counts}": self.adata.obs[f"{batch_key_measure_gene_counts}"]})
+                        st.bar_chart(data=df_subsample, x=f"{batch_key_measure_gene_counts}", y=f'{gene} count', color=f"{batch_key_measure_gene_counts}")
+                        #write to script state
+                        st.session_state["script_state"].add_script("#Measure gene counts across datasets")
+                        st.session_state["script_state"].add_script(f"gene = {gene}")
+                        st.session_state["script_state"].add_script(f" batch_key_measure_gene_counts = {batch_key_measure_gene_counts}")
+                        st.session_state["script_state"].add_script(f"df_subsample = pd.DataFrame({{f'{{gene}} count': self.adata.to_df()[gene], f'{{batch_key_measure_gene_counts}}': self.adata.obs[f'{{batch_key_measure_gene_counts}}']}})")
                   
     def cell_cycle_scoring(self):
+        """
+        
+        """
         st.subheader("Cell cycle score")
         col1, col2, col3 = st.columns(3)
         col1.file_uploader(label="Cell cycle genes", type=["csv", "tsv"], accept_multiple_files=False, key="cell_cycle_file_uploader", help="File must be a csv with the gene name and corresponding phase. Fore example: \ngenes,phase\n0,MCM5,s_genes\n1,PCNA,s_genes\n2,TYMS,s_genes\nNote: csv files may also have an index and header.")
@@ -1182,7 +1196,7 @@ try:
         preprocess.run_scrublet()
         preprocess.recipes()
         preprocess.batch_effect_removal()
-        preprocess.predict_sex()
+        preprocess.measure_gene_counts()
         
             
     with col3:
