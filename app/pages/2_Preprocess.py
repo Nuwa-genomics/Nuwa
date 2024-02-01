@@ -739,7 +739,7 @@ class Preprocess:
         import scanpy as sc
 
         regress_keys = ['percent_mt', 'percent_ribo']
-        sc.pp.regress_out(self.adata, keys=regress_keys)
+        sc.pp.regress_out(adata, keys=regress_keys)
         """
         with st.form(key="regress_out_form"):
             st.subheader("Regress out", help="Uses linear regression to remove unwanted sources of variation.")
@@ -758,14 +758,36 @@ class Preprocess:
             
             
     def scale_to_unit_variance(self):
+        """
+        Scale data to unit variance and zero mean.
+
+        Parameters
+        ----------
+        zero_center: bool
+            If False, omit zero-centering variables, which allows to handle sparse input efficiently.
+
+        max_value: float
+            Clip to this value after scaling. If None, do not clip.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/scale.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        sc.pp.scale(adata, zero_center=True, max_value=None)
+        """
         with st.form(key="scale_to_unit_variance_form"):
             st.subheader("Scale to unit variance")
-            st.number_input(label="Max value", value=10, key="ni_scale_data_max_value")
+            zero_center = st.toggle(label="Zero center", value=True)
+            max_value = st.number_input(label="Max value", value=10, key="ni_scale_data_max_value")
             subcol1, _, _ = st.columns(3)
             btn_scale_data_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if btn_scale_data_btn:
                 if st.session_state.ni_scale_data_max_value:
-                    sc.pp.scale(self.adata, max_value=st.session_state.ni_scale_data_max_value)
+                    sc.pp.scale(self.adata, zero_center=zero_center, max_value=max_value)
                     #write to script state
                     st.session_state["script_state"].add_script(f"#Scale to unit variance\nsc.pp.scale(adata, max_value={st.session_state.ni_scale_data_max_value})")
                     self.save_adata()
