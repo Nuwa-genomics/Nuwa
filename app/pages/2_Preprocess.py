@@ -645,6 +645,49 @@ class Preprocess:
                 
 
     def run_scrublet(self):
+        """
+        Predict if an observation (cell) is likely to be a doublet and remove from the dataset. Doublets arise when multiple cells are mistaken as a single cell in droplet-based
+        technologies. This affects biological signal, for example during PCA doublets may form separate clusters not reflecting biological difference.
+
+        Parameters
+        ----------
+        sim_doublet_ratio: float
+            Number of doublets to simulate relative to the number of observed transcriptomes.
+
+        expected_doublet_rate: float
+            Where adata_sim not suplied, the estimated doublet rate for the experiment.
+
+        stdev_doublet_rate: float
+            Where adata_sim not suplied, uncertainty in the expected doublet rate.
+
+        batch_key: str
+            Optional adata.obs column name discriminating between batches.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/scrublet.png
+
+        Example
+        -------
+        !pip install scrublet # requires external library scrublet
+        import scanpy as sc
+
+        sc.external.pp.scrublet(adata, sim_doublet_ratio=2, expected_doublet_rate=0.05, stdev_doublet_rate=0.02, batch_key=None, random_state=42)
+
+        # plot PCA with doublet predictions
+        sc.pp.pca(adata)
+        df = pd.DataFrame({'PCA 1': adata.obsm['X_pca'][:,0], 'PCA 2': adata.obsm['X_pca'][:,1]})
+        scatter = plt.scatter(x=df['PCA 1'], y=df['PCA 2'], c=adata.obs.predicted_doublet, s=5, label=adata.obs.predicted_doublet.values)
+        legend1 = plt.legend(*scatter.legend_elements(), loc="upper right", title="Predicted doublet")
+        plt.ylabel('PCA 2')
+        plt.xlabel('PCA 1')
+        plt.title("Predicted doublets in PCA space")
+
+        # Simulated doublets and observed transcriptomes prob density plots
+        sc.external.pl.scrublet_score_distribution(adata)
+
+        plt.show()
+        """
         with st.form(key="scrublet_form"):
             st.subheader("Doublet Prediction", help="Use Scrublet to remove cells predicted to be doublets.")
             col1, col2, col3 = st.columns(3)
@@ -661,6 +704,17 @@ class Preprocess:
                         batch_key = None
                     sc.external.pp.scrublet(self.adata, sim_doublet_ratio=sim_doublet_ratio, 
                         expected_doublet_rate=expected_doublet_rate, stdev_doublet_rate=stdev_doublet_rate, batch_key=batch_key, random_state=42)
+                    # plot PCA to see doublets
+                    sc.external.pl.scrublet_score_distribution(self.adata)
+                    sc.pp.pca(self.adata)
+                    pca, observed_transcriptomes, simulated_doublets = st.tabs(['PCA', 'Observed transcriptomes', 'Simulated doublets'])
+                    with pca:
+                        df = pd.DataFrame({'PCA 1': self.adata.obsm['X_pca'][:,0], 'PCA 2': self.adata.obsm['X_pca'][:,1], 'Predicted doublet': self.adata.obs.predicted_doublet})
+                        st.scatter_chart(df, x='PCA 1', y='PCA 2', color='Predicted doublet', size=10)
+                    with observed_transcriptomes:
+                        st.write("To implement")
+                    with simulated_doublets:
+                        st.write("To implement")
                     #write to script state
                     st.session_state["script_state"].add_script(f"#Detect doublets with scrublet\nadata_scrublet = sc.external.pp.scrublet(adata, sim_doublet_ratio={sim_doublet_ratio}, expected_doublet_rate={expected_doublet_rate})")
                     #make adata
