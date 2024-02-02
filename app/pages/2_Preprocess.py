@@ -1008,15 +1008,21 @@ class Preprocess:
         -------
         import scanpy as sc
         import matplotlib.pyplot as plt
+        import numpy as np
+        import pandas as pd
 
         fig, ax = plt.subplots()
 
-        # single dataset
-        gene = 'XIST'
-        adata.obs["gene-counts"] = adata.X[:,adata.var_names.str.match(f'{gene}')].toarray()
-        arr = np.array(['dataset'])
-        df = pd.DataFrame({f'{gene} count': adata.obs["gene-counts"], "Dataset": np.repeat(arr, adata.n_obs)})
-        ax.bar(df['dataset'], df[f'{gene} count'])
+        # subset of counts in observation
+        fig, ax = plt.subplots()
+
+        gene = 'ENSMUSG00000092341'
+        obs_key = 'BATCH'
+        df = pd.DataFrame({f'{gene} count': adata.to_df()[gene], f"{obs_key}": adata.obs[f"{obs_key}"]})
+        ax.bar(df[f'{obs_key}'], df[f'{gene} count'])
+        plt.title(f'Gene counts across {obs_key}')
+        plt.xlabel(f'{obs_key}')
+        plt.ylabel(f'{gene} count')
         plt.show()
         """
         
@@ -1088,6 +1094,58 @@ class Preprocess:
         Example
         -------
         import scanpy as sc
+        import pandas as pd
+        import plotly.graph_objects as go
+        import numpy as np
+        import re
+
+        df = pd.read_csv("./mus_musculus_cell_cycle.csv", delimiter=',', index_col=0)
+
+        phase_column_index = 0
+        gene_column_index = 1
+                
+        s_genes = df.iloc[:, phase_column_index].str.contains("s", flags=re.IGNORECASE, regex=True)
+        g2m_genes = df.iloc[:, phase_column_index].str.contains("g2m", flags=re.IGNORECASE, regex=True)
+
+        s_genes = df[s_genes].iloc[:, gene_column_index].values
+        g2m_genes = df[g2m_genes].iloc[:, gene_column_index].values
+
+        # Apply processing
+        adata.raw = adata
+        sc.pp.normalize_per_cell(adata, counts_per_cell_after=1e4)
+        sc.pp.log1p(adata)
+        sc.pp.scale(adata)
+
+        # In this case group by batches
+        group_by = 'BATCH'
+
+        sc.tl.score_genes_cell_cycle(adata, s_genes=s_genes, g2m_genes=g2m_genes)
+
+        # Plot violin plot
+        fig = go.Figure()
+
+        s_score_df = pd.DataFrame({'phase': np.repeat('S_score', len(adata.obs['S_score'])), 'score': adata.obs['S_score']})
+        g2m_score_df = pd.DataFrame({'phase': np.repeat('G2M_score', len(adata.obs['G2M_score'])), 'score': adata.obs['G2M_score']})
+
+        violin_df = pd.concat([s_score_df, g2m_score_df])
+
+        violin_df["group"] = adata.obs[group_by]
+
+        fig.add_trace(go.Violin(x=violin_df['group'][violin_df['phase'] == 'S_score'], 
+            y=violin_df['score'][violin_df['phase'] == 'S_score'],
+            legendgroup='S', scalegroup='S', name='S',
+            bandwidth=0.4, jitter=0.1, line_color='blue')
+        )
+
+        fig.add_trace(go.Violin(x=violin_df['group'][violin_df['phase'] == 'G2M_score'], 
+            y=violin_df['score'][violin_df['phase'] == 'G2M_score'],
+            legendgroup='G2M', scalegroup='G2M', name='G2M',
+            bandwidth=0.4, jitter=0.1, line_color='orange')
+        )
+
+        fig.update_traces(meanline_visible=True)
+        fig.update_layout(violingap=0, violinmode='group', xaxis_title=group_by, yaxis_title="Score", legend_title="Phase") #add legend title
+        fig.show()
         """
         st.subheader("Cell cycle score")
         col1, col2, col3 = st.columns(3)
