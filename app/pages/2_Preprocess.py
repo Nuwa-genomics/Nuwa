@@ -480,6 +480,17 @@ class Preprocess:
                     self.save_adata()
                     st.toast(f"Applied recipe: Zheng17", icon='✅')
 
+
+    def annotate(self):
+        st.subheader("Annotate")
+        mito, ribo, haem = st.tabs(['Mitochondrial', 'Ribosomal', 'Haemoglobin'])
+        with mito:
+            self.annotate_mito()
+        with ribo:
+            self.annotate_ribo()
+        with haem:
+            self.annotate_hb()
+
     
     def annotate_mito(self):
         """
@@ -491,7 +502,7 @@ class Preprocess:
             Group the mitochondia annotations by this value.
 
         max_pct_counts_mt: int
-            Maximum percentage of mitochondial genes to other genes. If a cell contains a mitochondria percentage greater than this value, it will be removed.
+            Maximum percentage of mitochondial genes to other genes. If a cell contains a mitochondrial gene percentage greater than this value, it will be removed.
 
         Notes
         -----
@@ -503,7 +514,7 @@ class Preprocess:
         import scanpy as sc
         """
         with st.form(key="form_annotate_mito"):
-            st.subheader("Annotate Mitochondrial Genes", help="Filter mitochrondrial gene counts. All mitochrondrial genes \
+            st.subheader("Mitochondrial Genes", help="Filter mitochrondrial gene counts. All mitochrondrial genes \
                         are by default annotated and placed in the 'mt' variable.")
             
             self.adata.var['mt'] = self.adata.var_names.str.startswith(('MT-', 'mt-'))
@@ -573,8 +584,28 @@ class Preprocess:
             
 
     def annotate_ribo(self):
+        """
+        Annotate ribosomal genes with an optional key to group by observations. Optionally remove cells that contain a high percentage of ribosomal genes as these are likely low quality samples.
+
+        Parameters
+        ----------
+        color_key: str
+            Group the ribosomal gene annotations by this value.
+
+        max_pct_counts_ribo: int
+            Maximum percentage of ribosomal genes to other genes. If a cell contains a ribosomal gene percentage greater than this value, it will be removed.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/ribo1.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/ribo2.png
+
+        Example
+        -------
+        import scanpy as sc
+        """
         with st.form(key="form_annotate_ribo"):
-            st.subheader("Annotate Ribosomal Genes", help="Filter ribosomal gene counts. All ribosomal genes \
+            st.subheader("Ribosomal Genes", help="Filter ribosomal gene counts. All ribosomal genes \
                         are by default annotated and placed in the 'ribo' variable.")
 
             with st.spinner(text="Fetching ribosomal genes"):
@@ -628,8 +659,28 @@ class Preprocess:
                 
                 
     def annotate_hb(self):
+        """
+        Annotate haemoglobin genes with an optional key to group by observations. Optionally remove cells that contain a high percentage of haemoglobin genes as these are likely low quality samples.
+
+        Parameters
+        ----------
+        color_key: str
+            Group the hb gene annotations by this value.
+
+        max_pct_counts_hb: int
+            Maximum percentage of hb genes to other genes. If a cell contains a hb gene percentage greater than this value, it will be removed.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/hb1.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/hb2.png
+
+        Example
+        -------
+        import scanpy as sc
+        """
         with st.form(key="form_annotate_hb"):
-            st.subheader("Annotate haemoglobin genes", help="Filter haemoglobin gene counts. All haemoglobin genes \
+            st.subheader("Haemoglobin genes", help="Filter haemoglobin gene counts. All haemoglobin genes \
                         are by default annotated and placed in the 'hb' variable.")
             
             # hemoglobin genes.
@@ -1306,10 +1357,9 @@ try:
 
     with col1:
         preprocess.filter_highest_expr_genes()
-        preprocess.remove_genes()
         preprocess.filter_highly_variable_genes()
         preprocess.normalize_counts()
-        preprocess.regress_out()
+        preprocess.scale_to_unit_variance()
         preprocess.subsample_data()
         preprocess.downsample_data()
         
@@ -1324,11 +1374,11 @@ try:
         
             
     with col3:
-        preprocess.annotate_mito()
-        preprocess.annotate_ribo()
-        preprocess.annotate_hb()
+        preprocess.remove_genes()
+        preprocess.annotate()
         preprocess.pca()
-        preprocess.scale_to_unit_variance()
+        preprocess.regress_out()
+        
         
         
     preprocess.cell_cycle_scoring()
