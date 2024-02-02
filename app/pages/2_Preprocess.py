@@ -1059,7 +1059,35 @@ class Preprocess:
                   
     def cell_cycle_scoring(self):
         """
-        
+        Use marker genes to assign an S and G2/M score to approximate cell cycle distribution in dataset.
+
+        Parameters
+        ----------
+        cell_cycle_file: UploadedFile
+            A csv or tsv file containing marker genes for S and G2/M phase.
+
+        gene_column: str
+            The dataframe column name for the marker genes.
+
+        phase_column: str
+            The dataframe column name for the phase.
+
+        group_by: Optional[str]
+            The name of the obs value to group by when plotting.
+
+        bandwidth: float
+            The bandwidth of the violins (a higher value increases the width of each violin).
+
+        jitter: float
+            The offset of points on the violin plot.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/cell_cycle_scoring.png
+
+        Example
+        -------
+        import scanpy as sc
         """
         st.subheader("Cell cycle score")
         col1, col2, col3 = st.columns(3)
