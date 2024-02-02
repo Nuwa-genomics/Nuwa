@@ -522,9 +522,6 @@ class Preprocess:
                 
             st.text(f"Found {self.adata.var.mt.sum()} mitochondrial genes")
 
-            
-
-            
             subcol_input1, subcol_input2 = st.columns(2)
             options = np.append('None', st.session_state.adata_state.current.adata.obs_keys())
             color_key_mito = subcol_input1.selectbox(label="Color key", options=options)
@@ -546,9 +543,6 @@ class Preprocess:
                     mito_container_scatter.scatter_chart(df_scatter, x='total_counts', y='pct_counts_mt', color='color', size=10)
 
                 with violin_chart:
-
-                    self.adata.var['mt'] = self.adata.var_names.str.startswith(('MT-', 'mt-'))
-                    sc.pp.calculate_qc_metrics(self.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
 
                     # Plot violin plot
                     fig = go.Figure()
@@ -611,41 +605,54 @@ class Preprocess:
             with st.spinner(text="Fetching ribosomal genes"):
                 ribo_url = "http://software.broadinstitute.org/gsea/msigdb/download_geneset.jsp?geneSetName=KEGG_RIBOSOME&fileType=txt"
                 ribo_genes = pd.read_table(ribo_url, skiprows=2, header=None)
+
                 self.adata.var['ribo'] = self.adata.var_names.isin(ribo_genes[0].values)
                 sc.pp.calculate_qc_metrics(self.adata, qc_vars=['ribo'], percent_top=None, log1p=False, inplace=True)
                 
                 st.text(f"Found {self.adata.var['ribo'].sum()} ribosomal genes")
 
-                ribo_container = st.empty()
+                subcol_input1, subcol_input2 = st.columns(2)
+                options = np.append('None', st.session_state.adata_state.current.adata.obs_keys())
+                color_key_ribo = subcol_input1.selectbox(label="Color key", options=options)
+                ni_pct_counts_ribo = subcol_input2.number_input(label="max pct_counts_ribo", key="ni_pct_counts_ribo", min_value=0, value=100)
+
+                scatter_chart, violin_chart = st.tabs(['Scatter', 'Violin'])
+                ribo_container_scatter = scatter_chart.empty()
+                ribo_container_violin = violin_chart.empty()
 
             def plot_charts(color=None):
+                
                 if color == 'None':
                     color=None
-                ribo_container.empty()
-                subcol1, subcol2 = ribo_container.columns(2, gap="small")
-                with subcol1:
-                    ax_scatter = sc.pl.scatter(self.adata, x='total_counts', y='pct_counts_ribo', color=color)
-                    with st.expander(label="Scatter"):
-                        st.pyplot(ax_scatter)
+                if color != None:
+                        color = self.adata.obs[color]
 
-                with subcol2:
-                    ax_violin = sc.pl.violin(self.adata, 'pct_counts_ribo', groupby=color)
-                    with st.expander(label="Violin"):
-                        st.pyplot(ax_violin)
+                with scatter_chart:
+                    df_scatter = pd.DataFrame({'total_counts': self.adata.obs.total_counts, 'pct_counts_ribo': self.adata.obs.pct_counts_ribo, 'color': color})
+                    ribo_container_scatter.scatter_chart(df_scatter, x='total_counts', y='pct_counts_ribo', color='color', size=10)
 
-            
-            subcol_input1, subcol_input2 = st.columns(2)
-            options = np.append('None', st.session_state.adata_state.current.adata.obs_keys())
-            color_key_mito = subcol_input1.selectbox(label="Color key", options=options)
-            ni_pct_counts_ribo = subcol_input2.number_input(label="max pct_counts_ribo", key="ni_pct_counts_ribo", min_value=0, value=100)
+                with violin_chart:
+
+                    # Plot violin plot
+                    fig = go.Figure()
+
+                    fig.add_trace(go.Violin(x=color, 
+                        y=self.adata.obs.pct_counts_ribo,
+                        jitter=0.1, line_color='blue')
+                    )
+
+                    fig.update_traces(meanline_visible=True)
+                    fig.update_layout(violingap=0, violinmode='group', xaxis_title="pct_counts_ribo", yaxis_title="value") #add legend title
+                    ribo_container_violin.plotly_chart(fig, use_container_width=True)
+
 
             plot_charts()
 
             subcol1, _, _ = st.columns(3)
-            mito_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+            ribo_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
-            if mito_annot_submit_btn:
-                plot_charts(color_key_mito)
+            if ribo_annot_submit_btn:
+                plot_charts(color_key_ribo)
                 self.adata = self.adata[self.adata.obs.pct_counts_ribo < ni_pct_counts_ribo, :]
                 #add to script adata
                 st.session_state["script_state"].add_script("#Filter ribosomal genes")
@@ -690,28 +697,40 @@ class Preprocess:
             
             st.text(f"Found {self.adata.var.hb.sum()} haemoglobin genes")
 
-            hb_container = st.empty()
-
-            def plot_charts(color=None):
-                if color == 'None':
-                    color=None
-                hb_container.empty()
-                subcol1, subcol2 = hb_container.columns(2, gap="small")
-                with subcol1:
-                    ax_scatter = sc.pl.scatter(self.adata, x='total_counts', y='pct_counts_hb', color=color)
-                    with st.expander(label="Scatter"):
-                        st.pyplot(ax_scatter)
-
-                with subcol2:
-                    ax_violin = sc.pl.violin(self.adata, 'pct_counts_hb', groupby=color)
-                    with st.expander(label="Violin"):
-                        st.pyplot(ax_violin)
-
-            
             subcol_input1, subcol_input2 = st.columns(2)
             options = np.append('None', st.session_state.adata_state.current.adata.obs_keys())
-            color_key_mito = subcol_input1.selectbox(label="Color key", options=options)
+            color_key_hb = subcol_input1.selectbox(label="Color key", options=options)
             ni_pct_counts_hb = subcol_input2.number_input(label="max pct_counts_hb", key="ni_pct_counts_hb", min_value=0, value=100)
+
+            scatter_chart, violin_chart = st.tabs(['Scatter', 'Violin'])
+            hb_container_scatter = scatter_chart.empty()
+            hb_container_violin = violin_chart.empty()
+
+            def plot_charts(color=None):
+                
+                if color == 'None':
+                    color=None
+                if color != None:
+                        color = self.adata.obs[color]
+
+                with scatter_chart:
+                    df_scatter = pd.DataFrame({'total_counts': self.adata.obs.total_counts, 'pct_counts_hb': self.adata.obs.pct_counts_hb, 'color': color})
+                    hb_container_scatter.scatter_chart(df_scatter, x='total_counts', y='pct_counts_hb', color='color', size=10)
+
+                with violin_chart:
+
+                    # Plot violin plot
+                    fig = go.Figure()
+
+                    fig.add_trace(go.Violin(x=color, 
+                        y=self.adata.obs.pct_counts_hb,
+                        jitter=0.1, line_color='blue')
+                    )
+
+                    fig.update_traces(meanline_visible=True)
+                    fig.update_layout(violingap=0, violinmode='group', xaxis_title="pct_counts_hb", yaxis_title="value") #add legend title
+                    hb_container_violin.plotly_chart(fig, use_container_width=True)
+
 
             plot_charts()
 
@@ -719,8 +738,8 @@ class Preprocess:
             hb_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
             if hb_annot_submit_btn:
-                plot_charts(color_key_mito)
-                self.adata = self.adata[self.adata.obs.pct_counts_ribo < ni_pct_counts_hb, :]
+                plot_charts(color_key_hb)
+                self.adata = self.adata[self.adata.obs.pct_counts_hb < ni_pct_counts_hb, :]
                 #add to script adata
                 st.session_state["script_state"].add_script("#Filter haemoglobin genes")
                 st.session_state["script_state"].add_script("sc.pl.scatter(adata, x='total_counts', y='pct_counts_hb')")
@@ -729,7 +748,7 @@ class Preprocess:
                 st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_hb < {ni_pct_counts_hb}, :]")
                 #make adata
                 self.save_adata()
-                st.toast("Filtered ribosomal genes", icon="✅")
+                st.toast("Filtered haemoglobin genes", icon="✅")
                 
                 
 

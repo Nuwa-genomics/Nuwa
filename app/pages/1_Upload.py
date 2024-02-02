@@ -30,6 +30,9 @@ with open('css/common.css') as f:
     
     
 class Upload:
+    """
+    Choose a dataset source. This can be a local dataset, online resource from EBI expression atlas or built-in datasets.
+    """
     def __init__(self):
         self.first_load = True
         self.conn: Session = SessionLocal()
@@ -44,6 +47,20 @@ class Upload:
                             </div>""", unsafe_allow_html=True)
         
     def upload_file(self):
+        """
+        Upload a dataset. Supported file types are h5ad, 10x mtx and loom.
+
+        Parameters
+        ----------
+        uploaded_f: UploadedFile
+            Dataset file to load.
+
+        Example
+        -------
+        import scanpy as sc
+
+        sc.read_h5ad('path_to_dataset')
+        """
         st.title("Upload a dataset")
         
         #warn user that workspace already has adata in
@@ -107,6 +124,20 @@ class Upload:
         
 
     def scanpy_dataset(self):
+        """
+        Use a built-in dataset. 
+
+        Parameters
+        ----------
+        dataset: str
+            Name of dataset.
+
+        Example
+        -------
+        import scanpy as sc
+
+        sc.datasets.pbmc3k() # use internal dataset
+        """
         st.subheader("Or select a built-in dataset")
         
         #scanpy datasets
@@ -195,7 +226,21 @@ class Upload:
         
 
     def external_sources(self):
+        """
+        Download a dataset from EBI Expression database.
 
+        Parameters
+        ----------
+        ebi_accession_string: str
+            EBI accession key for a dataset.
+
+        Example
+        -------
+        import scanpy as sc
+
+        accession = <EBI_key>
+        dataset = sc.datasets.ebi_expression_atlas(accession)
+        """
         st.subheader("External sources")
         with st.form(key="ebi_ds_form"):
             st.subheader("EBI Expression Atlas")
