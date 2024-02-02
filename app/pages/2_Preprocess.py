@@ -482,6 +482,26 @@ class Preprocess:
 
     
     def annotate_mito(self):
+        """
+        Annotate mitochondrial genes with an optional key to group by observations. Optionally remove cells that contain a high percentage of mitochondrial genes as these are likely low quality samples.
+
+        Parameters
+        ----------
+        color_key: str
+            Group the mitochondia annotations by this value.
+
+        max_pct_counts_mt: int
+            Maximum percentage of mitochondial genes to other genes. If a cell contains a mitochondria percentage greater than this value, it will be removed.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/mito1.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/mito2.png
+
+        Example
+        -------
+        import scanpy as sc
+        """
         with st.form(key="form_annotate_mito"):
             st.subheader("Annotate Mitochondrial Genes", help="Filter mitochrondrial gene counts. All mitochrondrial genes \
                         are by default annotated and placed in the 'mt' variable.")
@@ -490,29 +510,47 @@ class Preprocess:
             sc.pp.calculate_qc_metrics(self.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
                 
             st.text(f"Found {self.adata.var.mt.sum()} mitochondrial genes")
+
             
-            mito_container = st.empty()
-
-            def plot_charts(color=None):
-                if color == 'None':
-                    color=None
-                mito_container.empty()
-                subcol1, subcol2 = mito_container.columns(2, gap="small")
-                with subcol1:
-                    ax_scatter = sc.pl.scatter(self.adata, x='total_counts', y='pct_counts_mt', color=color)
-                    with st.expander(label="Scatter"):
-                        st.pyplot(ax_scatter)
-
-                with subcol2:
-                    ax_violin = sc.pl.violin(self.adata, 'pct_counts_mt', groupby=color)
-                    with st.expander(label="Violin"):
-                        st.pyplot(ax_violin)
 
             
             subcol_input1, subcol_input2 = st.columns(2)
             options = np.append('None', st.session_state.adata_state.current.adata.obs_keys())
             color_key_mito = subcol_input1.selectbox(label="Color key", options=options)
             ni_pct_counts_mt = subcol_input2.number_input(label="max pct_counts_mt", key="ni_pct_counts_mt", min_value=0, value=100)
+
+            scatter_chart, violin_chart = st.tabs(['Scatter', 'Violin'])
+            mito_container_scatter = scatter_chart.empty()
+            mito_container_violin = violin_chart.empty()
+
+            def plot_charts(color=None):
+                
+                if color == 'None':
+                    color=None
+                if color != None:
+                        color = self.adata.obs[color]
+
+                with scatter_chart:
+                    df_scatter = pd.DataFrame({'total_counts': self.adata.obs.total_counts, 'pct_counts_mt': self.adata.obs.pct_counts_mt, 'color': color})
+                    mito_container_scatter.scatter_chart(df_scatter, x='total_counts', y='pct_counts_mt', color='color', size=10)
+
+                with violin_chart:
+
+                    self.adata.var['mt'] = self.adata.var_names.str.startswith(('MT-', 'mt-'))
+                    sc.pp.calculate_qc_metrics(self.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
+
+                    # Plot violin plot
+                    fig = go.Figure()
+
+                    fig.add_trace(go.Violin(x=color, 
+                        y=self.adata.obs.pct_counts_mt,
+                        jitter=0.1, line_color='blue')
+                    )
+
+                    fig.update_traces(meanline_visible=True)
+                    fig.update_layout(violingap=0, violinmode='group', xaxis_title="pct_counts_mt", yaxis_title="value") #add legend title
+                    mito_container_violin.plotly_chart(fig, use_container_width=True)
+
 
             plot_charts()
 
@@ -1148,7 +1186,7 @@ class Preprocess:
         fig.show()
         """
         st.subheader("Cell cycle score")
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
         col1.file_uploader(label="Cell cycle genes", type=["csv", "tsv"], accept_multiple_files=False, key="cell_cycle_file_uploader", help="File must be a csv with the gene name and corresponding phase. Fore example: \ngenes,phase\n0,MCM5,s_genes\n1,PCNA,s_genes\n2,TYMS,s_genes\nNote: csv files may also have an index and header.")
      
         with st.form(key="cell_cycle_scoring_form"):
