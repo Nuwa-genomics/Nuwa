@@ -649,6 +649,46 @@ class Integrate:
                                 st.scatter_chart(df, x='umap1', y='umap2', color='color', size=10)
 
     def scvi_metrics(self):
+        """
+        use the scib-metrics package to assess the quality of the integration.
+
+        Parameters
+        ----------
+        batch_key: str
+            Use a batch key.
+
+        label_key: str
+            USe a label key.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/scvi_integrate_metrics.png
+
+        Example
+        -------
+        SCANVI_LATENT_KEY = "X_scANVI"
+        SCVI_LATENT_KEY = "X_scVI"
+
+        latent_keys = []
+        if SCVI_LATENT_KEY in adata.obsm_keys():
+            latent_keys.append(SCVI_LATENT_KEY) 
+            if SCANVI_LATENT_KEY in adata.obsm_keys():
+                latent_keys.append(SCANVI_LATENT_KEY)
+            sc.tl.pca(adata)
+            latent_keys.append("X_pca")
+
+            bm = Benchmarker(
+                adata,
+                batch_key="_scvi_batch",
+                label_key="_scvi_batch",
+                embedding_obsm_keys=latent_keys,
+                n_jobs=-1,
+            )
+                    
+            bm.benchmark()
+            df = bm.get_results(min_max_scale=False)
+            print(df)
+        """
         with st.form(key="scvi_metrics_form"):
             st.subheader("scVI integration metrics")
             col1, col2, col3, _, _, _ = st.columns(6)
