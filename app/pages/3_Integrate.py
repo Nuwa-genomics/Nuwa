@@ -658,7 +658,7 @@ class Integrate:
             Use a batch key.
 
         label_key: str
-            USe a label key.
+            Use a label key.
 
         Notes
         -----
