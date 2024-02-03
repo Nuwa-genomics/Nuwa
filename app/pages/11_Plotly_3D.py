@@ -1,8 +1,5 @@
 import streamlit as st
 import os
-import subprocess
-from models.AdataModel import AdataModel
-from utils.AdataState import AdataState
 import pandas as pd
 import plotly.express as px
 import scanpy as sc
@@ -20,6 +17,9 @@ with open('css/common.css') as f:
     st.markdown(common_style, unsafe_allow_html=True)
 
 class Plotly_3D:
+    """
+    An interactive 3D chart to view cluster embeddings.
+    """
     def __init__(self, adata, df):
         self.adata = adata
         self.df = df
@@ -27,6 +27,48 @@ class Plotly_3D:
         self.plot_chart()
 
     def plot_chart(self):
+        """
+        Render plotly chart from given embeddings.
+
+        Parameters
+        ----------
+        dataset: str
+            The dataset for analysis.
+        
+        cluster_map: str
+            The algorithm or obsm name containing coordinates. Currently does not support tSNE for 3D plotting.
+
+        color: str
+            The colour for clusters.
+
+        point_size: float
+            Adjustable point size for scatter chart.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/plotly.png
+
+        Example
+        -------
+        import scanpy as sc
+        import plotly.express as px
+
+        # compute neighbourhood cluster embeddings with leiden
+        sc.pp.neighbors(adata)
+        sc.tl.leiden(adata)
+        sc.tl.umap(adata, n_components=3)
+
+        # create dataframe
+        color = 'cell_type'
+        df = pd.DataFrame({'umap1': adata.obsm['X_UMAP'][:, 0], 'umap2': adata.obsm['X_UMAP'][:, 1], 'UMAP3': adata.obsm['X_UMAP'][:, 2], 'color': adata.obs[color]})
+
+        # plot chart
+        fig = px.scatter_3d(df, x=df.columns[0], y=df.columns[1], z=df.columns[2], color=df.columns[3], width=2000, height=900)
+        fig.update_traces(marker_size=1.0)
+        fig.update_layout(title=dict(text=f"{df.columns[0][:-1]} clusters with {df.columns[3]}", font=dict(size=50), automargin=True, yref='paper'))
+        fig.update_layout(legend= {'itemsizing': 'constant'})
+        fig.show()
+        """
         with st.spinner(text="Plotting chart"):
             fig = px.scatter_3d(self.df, x=self.df.columns[0], y=self.df.columns[1], z=self.df.columns[2], color=self.df.columns[3], width=2000, height=900)
             fig.update_traces(marker_size=st.session_state.plotly_point_size)
@@ -57,6 +99,7 @@ try:
                 f'{algo}2': st.session_state.adata_state.current.adata.obsm[f'X_{algo}'][:, 1], 
                 f'{algo}3': st.session_state.adata_state.current.adata.obsm[f'X_{algo}'][:, 2], 
                 f'{color}': st.session_state.adata_state.current.adata.obs[color]})
+
 
 
     with st.sidebar:

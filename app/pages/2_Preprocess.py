@@ -685,6 +685,8 @@ class Preprocess:
         Example
         -------
         import scanpy as sc
+
+        
         """
         with st.form(key="form_annotate_hb"):
             st.subheader("Haemoglobin genes", help="Filter haemoglobin gene counts. All haemoglobin genes \
