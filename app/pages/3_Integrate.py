@@ -24,6 +24,9 @@ with open('css/common.css') as f:
     st.markdown(common_style, unsafe_allow_html=True)
 
 class Integrate:
+    """
+    Integrate multiple datasets into a single dataset with tools to minimise batch effect.
+    """
     def __init__(self):
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -71,6 +74,26 @@ class Integrate:
             
         
     def ingest(self):
+        """
+        Integrates embeddings and annotations of an adata with a reference dataset adata_ref through projecting on a PCA (or alternate model) that has been fitted on the reference data. The function uses a knn classifier for mapping labels and the UMAP package [McInnes18]_ for mapping the embeddings.
+
+        Parameters
+        ----------
+        obs: List[str]
+            List of obs keys in adata_ref.obs which need to be mapped to adata.obs.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/ingest.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        sc.pp.neighbors(adata_ref.adata)
+        sc.tl.umap(adata_ref.adata)
+        sc.tl.ingest(adata=adata_target, adata_ref=adata_ref.adata, obs='umap')
+        """
         with st.form(key="ingest_form"):
             st.subheader("Integrate with Ingest", help="Integrates embeddings and annotations of an adata with a reference dataset adata_ref through projecting on a PCA (or alternate model) that has been fitted on the reference data. The function uses a knn classifier for mapping labels and the UMAP package [McInnes18] for mapping the embeddings.")
             st.markdown(f"""<div style='color: rgb(50, 168, 82); font-weight: bold''>{st.session_state.adata_ref.adata_name} → {st.session_state.adata_target.adata_name}</div>""", unsafe_allow_html=True)
@@ -93,6 +116,14 @@ class Integrate:
                     
                     
     def scanorama_integrate(self):
+        """
+        Integrate spatial datasets with scanorama.
+
+        Example
+        -------
+        !pip install scanorama # install external libraries
+        import scanpy as sc
+        """
         with st.form(key="scanorama_integrate_form"):
             st.subheader("Integrate spatial data with Scanorama")
             col1, col2 = st.columns(2)
@@ -141,6 +172,26 @@ class Integrate:
             
             
     def bbknn(self):
+        """
+        Batch balanced kNN [Polanski19] alters the kNN procedure to identify each cell's top neighbours in each batch separately instead of the entire cell pool with no accounting for batch. The nearest neighbours for each batch are then merged to create a final list of neighbours for the cell. Aligns batches in a quick and lightweight manner.
+        
+        Parameters
+        ----------
+        batch_key: str
+            Provide a batch key for BBKNN.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/bbknn.png
+
+        Example
+        -------
+        !pip install bbknn # install external libraries
+        import scanpy as sc
+
+        sc.tl.pca(adata)
+        sc.external.pp.bbknn(adata, batch_key='BATCH')
+        """
         with st.form(key="bbknn_form"):
             st.subheader("BBKNN", help="Batch balanced kNN alters the kNN procedure to identify each cell’s top neighbours in each batch separately instead of the entire cell pool with no accounting for batch. The nearest neighbours for each batch are then merged to create a final list of neighbours for the cell. Aligns batches in a quick and lightweight manner.")
             st.write(f"Apply to {st.session_state.adata_state.current.adata_name}")
@@ -157,6 +208,28 @@ class Integrate:
                     
             
     def quick_map(self):
+        """
+        Map an attribute of one dataset onto another. 
+
+        Parameters
+        ----------
+        source_adata: str
+            Source dataset for the attributes.
+
+        source_attributes: str
+            Attributes to map (e.g. uns.louvain_colors).
+
+        target_adata: str
+            Target dataset for mapping the attributes (the original attributes will be replaced). 
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/quick_map.png
+
+        Example
+        -------
+        target_adata.obs = source_adata.obs
+        """
         with st.form(key="quick_map_form"):
             st.subheader("Quick map")
             st.write("Map an attribute from one dataset to another.")
@@ -194,6 +267,34 @@ class Integrate:
             
             
     def concat(self):
+        """
+        Concatenate dataframes with batches.
+
+        Parameters
+        ----------
+        adata1: str
+            First dataset.
+
+        adata2: str
+            Second dataset.
+
+        batch_category1: str
+            First batch annotation.
+
+        batch_category2: str
+            Second batch annotation.
+
+        batch_key: str
+            Add the batch annotation to obs using this key.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/quick_map.png
+
+        Example
+        -------
+        adata_concat = adata1.concatenate(adata2, batch_key="BATCH", batch_categories=['1', '2'])
+        """
         with st.form(key="concat_form"):
             st.subheader("Concatenate datasets")
             subcol1, subcol2 = st.columns(2)
@@ -230,6 +331,27 @@ class Integrate:
                     
             
     def umap(self):
+        """
+        Compute UMAP coordinates as part of the integration process.
+
+        Parameters
+        ----------
+        color: List[str]
+            Color of UMAP clusters. If multiple colors are supplied, it will generate separate plots for each color.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/umap_integrate.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        sc.pp.neighbors(adata)
+        sc.tl.leiden(adata)
+        sc.tl.umap(adata)
+        sc.pl.umap(adata, color='BATCH')
+        """
         
         def compute_umap():
             with st.spinner(text="Computing umap"):
@@ -260,6 +382,57 @@ class Integrate:
 
     
     def scvi_integrate(self):
+        """
+        Train a deep learning model using SCVI tools to integrate a dataset with a batch key. Cell type annotations are not required.
+
+        Parameters
+        ----------
+        batch_key: str
+            Provide a batch key.
+
+        layer: str
+            Provide an optional layer key.
+
+        n_layers: int
+            Number of layers in the neural network.
+
+        n_latent: int
+            Dimensionality of the latent space in the neural network.
+
+        n_hidden: int
+            Number of nodes per hidden layer.
+
+        batch_size: int
+            Training batch size.
+
+        max_epochs: int
+            Number of epochs to train the neural network.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/scvi_integrate.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        batch_key = "BATCH"
+
+        scvi.settings.seed = 42
+        scvi.model.SCVI.setup_anndata(adata, batch_key=batch_key)
+        model = scvi.model.SCVI(adata, n_layers=2, n_latent=30, n_hidden=128, gene_likelihood="nb")
+        model.train(use_gpu = True, batch_size=128, max_epochs=400)  
+
+        #evaluate latent representation
+        SCVI_LATENT_KEY = "X_scVI"
+        adata.obsm[SCVI_LATENT_KEY] = model.get_latent_representation()
+
+        sc.pp.neighbors(adata, use_rep=SCVI_LATENT_KEY)
+        sc.tl.leiden(adata)
+
+        SCVI_MDE_KEY = "X_scVI_MDE"
+        adata.obsm[SCVI_MDE_KEY] = scvi.model.utils.mde(adata.obsm[SCVI_LATENT_KEY])    
+        """
         with st.form(key="scvi_integrate_form"):
             st.subheader("Integrate with SCVI", help="Train a deep learning model to integrate a dataset with a batch key. Cell type annotations are not required.")
 
@@ -284,7 +457,7 @@ class Integrate:
 
             if submit_btn:
                 with st.spinner(text="Training model"):
-                    scvi.settings.seed = 0
+                    scvi.settings.seed = 42
 
                     #define and train model
 
