@@ -666,6 +666,9 @@ class Integrate:
 
         Example
         -------
+        import scanpy as sc
+        from scib_metrics.benchmark import Benchmarker
+
         SCANVI_LATENT_KEY = "X_scANVI"
         SCVI_LATENT_KEY = "X_scVI"
 
