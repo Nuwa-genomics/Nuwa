@@ -478,6 +478,58 @@ class Integrate:
                 
 
     def scanvi_integrate(self):
+        """
+        Integrates a dataset with scANVI using a deep learning model. Requires cell type annotations.
+
+        Parameters
+        ----------
+        batch_key: str
+            Provide a batch key.
+
+        labels_key: str
+            Provide a labels key for known cell type annotations.
+
+        unlabeled_category: str
+            Value used for unlabeled cells in labels_key used to setup AnnData with scvi.
+
+        n_samples_per_label: int
+            Number of subsamples for each label class to sample per epoch. By default, there is no label subsampling.
+
+        n_layers: int
+            Number of layers in the neural network.
+
+        n_latent: int
+            Dimensionality of the latent space in the neural network.
+
+        n_hidden: int
+            Number of nodes per hidden layer.
+
+        max_epochs: int
+            Number of epochs to train the neural network.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/scanvi_integrate.png
+
+        Example
+        -------
+        !pip install scvi-tools # Install external libraries
+        import scvi
+        
+        scvi.model.SCVI.setup_anndata(adata, layer="counts", batch_key="batch")
+        model = scvi.model.SCVI(adata, n_layers=2, n_latent=30, n_hidden=128, gene_likelihood="nb")
+
+        scanvi_model = scvi.model.SCANVI.from_scvi_model(model, adata=adata, labels_key="cell_type", unlabeled_category="unknown")
+
+        scanvi_model.train(use_gpu = True, max_epochs=400, n_samples_per_label=100)
+
+        SCANVI_LATENT_KEY = "X_scANVI"
+        adata.obsm[SCANVI_LATENT_KEY] = scanvi_model.get_latent_representation(adata)
+
+        SCANVI_MDE_KEY = "X_scANVI_MDE"
+        adata.obsm[SCANVI_MDE_KEY] = scvi.model.utils.mde(adata.obsm[SCANVI_LATENT_KEY])
+
+        """
         with st.form(key="scanvi_integrate_form"):
             st.subheader("Integrate with scANVI", help="Integrates a dataset with scANVI using a deep learning model. Requires cell type annotations.")
             input_col1, input_col2 = st.columns(2)
@@ -518,6 +570,47 @@ class Integrate:
 
                 
     def scvi_integrate_graphs(self):
+        """
+        Plot integrated dataset with scVI or scANVI embeddings.
+
+        Parameters
+        ----------
+        colors: str
+            Key for colour.
+
+        embedding: str
+            Embedding to choose from.
+
+        preserve_neighbours: bool
+            Uses minimum distortion embedding (MDE) to minimally distort relationships between pairs of items, while possibly satisfying some constraints.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/scvi_integrate_plot.png
+
+        Example
+        -------
+        import scvi
+        import matplotlib.pyplot as plt
+
+        # .. Do integration with scvi or scanvi
+
+        # in this example we use scvi embeddings
+
+        scvi_df = pd.DataFrame({'umap1': adata.obsm['X_scVI'][:,0], 'umap2': adata.obsm['X_scVI'][:,1], 'color': adata.obs[color]})
+        scvi_df_mde = pd.DataFrame({'umap1': adata.obsm['X_scVI_MDE'][:,0], 'umap2': adata.obsm['X_scVI_MDE'][:,1], 'color': adata.obs[color]})
+        
+        fig, (ax1, ax2) = plt.subplots(1, 2)
+        ax1.scatter(x=scvi_df['umap1'], y=scvi_df['umap2'], color=scvi_df['color'])
+        ax1.title('scvi embedding')
+        ax1.xlabel('umap1')
+        ax1.ylabel('umap2')
+        ax2.scatter(x=scvi_df_mde['umap1'], y=scvi_df_mde['umap2'], color=scvi_df_mde['color'])
+        ax2.title('scvi embedding with MDE')
+        ax2.xlabel('umap1')
+        ax2.ylabel('umap2')
+
+        """
         with st.form(key="scvi_integrate_graphs_form"):
             st.subheader("SCVI integration plots")
             is_embeddings = ("X_scVI" in st.session_state.adata_state.current.adata.obsm_keys())
