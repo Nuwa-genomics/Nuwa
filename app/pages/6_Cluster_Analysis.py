@@ -180,7 +180,7 @@ class Cluster_analysis:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/pca.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/pca_cluster.png
 
         Example
         -------
@@ -194,8 +194,8 @@ class Cluster_analysis:
             try:
                 with st.form(key="pca_cluster_form"):
                     st.subheader("PCA")
-                    genes = st.multiselect(label="Gene", options=self.adata.var_names, default=(self.adata.var_names[0], self.adata.var_names[1]), key="ms_pca_gene", max_selections=24)
-                    pca_container = st.empty()
+                    genes = st.multiselect(label="Gene", options=self.adata.var_names, default=(self.adata.var_names[0]), key="ms_pca_gene", max_selections=24)
+                    pca_empty = st.empty()
                     info_container = st.empty()
                     
                     with st.spinner(text="Computing PCA"):
@@ -208,9 +208,12 @@ class Cluster_analysis:
                                     use_raw = False
                                     info_container.info("Gene ID format has been changed, setting 'use_raw' to false.")
                                     break
-                        df = pd.DataFrame({'pca1': self.adata.obsm['X_pca'][:,0], 'pca2': self.adata.obsm['X_pca'][:,1]})
+                        pca_empty.empty()
                         for color in colors:
-                            pca_container.scatter_chart(df, x='pca1', y='pca2', color=color)
+                            df = pd.DataFrame({'pca1': self.adata.obsm['X_pca'][:,0], 'pca2': self.adata.obsm['X_pca'][:,1], f'{color}': self.adata.to_df()[color].values})
+                            pca_empty.markdown(f"""<p style='text-align: center; size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
+                            pca_empty.scatter_chart(df, x='pca1', y='pca2', size=10, color=f'{color}')
+                            
 
                         
                     subcol1, _, _, _ = st.columns(4)
@@ -226,9 +229,11 @@ class Cluster_analysis:
                                         use_raw = False
                                         info_container.info("Gene ID format has been changed, setting 'use_raw' to false.")
                                         break
-                            df = pd.DataFrame({'pca1': self.adata.obsm['X_pca'][:,0], 'pca2': self.adata.obsm['X_pca'][:,1]})
+                            df = pd.DataFrame({'pca1': self.adata.obsm['X_pca'][:,0], 'pca2': self.adata.obsm['X_pca'][:,1], f'{color}': self.adata.to_df()[color].values})
+                            pca_empty.empty()
                             for color in colors:
-                                pca_container.scatter_chart(df, x='pca1', y='pca2', color=color)
+                                pca_empty.markdown(f"""<p style='text-align: center; size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
+                                pca_empty.scatter_chart(df, x='pca1', y='pca2', size=10, color=f'{color}')
 
 
             except Exception as e:
