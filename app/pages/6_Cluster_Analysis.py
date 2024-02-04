@@ -170,11 +170,30 @@ class Cluster_analysis:
 
 
     def pca_graph(self):
+        """
+        Compute PCA coordinates with optional colour.
+
+        Parameters
+        ----------
+        gene: List[str]
+            Genes to supply as color argument in PCA.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/pca.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        genes = ['brca1', 'brca2']
+        sc.tl.pca(adata, svd_solver='arpack')
+        sc.pl.pca(adata, color=genes)
+        """
         with self.col1:
             try:
                 with st.form(key="pca_cluster_form"):
                     st.subheader("PCA")
-                    plt.style.use('dark_background')
                     genes = st.multiselect(label="Gene", options=self.adata.var_names, default=(self.adata.var_names[0], self.adata.var_names[1]), key="ms_pca_gene", max_selections=24)
                     pca_container = st.empty()
                     info_container = st.empty()
@@ -189,8 +208,10 @@ class Cluster_analysis:
                                     use_raw = False
                                     info_container.info("Gene ID format has been changed, setting 'use_raw' to false.")
                                     break
-                        ax_pca = sc.pl.pca(self.adata, color=colors, use_raw=use_raw)
-                        pca_container.pyplot(ax_pca)   
+                        df = pd.DataFrame({'pca1': self.adata.obsm['X_pca'][:,0], 'pca2': self.adata.obsm['X_pca'][:,1]})
+                        for color in colors:
+                            pca_container.scatter_chart(df, x='pca1', y='pca2', color=color)
+
                         
                     subcol1, _, _, _ = st.columns(4)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
@@ -205,8 +226,10 @@ class Cluster_analysis:
                                         use_raw = False
                                         info_container.info("Gene ID format has been changed, setting 'use_raw' to false.")
                                         break
-                            ax_pca = sc.pl.pca(self.adata, color=colors, use_raw=use_raw)
-                            pca_container.pyplot(ax_pca) 
+                            df = pd.DataFrame({'pca1': self.adata.obsm['X_pca'][:,0], 'pca2': self.adata.obsm['X_pca'][:,1]})
+                            for color in colors:
+                                pca_container.scatter_chart(df, x='pca1', y='pca2', color=color)
+
 
             except Exception as e:
                 st.error(e)
@@ -330,6 +353,30 @@ class Cluster_analysis:
 
 
     def neighbourhood_graph(self):
+        """
+        Compute neighbourhood graph with color mapping for selected genes.
+
+        Parameters
+        ----------
+        genes: List[str]
+            Genes to supply as color argument in PCA.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/neighbourhood_graph.png
+
+        Example
+        -------
+        import scanpy as sc 
+
+        genes = ['brca1', 'brca2']
+        sc.pp.neighbors(adata, n_neighbors=10, n_pcs=40)
+        sc.tl.leiden(adata) 
+        sc.tl.paga(adata)
+        sc.pl.paga(adata, use_raw=use_raw, plot=False)
+        sc.tl.umap(adata, init_pos='paga')  
+        sc.pl.umap(adata)     
+        """
         plt.style.use('dark_background')
         with self.col2:
             try:
