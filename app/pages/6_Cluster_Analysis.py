@@ -212,6 +212,28 @@ class Cluster_analysis:
                 st.error(e)
 
     def variance_ratio(self):
+        """
+        Compare variance between principle components.
+
+        Parameters
+        ----------
+        n_pcs: int
+            Number of principle components to use.
+
+        log: bool
+            Use a log scale.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/variance_ratio.png
+
+        Example
+        -------
+        import scanpy as sc
+        
+        sc.tl.pca(adata, svd_solver='arpack')
+        sc.pl.pca_variance_ratio(adata, log=True)
+        """
         with self.col1:
             try:
                 with st.form(key="variance_ratio_form"):
@@ -248,6 +270,32 @@ class Cluster_analysis:
 
 
     def tsne_graph(self):
+        """
+        
+        Parameters
+        ----------
+        color: str
+            Colour based on an obs value.
+        
+        perplexity: int
+            The perplexity is related to the number of nearest neighbors that is used in other manifold learning algorithms. 
+            Larger datasets usually require a larger perplexity. Consider selecting a value between 5 and 50. 
+            The choice is not extremely critical since t-SNE is quite insensitive to this parameter.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/tsne.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        # compute neighbours to use for colours
+        sc.pp.neighbors(adata, n_neighbors=10, n_pcs=40)
+        sc.tl.leiden(adata) 
+        sc.tl.tsne(adata, perplexity=30)  
+        sc.pl.tsne(adata, color="leiden")
+        """
         with self.col2:
             try:
                         
