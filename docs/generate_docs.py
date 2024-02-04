@@ -69,22 +69,22 @@ for file in python_files:
                                 markdown += f"\n```{docstring.params[i].arg_name}: {docstring.params[i].type_name}``` {docstring.params[i].description} \n<hr style='height:1px'>"
 
                         #screenshots
-                        if len(docstring.examples) > 0:
-                            markdown += "\n## Web view"
-                            for i, example in enumerate(docstring.meta):
-                                #look in notes heading
-                                if docstring.meta[i].args[0] == 'notes':    
-                                    #capture image string according to numpy docstring format
-                                    images = re.split(r'..\s*image::\s*', docstring.meta[i].description)
-                                    for img in images:
-                                        if img.__contains__("screenshot"):
-                                            markdown += f"\n<img style='border-radius:15px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='{method.name}_screenshot' src='{img.strip()}'>"
+                        markdown += "\n## Web view"
+                        for i, example in enumerate(docstring.meta):
+                            #look in notes heading
+                            if docstring.meta[i].args[0] == 'notes':    
+                                #capture image string according to numpy docstring format
+                                images = re.split(r'..\s*image::\s*', docstring.meta[i].description)
+                                for img in images:
+                                    if img.__contains__("screenshot"):
+                                        markdown += f"\n<img style='border-radius:15px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='{method.name}_screenshot' src='{img.strip()}'>"
                     
                         
                         #python equivalent
-                        markdown = markdown + "\n## Python equivalent"
-                        for i, example in enumerate(docstring.examples):
-                            markdown = markdown + f"\n```python\n{docstring.examples[i].description}\n```"
+                        if len(docstring.examples) > 0:
+                            markdown = markdown + "\n## Python equivalent"
+                            for i, example in enumerate(docstring.examples):
+                                markdown = markdown + f"\n```python\n{docstring.examples[i].description}\n```"
                         
                         
                         f = open(f"./docs/reference/{class_.name}/{method.name}.md", "w")
