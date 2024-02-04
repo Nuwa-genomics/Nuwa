@@ -29,6 +29,9 @@ with open('css/common.css') as f:
 
 
 class Create_CiteSeq_model:
+    """
+    Train a deep autoencoder model for dimensionality reduction on gene expression data. This is an alternative to other DR algorithms such as tSNE. Original Github repo can be found [here](https://github.com/naity/citeseq_autoencoder)
+    """
     def __init__(self, adata):
         self.adata = adata
         
@@ -67,7 +70,39 @@ class Create_CiteSeq_model:
         st.session_state["device"] = self.device
 
     def init_model(self):
-        #initialize model object
+        """
+        Init Cite-seq model with given hyperparams.
+
+        Parameters
+        ----------
+        model: CiteAutoencoder
+            CiteAutoencoder model object.
+
+        learning_rate: float
+            Adjustable learning rate for improving gradient descent optimizer.
+
+        epochs: int
+            Number of epochs to do the training.
+
+        optimizer: str
+            Optimizer for neural network.
+
+        test_split: int
+            Percntage of dataset to be used for testing/validation (not training).
+
+        latent_dimensions: int
+            Dimensionality of latent space in autoencoder.
+
+        hidden_layers: int
+            Number of hidden layers in autoencoder model.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/citeseq_model.png
+
+        Example
+        -------
+        """
         self.model_dict = {
             "model": None,
             "lr": st.session_state.ni_citeseq_lr,
@@ -154,6 +189,9 @@ class Create_CiteSeq_model:
         st.session_state.model_obj["n_features"] = n_features
 
 class Create_Solo_model:
+    """
+    Create a Solo model for doublet detection and removal. A package in [scvi tools](https://docs.scvi-tools.org/en/stable/user_guide/models/solo.html)
+    """
     def __init__(self, adata):
         self.adata = adata
 
@@ -191,7 +229,27 @@ class Create_Solo_model:
         st.session_state["device"] = self.device
 
     def init_model(self):
-        #initialize model object
+        """
+        Init solo model object with given hyperparameters.
+
+        Parameters
+        ----------
+        device: str
+            Device to run the training on (CPU or Cuda if GPU is available).
+
+        epochs: str
+            Number of epochs to train models for.
+
+        learning_rate: float
+            Adjustable learning rate for improving gradient descent opttimizer.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/solo_model.png
+
+        Example
+        -------
+        """
         self.model_dict = {
             "model": None,
             "n_epochs": st.session_state.ni_vae_epochs,
