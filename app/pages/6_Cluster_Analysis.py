@@ -264,16 +264,10 @@ class Cluster_analysis:
         """
         with self.col1:
             try:
-                with st.form(key="variance_ratio_form"):
-                    st.subheader("PCA variance ratio")
-                    subcol1, subcol2 = st.columns(2)
-                    n_pcs = subcol1.number_input(label="n_pcs", min_value=1, max_value=50, value=30)
-                    log = subcol1.checkbox(label="Log", value=True)
-                    subcol1, _, _, _ = st.columns(4)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
-                    empty = st.empty()
-                    if submit_btn:
-                        with st.spinner(text="Computing variance ratio"):
+                def do_var_ratio():
+                    with st.spinner(text="Computing variance ratio"):
+                            
+                            empty = st.empty()
                             sc.pl.pca_variance_ratio(adata, log=log)
 
                             pcs = []
@@ -290,6 +284,17 @@ class Cluster_analysis:
 
                             empty.empty()
                             empty.scatter_chart(df[:n_pcs], x='PC', y='value', color="PC")
+
+                with st.form(key="variance_ratio_form"):
+                    st.subheader("PCA variance ratio")
+                    subcol1, subcol2 = st.columns(2)
+                    n_pcs = subcol1.number_input(label="n_pcs", min_value=1, max_value=50, value=30)
+                    log = subcol1.checkbox(label="Log", value=True)
+                    subcol1, _, _, _ = st.columns(4)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    do_var_ratio()
+                    if submit_btn:
+                        do_var_ratio()
             
             except Exception as e:
                 print("Error ", e)
@@ -391,7 +396,7 @@ class Cluster_analysis:
                     umap_options = np.append(self.adata.var_names, 'leiden')
                     genes = st.multiselect(label='Gene', options=(umap_options), key="ms_umap_select_gene", default=["leiden", self.adata.var_names[0]], max_selections=24) 
                         
-                    nhood_container = st.empty()
+                    nhood_container = st.container()
                     info_container = st.empty() 
                     
                     with st.spinner(text="Computing neighbourhood graph"):
@@ -411,9 +416,13 @@ class Cluster_analysis:
                         sc.pl.paga(self.adata, use_raw=use_raw, plot=False)
                         sc.tl.umap(self.adata, init_pos='paga')
 
-                        ax_umap = sc.pl.umap(self.adata, color=colors, use_raw=use_raw)
-
-                        nhood_container.pyplot(ax_umap)
+                        for color in colors:
+                            if color in self.adata.obs_keys():
+                                df = pd.DataFrame({'umap1': self.adata.obsm['X_umap'][:,0], 'umap2': self.adata.obsm['X_umap'][:,1], f'{color}': self.adata.obs[color].values})
+                            else:
+                                df = pd.DataFrame({'umap1': self.adata.obsm['X_umap'][:,0], 'umap2': self.adata.obsm['X_umap'][:,1], f'{color}': self.adata.to_df()[color].values})
+                            nhood_container.markdown(f"""<p style='text-align: center; size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
+                            nhood_container.scatter_chart(df, x='umap1', y='umap2', size=10, color=f'{color}')
                         
                     subcol1, _, _, _ = st.columns(4)
                         
@@ -436,10 +445,14 @@ class Cluster_analysis:
                             sc.tl.paga(self.adata)
                             sc.pl.paga(self.adata, use_raw=use_raw, plot=False)
                             sc.tl.umap(self.adata, init_pos='paga')
-                            
-                            ax_umap = sc.pl.umap(self.adata, color=colors, use_raw=use_raw)
 
-                            nhood_container.pyplot(ax_umap)
+                            for color in colors:
+                                if color in self.adata.obs_keys():
+                                    df = pd.DataFrame({'umap1': self.adata.obsm['X_umap'][:,0], 'umap2': self.adata.obsm['X_umap'][:,1], f'{color}': self.adata.obs[color].values})
+                                else:
+                                    df = pd.DataFrame({'umap1': self.adata.obsm['X_umap'][:,0], 'umap2': self.adata.obsm['X_umap'][:,1], f'{color}': self.adata.to_df()[color].values})
+                                nhood_container.markdown(f"""<p style='text-align: center; size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
+                                nhood_container.scatter_chart(df, x='umap', y='umap2', size=10, color=f'{color}')
 
             except Exception as e:
                 st.error(e)
