@@ -89,7 +89,7 @@ class Cluster_analysis:
         -------
         # For Citeseq see https://ch1ru.github.io/Nuwa/reference/Create_CiteSeq_model/init_model.html#python-example
 
-        # For Solo see https://ch1ru.github.io/Nuwa/reference/Create_CiteSeq_model/init_model.html#python-example
+        # For Solo see https://ch1ru.github.io/Nuwa/reference/Create_Solo_model/init_model.html#python-example
         """
         with self.col1:
             try:
@@ -154,7 +154,7 @@ class Cluster_analysis:
                                 st.scatter_chart(data=df_solo, x='umap1', y='umap2', color='color', size=18)
                                 
                                 subcol1, _, _, _ = st.columns(4)
-                                submit_btn = subcol1.form_submit_button(label="Filter out doublets", use_container_width=True)
+                                submit_btn = subcol1.form_submit_button(label="Filter doublets", use_container_width=True)
                                 
                                 if submit_btn:
                                     self.adata = self.adata[self.adata.obs.prediction == 'singlet']
