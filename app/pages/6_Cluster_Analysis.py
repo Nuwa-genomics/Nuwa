@@ -43,6 +43,9 @@ st.markdown(common_style, unsafe_allow_html=True)
 
 
 class Cluster_analysis:
+    """
+    Run clustering using a variety of dimensionality reduction algorithms and deep learning models.
+    """
     def __init__(self, adata):
 
         st.title("Analysis")
@@ -69,6 +72,25 @@ class Cluster_analysis:
             print(e)
 
     def autoencoder_cluster_plot(self):
+        """
+        Scatter plot showing embeddings for trained model.
+
+        Parameters
+        ----------
+        color: str
+            Colour based on an obs value (available for citeseq autoencoder).
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/autoencoder_citeseq.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/autoencoder_solo.png
+
+        Example
+        -------
+        # For Citeseq see https://ch1ru.github.io/Nuwa/reference/Create_CiteSeq_model/init_model.html#python-example
+
+        # For Solo see https://ch1ru.github.io/Nuwa/reference/Create_CiteSeq_model/init_model.html#python-example
+        """
         with self.col1:
             try:
                 if "trained_model" not in st.session_state:

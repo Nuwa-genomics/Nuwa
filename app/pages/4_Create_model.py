@@ -78,6 +78,9 @@ class Create_CiteSeq_model:
         model: CiteAutoencoder
             CiteAutoencoder model object.
 
+        device: str
+            Device to run the training on (CPU or Cuda if GPU is available).
+
         learning_rate: float
             Adjustable learning rate for improving gradient descent optimizer.
 
@@ -87,8 +90,8 @@ class Create_CiteSeq_model:
         optimizer: str
             Optimizer for neural network.
 
-        test_split: int
-            Percntage of dataset to be used for testing/validation (not training).
+        train_split: int
+            Percntage of dataset to be used for training (not testing/validation).
 
         latent_dimensions: int
             Dimensionality of latent space in autoencoder.
@@ -242,6 +245,9 @@ class Create_Solo_model:
 
         learning_rate: float
             Adjustable learning rate for improving gradient descent opttimizer.
+
+        train_size: int
+            The percentage of the dataset to be used for training (not testing/validation).
 
         Notes
         -----
