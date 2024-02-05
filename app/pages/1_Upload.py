@@ -55,6 +55,10 @@ class Upload:
         uploaded_f: UploadedFile
             Dataset file to load.
 
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/upload.png
+
         Example
         -------
         import scanpy as sc
@@ -131,6 +135,10 @@ class Upload:
         ----------
         dataset: str
             Name of dataset.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/builtin_upload.png
 
         Example
         -------
@@ -233,6 +241,10 @@ class Upload:
         ----------
         ebi_accession_string: str
             EBI accession key for a dataset.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/ebi_upload.png
 
         Example
         -------

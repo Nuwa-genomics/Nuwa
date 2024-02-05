@@ -23,6 +23,9 @@ with open('css/common.css') as f:
     st.markdown(common_style, unsafe_allow_html=True)
 
 class Trajectory_inference:
+    """
+    Trajectory inference gives key insights into cell differentiation through ordering the stages of development into a continuous sequence of clusters.
+    """
     def __init__(self, adata):
         try:
             self.adata = adata
@@ -42,6 +45,31 @@ class Trajectory_inference:
         
 
     def draw_graph(self):
+        """
+        Plot graph with force-directed graph drawing [Islam11], [Jacomy14], [Chippada18].
+
+        Parameters
+        ----------
+        color: str
+            Obs value to color samples.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/traj_infer_graph.png
+        
+        Example
+        -------
+        import scanpy as sc
+
+        #compute pca
+        sc.tl.pca(adata, svd_solver='arpack')
+        #compute neighbours
+        sc.pp.neighbors(adata, n_neighbors=4, n_pcs=20)
+        sc.tl.draw_graph(adata)
+        #compute louvain clusters
+        sc.tl.louvain(adata, resolution=1.0)
+        sc.pl.draw_graph(adata, color='louvain', legend_loc='on data')
+        """
         with self.col1:
             try:
                 st.subheader("Cluster chart")

@@ -6,6 +6,7 @@ import pandas as pd
 import threading
 import numpy as np
 import os
+import plotly.express as px
 
 from models.AdataModel import AdataModel
 from components.sidebar import *
@@ -31,16 +32,69 @@ class Spatial_transcriptomics:
         st.title("Spatial Transcriptomics")
         plt.style.use('dark_background')
         self.col1, self.col2, self.col3 = st.columns(3, gap="medium")
+        if 'spatial_plots' not in st.session_state:
+            st.session_state["spatial_plots"] = dict(nhood_enrichment=None, interaction_matrix=None)
         self.spatial_scatter()
         self.neighbourhood_enrichment()
         self.interaction_matrix()
         self.ripley_score()
         self.co_occurance_score()
         self.centrality_score()
-        self.ligand_receptor_interaction()
+        self.render_plots()
+        #self.ligand_receptor_interaction()
+
+    def render_plots(self):
+        st.subheader("Plots")
+        nhood_enrichment, interaction_matrix = st.tabs(['Neighbourhood enrichment', 'Interaction matrix'])
+        with nhood_enrichment:
+            if st.session_state['spatial_plots']["nhood_enrichment"] == None:
+                st.info("You must run neighbourhood enrichment first.")
+            else:
+                fig = st.session_state.spatial_plots["nhood_enrichment"]
+                fig_plt = px.imshow(
+                    self.adata.uns[f"{fig['cluster_key']}_nhood_enrichment"][fig['mode']], 
+                    labels=dict(x=fig['cluster_key'], y=fig['cluster_key'], color=fig['mode']), 
+                    title="Neighbourhood enrichment", aspect="auto", height=800,
+                    x=adata.obs[fig['cluster_key']].unique(), y=adata.obs[fig['cluster_key']].unique()
+                )
+                st.plotly_chart(fig_plt, use_container_width=True)
+
+        with interaction_matrix:
+            if st.session_state['spatial_plots']['interaction_matrix'] == None:
+                st.info("You must run interaction matrix first.")
+            else:
+                fig = st.session_state.spatial_plots["interaction_matrix"]
+                fig_plt = px.imshow(
+                    self.adata.uns[f"{fig['cluster_key']}_interactions"], 
+                    labels=dict(x=fig['cluster_key'], y=fig['cluster_key'], color='Score'), 
+                    title="Neighbourhood enrichment", aspect="auto", height=800,
+                    x=adata.obs[fig['cluster_key']].unique(), y=adata.obs[fig['cluster_key']].unique()
+                )
+                st.plotly_chart(fig_plt, use_container_width=True)
         
 
     def spatial_scatter(self):
+        """
+        Plot a spatial graph. Optionally overlay on histology image if available.
+
+        Parameters
+        ----------
+        color: str
+            Obs value to color samples.
+
+        point_size: int
+            Size of markers in scatter graph.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/spatial_plot.png
+        
+        Example
+        -------
+        import scanpy as sc
+
+        sc.pl.spatial(adata, color="cell_type")
+        """
         with st.spinner(text="Loading graph"):
             with self.col1:
                 st.subheader("Spatial plot")
@@ -49,41 +103,52 @@ class Spatial_transcriptomics:
                     st.selectbox(label="Colour", options=reversed(self.adata.obs.columns), key="sb_spatial_colours")
                     ax_df = pd.DataFrame({'spatial1': self.adata.obsm['spatial'][:,0], 'spatial2': self.adata.obsm['spatial'][:,1], 'color': self.adata.obs[st.session_state.sb_spatial_colours]})
                     st.slider(label="Point size", min_value=1, max_value=100, value=10, key="sl_point_size")
-                    tab_plt, tab_img, tab_both = st.tabs(['plt', 'Image', 'both'])
-                    with tab_plt:
-                        st.scatter_chart(ax_df, x='spatial1', y='spatial2', color='color', height=480, size=st.session_state.sl_point_size)
-                    with tab_img:
-                        fig, ax = plt.subplots(nrows=1, ncols=1)
-                        ax_sp_img: plt.Axes = sq.pl.spatial_scatter(self.adata, color="cluster", size=0, legend_fontsize=0.0, legend_fontweight="regular", colorbar=False, ax=ax)
-                        st.pyplot(ax_sp_img)
-                    with tab_both:
-                        ax_sp = sq.pl.spatial_scatter(self.adata, color="cluster")
-                        st.pyplot(ax_sp)
+                    st.scatter_chart(ax_df, x='spatial1', y='spatial2', color='color', height=480, size=st.session_state.sl_point_size)
                     
                 except Exception as e:
                     st.error(e)
 
     def neighbourhood_enrichment(self):
+        """
+        Plots a matrix plot using an enrichment score on spatial proximity of clusters. If spots belonging to two different clusters are often close to each other, then they will have a high score and can be defined as being enriched. On the other hand, if they are far apart, the score will be low and they can be defined as depleted.
+        
+        Parameters
+        ----------
+        cluster_key: str
+            Key by which to compute neighbouhood enrichment scores.
+
+        n_perms: int
+            Number of permutations when computing the score.
+
+        Exmaple
+        -------
+        import squidpy as sq
+
+        sq.gr.spatial_neighbors(adata)
+        sq.gr.nhood_enrichment(adata, n_perms=1000, cluster_key="cell_type")
+        sq.pl.nhood_enrichment(adata, cluster_key="cell_type")
+        """
         with self.col2:
             with st.form(key="n_enrich_form"):
                 st.subheader("Neighbourhood Enrichment")
                 try:
-                    st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_n_enrich")
+                    col1, col2 = st.columns(2, gap="large")
+                    cluster_key = col1.selectbox(label="Cluster Key", options=self.adata.obs_keys())
+                    n_perms = col2.number_input(label="n_perms", min_value=1, value=1000)
+                    mode = col1.selectbox(label="mode", options=['zscore', 'count'])
                     subcol1, _, _, _ = st.columns(4)
-                    empty = st.empty()
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     if submit_btn:
                         with st.spinner(text="Running neighbourhood enrichment"):
                             sq.gr.spatial_neighbors(self.adata)
-                            sq.gr.nhood_enrichment(self.adata, cluster_key=st.session_state.sb_cluster_key_n_enrich)
-                            ax_n_enrich = sq.pl.nhood_enrichment(self.adata, cluster_key=st.session_state.sb_cluster_key_n_enrich)
-                            empty.empty()
-                            empty.pyplot(ax_n_enrich)
+                            sq.gr.nhood_enrichment(self.adata, n_perms=n_perms, cluster_key=cluster_key)
+                            
+                            st.session_state.spatial_plots['nhood_enrichment'] = dict(cluster_key=cluster_key, mode=mode)
                             #write to script state
-                            st.session_state["script_state"].add_script("sq.gr.spatial_neighbors(adata)")
-                            st.session_state["script_state"].add_script(f"sq.gr.nhood_enrichment(adata, cluster_key={st.session_state.sb_cluster_key_n_enrich})")
-                            st.session_state["script_state"].add_script("")
-                            st.session_state["script_state"].add_script("")
+                            # st.session_state["script_state"].add_script("sq.gr.spatial_neighbors(adata)")
+                            # st.session_state["script_state"].add_script(f"sq.gr.nhood_enrichment(adata, cluster_key={st.session_state.sb_cluster_key_n_enrich})")
+                            # st.session_state["script_state"].add_script("")
+                            # st.session_state["script_state"].add_script("")
                 except Exception as e:
                     st.error(e)
 
@@ -138,20 +203,20 @@ class Spatial_transcriptomics:
             with st.form(key="interaction_matrix_form"):
                 st.subheader("Interaction matrix")
                 try:
-                    st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_inter_matrix")
-                    empty = st.empty()
+                    col1, col2 = st.columns(2, gap="medium")
+                    cluster_key = col1.selectbox(label="Cluster Key", options=self.adata.obs_keys())
                     subcol1, _, _, _ = st.columns(4)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     if submit_btn:
                         with st.spinner(text="Computing interaction matrix"):
-                            sq.gr.interaction_matrix(self.adata, cluster_key=st.session_state.sb_cluster_key_inter_matrix)
-                            ax_inter_matrix = sq.pl.interaction_matrix(self.adata, cluster_key=st.session_state.sb_cluster_key_inter_matrix)
-                            empty.empty()
-                            empty.pyplot(ax_inter_matrix)
+                            sq.gr.interaction_matrix(self.adata, cluster_key=cluster_key)
+                            sq.pl.interaction_matrix(self.adata, cluster_key=cluster_key)
+                            st.session_state.spatial_plots['interaction_matrix'] = dict(cluster_key=cluster_key)
+
                             #write to script state
-                            st.session_state["script_state"].add_script(f"sq.gr.interaction_matrix(adata, cluster_key={st.session_state.sb_cluster_key_inter_matrix})")
-                            st.session_state["script_state"].add_script(f"sq.pl.interaction_matrix(adata, cluster_key={st.session_state.sb_cluster_key_inter_matrix})")
-                            st.session_state["script_state"].add_script("plt.show()")
+                            # st.session_state["script_state"].add_script(f"sq.gr.interaction_matrix(adata, cluster_key={st.session_state.sb_cluster_key_inter_matrix})")
+                            # st.session_state["script_state"].add_script(f"sq.pl.interaction_matrix(adata, cluster_key={st.session_state.sb_cluster_key_inter_matrix})")
+                            # st.session_state["script_state"].add_script("plt.show()")
                 except Exception as e:
                     st.error(e)
 
@@ -219,6 +284,5 @@ try:
     sidebar.show_version()
 
 except KeyError as ke:
-    print("KeyError: ", ke)
-    st.error("Couldn't find adata object in session, have you uploaded one?")
+    st.error("KeyError: ", ke)
 
