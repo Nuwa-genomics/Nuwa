@@ -42,12 +42,11 @@ class Differential_gene_expression:
     def draw_page(self):
         col1, col2, col3 = st.columns(3)
         with col1:
-            self.upload_marker_genes()
-            self.preview_marker_genes()
-        with col2:
             self.add_embeddings()
+            self.upload_marker_genes()
+        with col2:
             self.stat_tests()
-            
+            self.preview_marker_genes()
 
         self.visualize()
         self.rank_genes_groups()
