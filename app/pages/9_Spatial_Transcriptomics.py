@@ -26,6 +26,14 @@ with open('css/common.css') as f:
     st.markdown(common_style, unsafe_allow_html=True)
 
 class Spatial_transcriptomics:
+    """
+    View expression profiles while retaining spatial information.
+
+    Notes
+    -----
+    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/spatial_page.png
+    """
+
     def __init__(self, adata):
         self.adata = adata
 

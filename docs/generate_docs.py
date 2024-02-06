@@ -53,7 +53,22 @@ for file in python_files:
 
                 if os.path.exists(f'./docs/reference/{class_.name}'):
                     with open(f"./docs/reference/{class_.name}/README.md", "w") as f:
-                        f.write(f"---\nsort: {classes_ordered.index(class_.name)}\n---\n# {class_.name.replace('_', ' ')}\n\n{parse(ast.get_docstring(class_)).short_description}\n\n## Methods:\n\n{{% include list.liquid all=true %}}")
+                        markdown = f"---\nsort: {classes_ordered.index(class_.name)}\n---\n"
+                        markdown += f"# {class_.name.replace('_', ' ')}\n\n"
+                        markdown += f"{parse(ast.get_docstring(class_)).short_description}\n\n"
+                        #screenshots
+                        docstring = parse(ast.get_docstring(class_))
+                        for i, example in enumerate(docstring.meta):
+                            #look in notes heading
+                            if docstring.meta[i].args[0] == 'notes':    
+                                #capture image string according to numpy docstring format
+                                images = re.split(r'..\s*image::\s*', docstring.meta[i].description)
+                                for img in images:
+                                    if img.__contains__("screenshot"):
+                                        markdown += f"\n<img style='border-radius:15px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='{method.name}_screenshot' src='{img.strip()}'>"
+                        #methods
+                        markdown += f"## Methods:\n\n{{% include list.liquid all=true %}}"
+                        f.write(markdown)
 
                 methods = [n for n in class_.body if isinstance(n, ast.FunctionDef)]
                 for method in methods:
