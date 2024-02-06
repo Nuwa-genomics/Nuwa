@@ -26,6 +26,10 @@ with open('css/common.css') as f:
 class Integrate:
     """
     Integrate multiple datasets into a single dataset with tools to minimise batch effect.
+
+    Notes
+    -----
+    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/integrate_page.png
     """
     def __init__(self):
 

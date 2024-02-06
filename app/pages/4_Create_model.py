@@ -31,6 +31,10 @@ with open('css/common.css') as f:
 class Create_CiteSeq_model:
     """
     Train a deep autoencoder model for dimensionality reduction on gene expression data. This is an alternative to other DR algorithms such as tSNE. Original Github repo can be found [here](https://github.com/naity/citeseq_autoencoder)
+    
+    Notes
+    -----
+    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/create_model_citeseq_page.png
     """
     def __init__(self, adata):
         self.adata = adata
@@ -194,6 +198,10 @@ class Create_CiteSeq_model:
 class Create_Solo_model:
     """
     Create a Solo model for doublet detection and removal. A package in [scvi tools](https://docs.scvi-tools.org/en/stable/user_guide/models/solo.html)
+
+    Notes
+    -----
+    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/create_model_solo_page.png
     """
     def __init__(self, adata):
         self.adata = adata

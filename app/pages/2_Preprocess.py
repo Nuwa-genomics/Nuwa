@@ -41,6 +41,10 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 class Preprocess:
     """
     Apply preprocessing on raw data for more effective analysis and detecting biological signal.
+
+    Notes
+    -----
+    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/preprocess_page.png
     
     Attributes
     ----------
@@ -686,7 +690,7 @@ class Preprocess:
         -------
         import scanpy as sc
 
-        
+
         """
         with st.form(key="form_annotate_hb"):
             st.subheader("Haemoglobin genes", help="Filter haemoglobin gene counts. All haemoglobin genes \

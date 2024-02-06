@@ -32,6 +32,10 @@ with open('css/common.css') as f:
 class Upload:
     """
     Choose a dataset source. This can be a local dataset, online resource from EBI expression atlas or built-in datasets.
+
+    Notes
+    -----
+    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/upload_page.png
     """
     def __init__(self):
         self.first_load = True
