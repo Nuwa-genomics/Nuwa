@@ -19,6 +19,10 @@ with open('css/common.css') as f:
 class Plotly_3D:
     """
     An interactive 3D chart to view cluster embeddings.
+
+    Notes
+    -----
+    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/plotly_page.png
     """
     def __init__(self, adata, df):
         self.adata = adata
