@@ -45,6 +45,10 @@ st.markdown(common_style, unsafe_allow_html=True)
 class Cluster_analysis:
     """
     Run clustering using a variety of dimensionality reduction algorithms and deep learning models.
+
+    Notes
+    -----
+    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/cluster_analysis_page.png
     """
     def __init__(self, adata):
 
