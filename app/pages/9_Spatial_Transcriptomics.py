@@ -310,6 +310,27 @@ class Spatial_transcriptomics:
 
 
     def interaction_matrix(self):
+        """
+        Count the number of edges that each cluster share with all the others and plot in a heatmap.
+        
+        Parameters
+        ----------
+        cluster_key: str
+            Key by which to compute neighbouhood enrichment scores.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/interaction_matrix1.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/interaction_matrix2.png
+        
+        Example
+        -------
+        import squidpy as sq
+
+        sq.gr.spatial_neighbors(adata)
+        sq.gr.interaction_matrix(adata, cluster_key="cell type")
+        sq.pl.interaction_matrix(adata, cluster_key="cell type")
+        """
         with self.col3:
             with st.form(key="interaction_matrix_form"):
                 st.subheader("Interaction matrix")
@@ -320,6 +341,7 @@ class Spatial_transcriptomics:
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     if submit_btn:
                         with st.spinner(text="Computing interaction matrix"):
+                            sq.gr.spatial_neighbors(self.adata)
                             sq.gr.interaction_matrix(self.adata, cluster_key=cluster_key)
                             sq.pl.interaction_matrix(self.adata, cluster_key=cluster_key)
                             st.session_state.spatial_plots['interaction_matrix'] = dict(cluster_key=cluster_key)
@@ -334,6 +356,27 @@ class Spatial_transcriptomics:
                     st.error(e)
 
     def centrality_score(self):
+        """
+        Compute degree, average and closeness centralities of the spatial graph.
+
+        Parameters
+        ----------
+        cluster_key: str
+            Key by which to compute neighbouhood enrichment scores.
+        
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/centrality_score1.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/centrality_score2.png
+
+        Example
+        -------
+        import squidpy as sq
+
+        sq.gr.spatial_neighbors(adata)
+        sq.gr.centrality_scores(adata, cluster_key="cell type")
+        sq.pl.centrality_scores(adata, cluster_key="cell type", figsize=(20, 5), s=500)
+        """
         with self.col3:
             with st.form(key="centrality_score_form"):
                 st.subheader("Centrality score")
