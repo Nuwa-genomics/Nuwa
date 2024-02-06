@@ -42,11 +42,12 @@ class Differential_gene_expression:
     def draw_page(self):
         col1, col2, col3 = st.columns(3)
         with col1:
-            self.add_embeddings()
             self.upload_marker_genes()
-        with col2:
-            self.stat_tests()
             self.preview_marker_genes()
+        with col2:
+            self.add_embeddings()
+            self.stat_tests()
+            
 
         self.visualize()
         self.rank_genes_groups()
@@ -98,6 +99,9 @@ class Differential_gene_expression:
             st.error(e)
 
     def upload_marker_genes(self):
+        """
+        Upload a csv file of marker genes to be used for cell type identification.
+        """
         try:
             st.subheader("Upload marker genes file", help="")
             marker_genes_upload = st.file_uploader(label="Upload csv file", type=['csv', 'tsv'])
@@ -122,6 +126,26 @@ class Differential_gene_expression:
             print("Error: ", e)
 
     def do_umap(self):
+        """
+        Perform a UMAP to visualise clusters.
+
+        Parameters
+        ----------
+        color: str
+            Obs key to use as a color.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/umap_de.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        sc.pp.neighbors(adata, random_state=42)
+        sc.tl.umap(adata, random_state=42)
+        sc.pl.umap(adata, color="leiden")
+        """
         try:
             with st.form(key="do_umap"):
                 st.subheader("UMAP")
@@ -153,6 +177,32 @@ class Differential_gene_expression:
             st.error(e)
 
     def add_embeddings(self):
+        """
+        Add leiden or louvain embeddings to dataset if not already present or for a specific resolution.
+
+        Parameters
+        ----------
+        algorithm: str, default = "Leiden"
+            Clustering algorithm to use.
+        
+        resolution: float, default = 0.6
+            Resolution to use in clustering algorithm (a higher resultion finds more clusters).
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/cluster_embeddings.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        resolution = 0.6
+        sc.pp.neighbors(adata, n_neighbors=10, n_pcs=40)
+        # add leiden embeddings
+        sc.tl.leiden(adata, resolution=resolution, key_added=f"leiden_{resolution}") 
+        # add louvain embeddings
+        sc.tl.louvain(adata, resolution=resolution, key_added=f"louvain_{resolution}")
+        """
         try:
             with st.form(key="add_embeddings_form"):
                 st.subheader("Cluster embeddings", help="Embed clusters in dataset for DGE.")
