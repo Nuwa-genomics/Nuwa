@@ -7,6 +7,7 @@ import threading
 import numpy as np
 import os
 import plotly.express as px
+from utils.plotting import plot_ripley, plot_co_occurrence, plot_centrality_scores
 
 from models.AdataModel import AdataModel
 from components.sidebar import *
@@ -33,7 +34,7 @@ class Spatial_transcriptomics:
         plt.style.use('dark_background')
         self.col1, self.col2, self.col3 = st.columns(3, gap="medium")
         if 'spatial_plots' not in st.session_state:
-            st.session_state["spatial_plots"] = dict(nhood_enrichment=None, interaction_matrix=None)
+            st.session_state["spatial_plots"] = dict(nhood_enrichment=None, interaction_matrix=None, ripley_score=None, co_occurance_score=None, centrality_score=None)
         self.spatial_scatter()
         self.neighbourhood_enrichment()
         self.interaction_matrix()
@@ -45,7 +46,10 @@ class Spatial_transcriptomics:
 
     def render_plots(self):
         st.subheader("Plots")
-        nhood_enrichment, interaction_matrix = st.tabs(['Neighbourhood enrichment', 'Interaction matrix'])
+        nhood_enrichment, interaction_matrix, ripley_score, co_occurance_score, centrality_score = st.tabs(
+            ['Neighbourhood enrichment', 'Interaction matrix', 'Ripley score', 'Co-occurance score', 'Centrality score']
+        )
+
         with nhood_enrichment:
             if st.session_state['spatial_plots']["nhood_enrichment"] == None:
                 st.info("You must run neighbourhood enrichment first.")
@@ -71,6 +75,38 @@ class Spatial_transcriptomics:
                     x=adata.obs[fig['cluster_key']].unique(), y=adata.obs[fig['cluster_key']].unique()
                 )
                 st.plotly_chart(fig_plt, use_container_width=True)
+
+        with ripley_score:
+            if st.session_state['spatial_plots']['ripley_score'] == None:
+                st.info("You must run Ripley scoring first.")
+            else:
+                fig = st.session_state.spatial_plots["ripley_score"]
+                fig_plt = plot_ripley(adata=self.adata, cluster_key=fig['cluster_key'], plot_sims=fig['plot_sims'], mode=fig['mode'], height=800)
+                st.plotly_chart(fig_plt, use_container_width=True)
+
+        with co_occurance_score:
+            if st.session_state['spatial_plots']['co_occurance_score'] == None:
+                st.info("You must run co-occurance scoring first.")
+            else:
+                fig = st.session_state.spatial_plots["co_occurance_score"]
+                for fig_plt in plot_co_occurrence(self.adata, cluster_key=fig['cluster_key'], clusters=fig['clusters'], height=800):
+                    st.plotly_chart(fig_plt, use_container_width=True)
+
+        with centrality_score:
+            if st.session_state.spatial_plots["centrality_score"] == None:
+                st.info("You must run centrality scoring first.")
+            else:
+                fig = st.session_state.spatial_plots["centrality_score"]
+                col1, col2, col3 = st.columns(3, gap="large")
+                with col1:
+                    fig_plt = plot_centrality_scores(self.adata, cluster_key=fig['cluster_key'], height=800)[0]
+                    st.plotly_chart(fig_plt, use_container_width=True)
+                with col2:
+                    fig_plt = plot_centrality_scores(self.adata, cluster_key=fig['cluster_key'], height=800)[1]
+                    st.plotly_chart(fig_plt, use_container_width=True)
+                with col3:
+                    fig_plt = plot_centrality_scores(self.adata, cluster_key=fig['cluster_key'], height=800)[2]
+                    st.plotly_chart(fig_plt, use_container_width=True)
         
 
     def spatial_scatter(self):
@@ -120,7 +156,7 @@ class Spatial_transcriptomics:
         n_perms: int
             Number of permutations when computing the score.
 
-        Exmaple
+        Example
         -------
         import squidpy as sq
 
@@ -149,6 +185,8 @@ class Spatial_transcriptomics:
                             # st.session_state["script_state"].add_script(f"sq.gr.nhood_enrichment(adata, cluster_key={st.session_state.sb_cluster_key_n_enrich})")
                             # st.session_state["script_state"].add_script("")
                             # st.session_state["script_state"].add_script("")
+
+                        st.toast("Successfully ran neighbourhood enrichment", icon="✅")
                 except Exception as e:
                     st.error(e)
 
@@ -157,43 +195,50 @@ class Spatial_transcriptomics:
             with st.form(key="ripley_score_form"):
                 st.subheader("Ripley score")
                 try:
-                    st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_ripley")
-                    empty = st.empty()
+                    col1, col2 = st.columns(2, gap="medium")
+                    cluster_key = col1.selectbox(label="Cluster Key", options=self.adata.obs_keys(), key="sb_cluster_key_ripley")
+                    max_dist = col2.number_input(label="max_dist", value=500, step=1)
+                    mode = col1.radio(label="mode", options=['F', 'G', 'L'])
+                    plot_sims = st.toggle(label="plot_sims", value=False)
                     subcol1, _, _, _ = st.columns(4)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     if submit_btn:
                         with st.spinner(text="Calculating Ripley score"):
-                            sq.gr.ripley(self.adata, cluster_key=st.session_state.sb_cluster_key_ripley, mode="L", max_dist=500)
-                            ax_ripley = sq.pl.ripley(self.adata, cluster_key=st.session_state.sb_cluster_key_ripley, mode="L")
-                            empty.pyplot(ax_ripley)
+                            sq.gr.ripley(self.adata, cluster_key=cluster_key, mode=mode, max_dist=max_dist)
+                            st.session_state.spatial_plots['ripley_score'] = dict(cluster_key=cluster_key, mode=mode, plot_sims=plot_sims)
                         #write to script state
                         st.session_state["script_state"].add_script(f"sq.gr.ripley(adata, cluster_key={st.session_state.sb_cluster_key_ripley}, mode='L', max_dist=500)")
                         st.session_state["script_state"].add_script(f"sq.pl.ripley(adata, cluster_key={st.session_state.sb_cluster_key_ripley}, mode='L')")
                         st.session_state["script_state"].add_script("plt.show()")
+
+                        st.toast(f"Successfully ran Ripley's {mode} scoring", icon="✅")
                 except Exception as e:
                     st.error(e)
 
     def co_occurance_score(self):
         with self.col3:
+            st.subheader("Co-occurance score")
+            st.selectbox(label="Cluster Key", options=self.adata.obs_keys(), key="sb:spatial:co_occurance:cluster_key")
             with st.form(key="cooccurance_form"):
-                st.subheader("Co-occurance score")
+                
                 try:
-                    st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns.unique()), key="sb_cluster_key_cooc")
-                    options = self.adata.obs[st.session_state.sb_cluster_key_cooc].unique()
-                    st.multiselect(label="Clusters", options=options, key="ms_clusters_cooc", default=options[0])
-                    empty = st.empty()
+                    col1, col2 = st.columns(2)
+                    clusters = st.multiselect(label="Clusters", options=self.adata.obs[f"{st.session_state['sb:spatial:co_occurance:cluster_key']}"].unique())
+                   
                     subcol1, _, _, _ = st.columns(4)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     if submit_btn:
                         with st.spinner(text="Calculating co-occurance score"):
-                            sq.gr.co_occurrence(self.adata, cluster_key=st.session_state.sb_cluster_key_cooc)
-                            ax_cooc = sq.pl.co_occurrence(self.adata, cluster_key=st.session_state.sb_cluster_key_cooc, clusters=st.session_state.ms_clusters_cooc)
-                            empty.empty()
-                            empty.pyplot(ax_cooc)
+                            cluster_key = st.session_state['sb:spatial:co_occurance:cluster_key']
+                            sq.gr.co_occurrence(self.adata, cluster_key=cluster_key)  
+                            st.session_state.spatial_plots['co_occurance_score'] = dict(cluster_key=cluster_key, clusters=clusters)                
+                            
                             #write to script state
-                            st.session_state["script_state"].add_script(f"sq.gr.co_occurrence(adata, cluster_key={st.session_state.sb_cluster_key_cooc})")
-                            st.session_state["script_state"].add_script(f"sq.pl.co_occurrence(adata, cluster_key={st.session_state.sb_cluster_key_cooc}, clusters={st.session_state.ms_clusters_cooc}")
-                            st.session_state["script_state"].add_script("plt.show()")
+                            # st.session_state["script_state"].add_script(f"sq.gr.co_occurrence(adata, cluster_key={st.session_state.sb_cluster_key_cooc})")
+                            # st.session_state["script_state"].add_script(f"sq.pl.co_occurrence(adata, cluster_key={st.session_state.sb_cluster_key_cooc}, clusters={st.session_state.ms_clusters_cooc}")
+                            # st.session_state["script_state"].add_script("plt.show()")
+
+                        st.toast("Successfully ran co-occurance scoring", icon="✅")
                 except Exception as e:
                     st.error(e)
 
@@ -217,6 +262,8 @@ class Spatial_transcriptomics:
                             # st.session_state["script_state"].add_script(f"sq.gr.interaction_matrix(adata, cluster_key={st.session_state.sb_cluster_key_inter_matrix})")
                             # st.session_state["script_state"].add_script(f"sq.pl.interaction_matrix(adata, cluster_key={st.session_state.sb_cluster_key_inter_matrix})")
                             # st.session_state["script_state"].add_script("plt.show()")
+
+                        st.toast("Successfully ran interaction matrix", icon="✅")
                 except Exception as e:
                     st.error(e)
 
@@ -225,20 +272,24 @@ class Spatial_transcriptomics:
             with st.form(key="centrality_score_form"):
                 st.subheader("Centrality score")
                 try:
-                    st.selectbox(label="Cluster Key", options=reversed(self.adata.obs.columns), key="sb_cluster_key_centrality_score")
-                    empty = st.empty()
+                    cluster_key = st.selectbox(label="Cluster Key", options=self.adata.obs_keys())
+                    
                     subcol1, _, _, _ = st.columns(4)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     if submit_btn:
                         with st.spinner(text="Calculating centrality score"):
-                            sq.gr.centrality_scores(self.adata, cluster_key=st.session_state.sb_cluster_key_centrality_score)
-                            ax_cent = sq.pl.centrality_scores(self.adata, cluster_key=st.session_state.sb_cluster_key_centrality_score, s=500)
-                            empty.empty()
-                            empty.pyplot(ax_cent)
+                            sq.gr.spatial_neighbors(self.adata)
+                            sq.gr.centrality_scores(self.adata, cluster_key=cluster_key)
+                            
+                            ax_cent = sq.pl.centrality_scores(self.adata, cluster_key=cluster_key, s=500)
+                            st.session_state.spatial_plots['centrality_score'] = dict(cluster_key=cluster_key)
+                            
                             #write to script state
-                            st.session_state["script_state"].add_script(f"sq.gr.centrality_scores(adata, cluster_key={st.session_state.sb_cluster_key_centrality_score})")
-                            st.session_state["script_state"].add_script(f"sq.pl.centrality_scores(adata, cluster_key={st.session_state.sb_cluster_key_centrality_score}, s=500)")
-                            st.session_state["script_state"].add_script("plt.show()")
+                            # st.session_state["script_state"].add_script(f"sq.gr.centrality_scores(adata, cluster_key={st.session_state.sb_cluster_key_centrality_score})")
+                            # st.session_state["script_state"].add_script(f"sq.pl.centrality_scores(adata, cluster_key={st.session_state.sb_cluster_key_centrality_score}, s=500)")
+                            # st.session_state["script_state"].add_script("plt.show()")
+
+                        st.toast("Successfully ran centrality scoring", icon="✅")
                 except Exception as e:
                     st.error(e)
 
