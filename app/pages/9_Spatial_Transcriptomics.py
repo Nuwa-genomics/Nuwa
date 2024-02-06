@@ -260,9 +260,27 @@ class Spatial_transcriptomics:
 
     def co_occurance_score(self):
         """
-        Calculate co-occurance scoring between original spatial coordinates. It can be defined as $$ \\frac{p(exp|cond)}{p(exp)}.
+        Calculate co-occurance scoring between original spatial coordinates. It can be defined as $$ \\frac{p(exp|cond)}{p(exp)} $$.
 
-        
+        Parameters
+        ----------
+        cluster_key: str
+            Key by which to compute neighbouhood enrichment scores.
+
+        clusters: str
+            Cluster annotation to use in co-occurance scoring.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/cooccurance1.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/cooccurance2.png
+
+        Example
+        -------
+        import squidpy as sq
+
+        sq.gr.co_occurrence(adata, cluster_key="celltype_mapped_refined")
+        sq.pl.co_occurrence(adata, cluster_key="celltype_mapped_refined", clusters="Lateral plate mesoderm", figsize=(10, 5))
         """
         with self.col3:
             st.subheader("Co-occurance score")
@@ -286,7 +304,7 @@ class Spatial_transcriptomics:
                             # st.session_state["script_state"].add_script(f"sq.pl.co_occurrence(adata, cluster_key={st.session_state.sb_cluster_key_cooc}, clusters={st.session_state.ms_clusters_cooc}")
                             # st.session_state["script_state"].add_script("plt.show()")
 
-                        st.toast("Successfully ran co-occurance scoring", icon="✅")
+                        st.toast("Ran co-occurance scoring", icon="✅")
                 except Exception as e:
                     st.error(e)
 
