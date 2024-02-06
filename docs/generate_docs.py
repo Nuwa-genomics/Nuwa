@@ -63,7 +63,7 @@ for file in python_files:
                                 images = re.split(r'..\s*image::\s*', docstring.meta[i].description)
                                 for img in images:
                                     if img.__contains__("screenshot"):
-                                        markdown += f"\n<img style='border-radius:15px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='{method.name}_screenshot' src='{img.strip()}'>"
+                                        markdown += f"\n<img style='border-radius:15px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='{img.strip()}'>"
                         #methods
                         markdown += f"\n## Methods:\n\n{{% include list.liquid all=true %}}"
                         f.write(markdown)
