@@ -27,8 +27,6 @@ for cls in classes_ordered:
     os.mkdir(f"./docs/reference/{cls}")
 
 
-
-
 src_root = "app/pages" #root folder for source code
 
 python_files = glob.glob("*.py", root_dir=src_root)
@@ -67,7 +65,7 @@ for file in python_files:
                                     if img.__contains__("screenshot"):
                                         markdown += f"\n<img style='border-radius:15px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='{method.name}_screenshot' src='{img.strip()}'>"
                         #methods
-                        markdown += f"## Methods:\n\n{{% include list.liquid all=true %}}"
+                        markdown += f"\n## Methods:\n\n{{% include list.liquid all=true %}}"
                         f.write(markdown)
 
                 methods = [n for n in class_.body if isinstance(n, ast.FunctionDef)]
