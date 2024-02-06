@@ -24,6 +24,13 @@ with open('css/common.css') as f:
 
 
 class Differential_gene_expression:
+    """
+    Differential gene expression looks at how genes are expressed compared to the rest of the dataset. This includes useful matrix plots, dot plots and violin vlots to visualise variable expression. You can also choose which clusters and statistical tests to run the DE analysis.
+
+    Notes
+    -----
+    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/de_page.png
+    """
     def __init__(self, adata):
         self.adata = adata
         self.draw_page()
@@ -50,6 +57,28 @@ class Differential_gene_expression:
         
 
     def stat_tests(self):
+        """
+        Compute ranking of differential genes between groups using statistical tests such as t-test.
+
+        Parameters
+        ----------
+        method: str
+            Statistical test to find differential clusters and results in adata for plotting. Options include t-test, t-test_overestim_var, wilcoxon and logreg.
+
+        group_by: str
+            Obs value to group clusters by.
+            
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/stats_test.png
+        
+        Example
+        -------
+        import scanpy as sc
+
+        sc.tl.rank_genes_groups(adata, groupby=group_by, method = "wilcoxon")
+        sc.pl.rank_genes_groups(adata, n_genes=25, sharey=False, save=True)
+        """
         try:
             with st.form(key="stat_tests_form"):
                 st.subheader("Run statistical tests")
@@ -147,6 +176,12 @@ class Differential_gene_expression:
 
 
     def visualize(self):
+        """
+        Visualize differential expression between individual genes or clusters.
+
+        
+
+        """
         try:
  
             with st.form(key="visualize_form"):
@@ -187,6 +222,42 @@ class Differential_gene_expression:
 
 
     def rank_genes_groups(self):
+        """
+        Rank gene groups by a cluster key according to their differential expression accross clusters or genes.
+
+        Parameters
+        ----------
+        method: str
+            Statistical test to find differential clusters and results in adata for plotting. Options include t-test, t-test_overestim_var, wilcoxon and logreg.
+
+        group_by: str
+            Cluster name to group by.
+
+        number_of_genes: int
+            Number of genes to display.
+
+        reference: str, default = "rest"
+            Group to compare clusters to.
+
+        compare_group_1: str
+            First comparison group (violin plot).
+
+        compare_group_2: str
+            Second comparison group (violin plot). 
+
+        genes: List[str]
+            List of genes to compare across clusters.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/elbow_plot.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/violin_plot_de.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/violin_plot_de_specific.png
+
+        Example
+        -------
+
+        """
         try:
             elbow_plots, violin_plots, violin_plots_specific_genes = st.tabs(['Elbow plot', 'Violin plot', 'Violin plot (specific genes)'])
 
@@ -230,13 +301,13 @@ class Differential_gene_expression:
 
             with violin_plots:
                 col_group1, _, _, _ = st.columns(4)
-                col_group1.selectbox(label="Group", options=st.session_state.adata_state.current.adata.obs_keys(), key="sb_violin_cluster_group")
+                col_group1.selectbox(label="Group by", options=st.session_state.adata_state.current.adata.obs_keys(), key="sb_violin_cluster_group")
                 with st.form(key="rank_genes_groups_violin"):
                     st.subheader("Violin plots")
                     subcol1, subcol2, subcol3, _, _ = st.columns(5, gap="large")
                     num_genes = subcol2.number_input(label="Number of genes", min_value=1, value=6, format="%i")
-                    cluster1 = subcol1.selectbox(label="Compare group", options=np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique()), key="sb_cluster1_violin")
-                    cluster2 = subcol1.selectbox(label="Compare group", options=np.append('rest', np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique())), key="sb_cluster2_violin")
+                    cluster1 = subcol1.selectbox(label="Compare group 1", options=np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique()), key="sb_cluster1_violin")
+                    cluster2 = subcol1.selectbox(label="Compare group 2", options=np.append('rest', np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique())), key="sb_cluster2_violin")
                     subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
 
