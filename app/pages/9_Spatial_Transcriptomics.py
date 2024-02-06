@@ -127,9 +127,9 @@ class Spatial_transcriptomics:
         
         Example
         -------
-        import scanpy as sc
+        import squidpy as sq
 
-        sc.pl.spatial(adata, color="cell_type")
+        sq.pl.spatial_scatter(adata, color="celltype_mapped_refined", shape=None, figsize=(10, 10))
         """
         with st.spinner(text="Loading graph"):
             with self.col1:
@@ -156,6 +156,11 @@ class Spatial_transcriptomics:
         n_perms: int
             Number of permutations when computing the score.
 
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/nhood_enrichment1.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/nhood_enrichment2.png
+
         Example
         -------
         import squidpy as sq
@@ -168,10 +173,10 @@ class Spatial_transcriptomics:
             with st.form(key="n_enrich_form"):
                 st.subheader("Neighbourhood Enrichment")
                 try:
+                    cluster_key = st.selectbox(label="Cluster Key", options=self.adata.obs_keys())
                     col1, col2 = st.columns(2, gap="large")
-                    cluster_key = col1.selectbox(label="Cluster Key", options=self.adata.obs_keys())
-                    n_perms = col2.number_input(label="n_perms", min_value=1, value=1000)
-                    mode = col1.selectbox(label="mode", options=['zscore', 'count'])
+                    n_perms = col1.number_input(label="n_perms", min_value=1, value=1000)
+                    mode = col2.selectbox(label="mode", options=['zscore', 'count'])
                     subcol1, _, _, _ = st.columns(4)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     if submit_btn:
@@ -186,11 +191,47 @@ class Spatial_transcriptomics:
                             # st.session_state["script_state"].add_script("")
                             # st.session_state["script_state"].add_script("")
 
-                        st.toast("Successfully ran neighbourhood enrichment", icon="✅")
+                        st.toast("Ran neighbourhood enrichment", icon="✅")
                 except Exception as e:
                     st.error(e)
 
     def ripley_score(self):
+        """
+        In addition to the neighbor enrichment score, we can further investigate spatial organization of cell types in tissue by means of the Ripley’s statistics. Ripley’s statistics allow analyst to evaluate whether a discrete annotation (e.g. cell-type) appears to be clustered, dispersed or randomly distributed on the area of interest.
+        
+        Parameters
+        ----------
+        cluster_key: str
+            Key by which to compute neighbouhood enrichment scores.
+
+        max_dist: int
+            Maximum distance between spatial clusters.
+
+        n_neighbours: int
+            Number of neighbours.
+
+        n_simulations: int
+            Number of simulations.
+
+        mode: char
+            Ripley mode (F, G or L).
+
+        plot_sims: bool
+            Plot simulations.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/ripley_score1.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/ripley_score2.png
+
+        Example
+        -------
+        import squidpy as sq
+
+        mode = "L"
+        sq.gr.ripley(adata, cluster_key="cluster", mode=mode, max_dist=500)
+        sq.pl.ripley(adata, cluster_key="cluster", mode=mode)
+        """
         with self.col2:
             with st.form(key="ripley_score_form"):
                 st.subheader("Ripley score")
@@ -198,24 +239,31 @@ class Spatial_transcriptomics:
                     col1, col2 = st.columns(2, gap="medium")
                     cluster_key = col1.selectbox(label="Cluster Key", options=self.adata.obs_keys(), key="sb_cluster_key_ripley")
                     max_dist = col2.number_input(label="max_dist", value=500, step=1)
+                    n_neighbours = col1.number_input(label="n_neighbours", value=2, min_value=2, step=1)
+                    n_simulations = col2.number_input(label="n_simulations", value=100)
                     mode = col1.radio(label="mode", options=['F', 'G', 'L'])
                     plot_sims = st.toggle(label="plot_sims", value=False)
                     subcol1, _, _, _ = st.columns(4)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     if submit_btn:
                         with st.spinner(text="Calculating Ripley score"):
-                            sq.gr.ripley(self.adata, cluster_key=cluster_key, mode=mode, max_dist=max_dist)
+                            sq.gr.ripley(self.adata, cluster_key=cluster_key, mode=mode, max_dist=max_dist, n_neigh=n_neighbours, n_simulations=n_simulations)
                             st.session_state.spatial_plots['ripley_score'] = dict(cluster_key=cluster_key, mode=mode, plot_sims=plot_sims)
                         #write to script state
                         st.session_state["script_state"].add_script(f"sq.gr.ripley(adata, cluster_key={st.session_state.sb_cluster_key_ripley}, mode='L', max_dist=500)")
                         st.session_state["script_state"].add_script(f"sq.pl.ripley(adata, cluster_key={st.session_state.sb_cluster_key_ripley}, mode='L')")
                         st.session_state["script_state"].add_script("plt.show()")
 
-                        st.toast(f"Successfully ran Ripley's {mode} scoring", icon="✅")
+                        st.toast(f"Ran Ripley's {mode} scoring", icon="✅")
                 except Exception as e:
                     st.error(e)
 
     def co_occurance_score(self):
+        """
+        Calculate co-occurance scoring between original spatial coordinates. It can be defined as $$ \\frac{p(exp|cond)}{p(exp)}.
+
+        
+        """
         with self.col3:
             st.subheader("Co-occurance score")
             st.selectbox(label="Cluster Key", options=self.adata.obs_keys(), key="sb:spatial:co_occurance:cluster_key")
