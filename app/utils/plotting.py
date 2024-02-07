@@ -214,5 +214,34 @@ def plot_centrality_scores(
     return figs
 
 
+def plot_top_ranked_genes(adata, cluster_name, method, n_rows=5, height = None, width = None):
+
+    sc.tl.rank_genes_groups(adata, groupby=cluster_name, method=method, key_added=method)
+
+    names = pd.DataFrame(adata.uns[method]['names']).head(n_rows)
+    pvalues = pd.DataFrame(adata.uns[method]['pvals']).head(n_rows)
+    clusters = names.columns
+
+    #reshape for heatmap. Heatmap plots from botttom up so reverse
+    names = reversed(names.values.reshape(n_rows,len(clusters)))
+    pvalues = reversed(pvalues.values.reshape(n_rows, len(clusters)))
+
+    fig = go.Figure(data=go.Heatmap(
+                        z=pvalues,
+                        text=names,
+                        x=clusters,
+                        y=np.arange(0, n_rows - 1),
+                        hovertemplate = "%{text}: <br>P score: %{z} </br> Cluster: %{x}",
+                        texttemplate="%{text}",
+                        textfont={"size":18}))
+
+
+    fig.layout.width = width
+    fig.layout.height = height 
+    fig.update_layout(title="Top ranked genes with p values",
+                    yaxis={"title": 'Row'},
+                    xaxis={"title": cluster_name})
+
+    return fig
 
     

@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib_venn import venn3
 import altair as alt
 import plotly.graph_objects as go
+from utils.plotting import plot_top_ranked_genes
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -482,37 +483,72 @@ class Differential_gene_expression:
         
         Parameters
         ----------
-        number_of_genes: int
-            Number of genes to show.
+        number_of_rows: int
+            Number of rows to show.
+
+        cluster_key: str
+            Obs value to cluster genes by. 
+
+        method: str
+            Statistical method to use.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/top_ranked_genes_heatmap1.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/top_ranked_genes_heatmap2.png
 
         Example
         -------
         import scanpy as sc
+        import pandas as pd
+        import numpy as np
+        import plotly.graph_objects as go
+
+        cluster_name = "leiden"
+        method = "wilcoxon"
+        n_rows = 10
+
+        sc.tl.rank_genes_groups(adata, groupby=cluster_name, method=method, key_added=method)
+
+        names = pd.DataFrame(adata.uns[method]['names']).head(n_rows)
+        pvalues = pd.DataFrame(adata.uns[method]['pvals']).head(n_rows)
+        clusters = names.columns
+
+        #reshape for heatmap. Heatmap plots from botttom up so reverse
+        names = reversed(names.values.reshape(n_rows,len(clusters)))
+        pvalues = reversed(pvalues.values.reshape(n_rows, len(clusters)))
+
+        fig = go.Figure(data=go.Heatmap(
+                            z=pvalues,
+                            text=names,
+                            x=clusters,
+                            y=np.arange(0, n_rows - 1),
+                            hovertemplate = "%{text}: <br>P score: %{z} </br> Cluster: %{x}",
+                            texttemplate="%{text}",
+                            textfont={"size":18}))
+
+        fig.update_layout(title="Top ranked genes with p values",
+                        yaxis={"title": 'Row'},
+                        xaxis={"title": cluster_name})
+
+        fig.show()
         """
         try:
             with st.form(key="top_ranked_genes_form"):
                 st.subheader("Top ranked genes")
-                subcol1, _, _, _, _ = st.columns(5, gap="large")
-                num_of_genes = subcol1.number_input(label="Number of genes", min_value=1, step=1, format="%i", value=10)
-                show_p_value = st.toggle(label="Show P value", value=False)
+                
+                col1, col2, _, _ = st.columns(4, gap="medium")
+                cluster_key = col1.selectbox(label="Cluster key", options=self.adata.obs_keys())
+                num_of_rows = col2.number_input(label="Number of rows", min_value=1, step=1, format="%i", value=8)
+                method = st.radio(label="method", options=['t-test', 't-test_overestim_var', 'wilcoxon', 'logreg'])
                 subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
                 submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
-                empty = st.empty()
+                
                 if submit_btn:
-                    result = st.session_state.adata_state.current.adata.uns['rank_genes_groups']
-                    groups = result['names'].dtype.names
-                    df_p_values = pd.DataFrame(
-                        {group + '_' + key[:1]: result[key][group]
-                        for group in groups for key in ['names', 'pvals']}).head(num_of_genes)
+                    fig = plot_top_ranked_genes(self.adata, cluster_name=cluster_key, n_rows=num_of_rows, method=method, height=800)
+                    st.plotly_chart(fig, use_container_width=True)
 
 
-                    df = pd.DataFrame(st.session_state.adata_state.current.adata.uns['rank_genes_groups']['names']).head(num_of_genes)
-
-                    empty.empty()
-                    if show_p_value:
-                        empty.dataframe(df_p_values)
-                    else:
-                        empty.dataframe(df)
 
         except Exception as e:
             print("Error: ", e)
