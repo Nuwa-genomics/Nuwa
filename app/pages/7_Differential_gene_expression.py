@@ -228,7 +228,27 @@ class Differential_gene_expression:
         """
         Visualize differential expression between individual genes or clusters.
 
-        
+        Parameters
+        ----------
+        method: str
+            Statistical test to find differential clusters and results in adata for plotting. Options include t-test, t-test_overestim_var, wilcoxon and logreg.
+
+        n_genes: int
+            Number of genes in each cluster.
+
+        group_by: str
+            Name of cluster group.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/viz_de_dotplot.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/viz_de_heatmap.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/viz_de_stacked_violin.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/viz_de_matrix.png
+
+        Example
+        -------
+        import scanpy as sc
 
         """
         try:
@@ -245,7 +265,7 @@ class Differential_gene_expression:
                 viz_submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                 
                 if viz_submit_btn:
-                    plt.style.use('dark_background')
+                    plt.style.use('tableau-colorblind10')
                     for obs in st.session_state.adata_state.current.adata.obs_keys():
                         if obs.__contains__("leiden") or obs.__contains__("louvain"):
                             st.session_state.adata_state.current.adata.obs[obs] = st.session_state.adata_state.current.adata.obs[obs].astype('category')
@@ -457,6 +477,18 @@ class Differential_gene_expression:
 
 
     def show_top_ranked_genes(self):
+        """
+        Show a heatmap of top ranked genes using P values.
+        
+        Parameters
+        ----------
+        number_of_genes: int
+            Number of genes to show.
+
+        Example
+        -------
+        import scanpy as sc
+        """
         try:
             with st.form(key="top_ranked_genes_form"):
                 st.subheader("Top ranked genes")
