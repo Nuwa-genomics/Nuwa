@@ -1,4 +1,5 @@
 [![](https://dcbadge.vercel.app/api/server/wBDavdWp8n)](https://discord.gg/wBDavdWp8n)
+[![GitHub last commit](https://img.shields.io/github/last-commit/ch1ru/Nuwa)](https://github.com/ch1ru/Nuwa/pulse)
 ![CI tests](https://github.com/ch1ru/nuwa/actions/workflows/run_tests.yml/badge.svg?branch=main)
 ![docs](https://github.com/ch1ru/nuwa/actions/workflows/jekyll-gh-pages.yml/badge.svg?branch=main)
 
