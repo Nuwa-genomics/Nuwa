@@ -2,7 +2,8 @@
 
 [![](https://dcbadge.vercel.app/api/server/wBDavdWp8n)](https://discord.gg/wBDavdWp8n)
 [![Stars](https://img.shields.io/github/stars/ch1ru/nuwa?logo=GitHub&color=yellow)](https://github.com/ch1ru/nuwa/stargazers)
-![CI](https://github.com/ch1ru/nuwa/actions/workflows/run_tests.yml/badge.svg?branch=main)
+![CI tests](https://github.com/ch1ru/nuwa/actions/workflows/run_tests.yml/badge.svg?branch=main)
+![docs](https://github.com/ch1ru/nuwa/actions/workflows/jekyll-gh-pages.yml/badge.svg?branch=main)
 
 A bioinformatics web tool built with scanpy for genomics data processing and analysis.
 
