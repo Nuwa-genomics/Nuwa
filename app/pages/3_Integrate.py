@@ -37,12 +37,12 @@ class Integrate:
         st.title("Integrate datasets")
         col1, col2, col3 = st.columns(3, gap="medium")
         with col1:
-            self.auto_integrate_recipies()
-            self.ingest()
+            self.concat()
             self.scanorama_integrate()
         with col2:
+            self.ingest()
             self.quick_map()
-            self.concat()
+            
         with col3:
             self.bbknn()
             self.umap()
@@ -65,18 +65,7 @@ class Integrate:
         sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'adata', st.session_state.adata_state.current.adata_name), adata=self.adata)
         st.session_state.adata_state.current.adata = self.adata
             
-            
-    def auto_integrate_recipies(self):
-        with st.form(key="auto_integrate_recipies_form"):
-            st.subheader("Autointegrate recipies")
-            recipie = st.selectbox(label="Recipie", options=['rec'])
-            subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
-            if submit_btn:
-                with st.spinner(text="Applying integration recipie"):
-                    self.save_adata()
-            
-        
+
     def ingest(self):
         """
         Integrates embeddings and annotations of an adata with a reference dataset adata_ref through projecting on a PCA (or alternate model) that has been fitted on the reference data. The function uses a knn classifier for mapping labels and the UMAP package [McInnes18]_ for mapping the embeddings.
