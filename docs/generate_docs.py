@@ -35,7 +35,7 @@ dashboard_file = glob.glob("*.py", root_dir=src_root, recursive=False)
 python_files = dashboard_file + python_files
 
 for file in python_files:
-        path = os.path.join(src_root, file) if file == "Dashboard" else os.path.join(page_root, file)
+        path = os.path.join(src_root, file) if file == "Dashboard.py" else os.path.join(page_root, file)
         with open(path) as fd:
             file_contents = fd.read()
             module = ast.parse(file_contents)
