@@ -30,8 +30,8 @@ for cls in classes_ordered:
 src_root = "app"
 page_root = "app/pages" #root folder for source code
 
-python_files = glob.glob("*.py", root_dir=src_root, recursive=False)
-dashboard_file = glob.glob("*.py", src_dir=page_root, recursive=False)
+python_files = glob.glob("*.py", root_dir=page_root, recursive=False)
+dashboard_file = glob.glob("*.py", root_dir=src_root, recursive=False)
 python_files = dashboard_file + python_files
 
 for file in python_files:
