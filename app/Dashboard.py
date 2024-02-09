@@ -122,6 +122,7 @@ class Dashboard:
                 save_btn = col1.form_submit_button(label="Save", use_container_width=True)
                 if save_btn:
                     self._write_workspace_to_db()
+                    self.set_workspaces()
 
 
     def import_workspace(self):
@@ -260,10 +261,12 @@ class Dashboard:
     def draw_page(self):
         st.title("Workspaces")
     
+        subheader_container = st.container()
         col1, col2, col3, col4 = st.columns(4, gap="large")
         columns = [col1, col2, col3, col4]
 
         if len(st.session_state.workspaces) > 0:
+            subheader_container.subheader("Select a workspace")
             for i, workspace in enumerate(st.session_state.workspaces): 
                 with columns[i % 4]:
                     button = st.button(label=workspace.workspace_name, key=f"btn_workspace_{workspace.id}")
