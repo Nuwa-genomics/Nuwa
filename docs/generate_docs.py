@@ -27,15 +27,16 @@ for cls in classes_ordered:
     os.mkdir(f"./docs/reference/{cls}")
 
 
-src_root = "app/pages" #root folder for source code
+src_root = "app"
+page_root = "app/pages" #root folder for source code
 
-dashboard_file = glob.glob("*.py", root_dir="app", recursive=False)
 python_files = glob.glob("*.py", root_dir=src_root, recursive=False)
-# join dashboard file
+dashboard_file = glob.glob("*.py", root_dir=page_root, recursive=False)
 python_files = dashboard_file + python_files
 
 for file in python_files:
-        with open(os.path.join(src_root, file)) as fd:
+        path = os.path.join(src_root, file) if file == "Dashboard" else os.path.join(page_root, file)
+        with open(path) as fd:
             file_contents = fd.read()
             module = ast.parse(file_contents)
                 
