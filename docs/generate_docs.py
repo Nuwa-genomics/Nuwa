@@ -20,7 +20,7 @@ os.mkdir('./docs/reference')
 with open(f"./docs/reference/README.md", "w") as f:
     f.write("# Reference\n\n{% include list.liquid all=true %}")
 
-classes_ordered = ["Dashboard", "Upload", "Preprocess", "Integrate", "Create_CiteSeq_model", "Create_Solo_model", "Cluster_analysis", "Differential_gene_expression", "Trajectory_inference", "Spatial_transcriptomics", "Terminal", "Plotly_3D", "Utils"]
+classes_ordered = ["Dashboard", "Upload", "Preprocess", "Integrate", "Create_CiteSeq_model", "Create_Solo_model", "Cluster_analysis", "Differential_gene_expression", "Trajectory_inference", "Spatial_transcriptomics", "Terminal", "Plotly_3D", "Sidebar"]
 
 #make the sub dirs
 for cls in classes_ordered:
@@ -29,13 +29,22 @@ for cls in classes_ordered:
 
 src_root = "app"
 page_root = "app/pages" #root folder for source code
+components_root = "app/components"
 
 python_files = glob.glob("*.py", root_dir=page_root, recursive=False)
 dashboard_file = glob.glob("*.py", root_dir=src_root, recursive=False)
-python_files = dashboard_file + python_files
+sidebar_file = glob.glob("*.py", root_dir=components_root, recursive=False)
+python_files = dashboard_file + python_files + sidebar_file
 
 for file in python_files:
-        path = os.path.join(src_root, file) if file == "Dashboard.py" else os.path.join(page_root, file)
+        
+        if file == "Dashboard.py":
+            path = os.path.join(src_root, file) 
+        elif file == "sidebar.py":
+            path = os.path.join(components_root, file)
+        else:
+            path = os.path.join(page_root, file)
+
         with open(path) as fd:
             file_contents = fd.read()
             module = ast.parse(file_contents)

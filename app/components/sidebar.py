@@ -12,20 +12,35 @@ from pathlib import Path
 from utils.Gene_info import Gene_info
 
 class Sidebar:
+    """
+    Contains utility functions for dataset including saving and loading, exporting python scripts of analysis and adding notes.
+    """
     def __init__(self):
         self.conn: Session = SessionLocal()
 
     def show_preview(self, integrate=False):
-            with st.sidebar:
-                with st.expander(label="Show Preview"):
-                    st.subheader("Anndata preview")
-                    if integrate:
-                        st.markdown(f"""<h3 style='font-size: 16px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_ref.adata_name}</h3>""", unsafe_allow_html=True)
-                        st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_ref.adata}</p>""", unsafe_allow_html=True)
-                        st.markdown(f"""<h3 style='font-size: 16px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_target.adata_name}</h3>""", unsafe_allow_html=True)
-                        st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_target.adata}</p>""", unsafe_allow_html=True)
-                    else:
-                        st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_state.current.adata}</p>""", unsafe_allow_html=True)
+        """
+        Show preview of anndata object attributes.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/show_preview.png
+
+        Example
+        -------
+        # Same as __repr__ attribute of anndata
+        print(adata)
+        """
+        with st.sidebar:
+            with st.expander(label="Show Preview"):
+                st.subheader("Anndata preview")
+                if integrate:
+                    st.markdown(f"""<h3 style='font-size: 16px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_ref.adata_name}</h3>""", unsafe_allow_html=True)
+                    st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_ref.adata}</p>""", unsafe_allow_html=True)
+                    st.markdown(f"""<h3 style='font-size: 16px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_target.adata_name}</h3>""", unsafe_allow_html=True)
+                    st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_target.adata}</p>""", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_state.current.adata}</p>""", unsafe_allow_html=True)
 
     def delete_experiment_btn(self):
         with st.sidebar:
