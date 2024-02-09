@@ -1,16 +1,23 @@
+import hashlib
 import streamlit as st
 import pandas as pd
 from models.WorkspaceModel import WorkspaceModel
 from models.AdataModel import AdataModel
 from utils.AdataState import AdataState
+from utils.file_utils import *
 from datetime import datetime
 from database.database import *
 from database.schemas import schemas
 from sqlalchemy.orm import Session
+from pathlib import Path
+import shutil
+import zipfile
+import hashlib as hash
 from hashlib import sha256
 import time
 import os
 import scanpy as sc
+from database.db_export import *
 import pickle
 
 #create databases if not already present
@@ -35,6 +42,8 @@ with open('css/workspace.css') as f:
 class Dashboard:
     def __init__(self):
         self.conn: Session = SessionLocal()
+        if not os.path.exists('/streamlit-volume/exported_workspaces'):
+            os.mkdir('/streamlit-volume/exported_workspaces') 
         self.set_workspaces()
         self.draw_page()
     
@@ -64,7 +73,22 @@ class Dashboard:
         except Exception as e:
             st.error(e)
             st.toast("Failed to create workspace", icon="❌")
-            
+
+
+    def save_imported_files(self, file_name):
+        new_dir = f'/streamlit-volume/{file_name[:-4]}'
+        if not os.path.isdir(new_dir):
+            os.mkdir(new_dir)
+        with zipfile.ZipFile(os.path.join('/tmp', file_name), mode="r") as zip_f:
+            zip_f.extractall(new_dir)
+        with zipfile.ZipFile(os.path.join(new_dir, file_name), mode="r") as zip_f:
+            zip_f.extractall(new_dir)
+        os.remove(os.path.join(new_dir, file_name)) # remove zip file
+        os.remove(os.path.join('/tmp', file_name)) # remove in tmp dir
+
+        # read database file
+        if import_db_from_json(json_filepath=f"{new_dir}/db.json") == 0: # success code for importing to db
+            st.toast("Successfully imported workspace", icon="✅")
 
     def new_workspace(self):
         with st.sidebar:
@@ -72,7 +96,55 @@ class Dashboard:
                 st.subheader("Create New Workspace")
                 st.text_input(label="Name", key="ti_new_workspace_name")
                 st.text_input(label="Description", key="ti_new_workspace_desc")
-                st.form_submit_button(label="Save", on_click=self.write_workspace_to_db)
+                col1, _, _ = st.columns(3)
+                save_btn = col1.form_submit_button(label="Save", use_container_width=True)
+                if save_btn:
+                    self.write_workspace_to_db()
+
+
+    def import_workspace(self):
+        with st.sidebar:
+            with st.form(key="form_import_workspace"):
+                st.subheader("Import workspace")
+                f_uploader = st.file_uploader(label="Workspace zip file", type=['zip', 'sha256'], accept_multiple_files=True)
+                checksum = st.text_input(label="Checksum", placeholder="optional", max_chars=64, help="A checksum helps to see if the original files have been corrupted or modified.")
+
+                col1, _, _ = st.columns(3)
+                save_btn = col1.form_submit_button(label="Save", use_container_width=True)
+                if save_btn:
+                    if len(f_uploader) > 1:
+                        st.toast("Too many files", icon="❌")
+                    else:
+                        for f in f_uploader:
+                            ext = f.name.split('.')[-1]
+                            if ext == "zip":
+                                # calculate checksum
+                                BLOCKSIZE = 65536
+                                sha256 = hash.sha256()
+                                file_buffer = f.read(BLOCKSIZE)
+                                while len(file_buffer) > 0: 
+                                    sha256.update(file_buffer)
+                                    file_buffer = f.read(BLOCKSIZE)
+                                digest = sha256.hexdigest()
+                                st.session_state["sha256_to_verify"] = digest
+                    
+                                zip_filename = f.name
+      
+                                with zipfile.ZipFile(os.path.join('/tmp', f.name), mode="w") as zip_f:
+                                    zip_f.writestr(f.name, data=f.getvalue())
+                                
+                                
+                        if checksum: 
+                            if checksum == st.session_state["sha256_to_verify"]: # checksums match
+                                st.success("Checksums match")
+                                self.save_imported_files(zip_filename)
+                            else:
+                                st.toast("Checksums don't match", icon="❌")
+                            
+                            #delete from session state
+                            del st.session_state["sha256_true"]
+                        else:
+                            self.save_imported_files(zip_filename)
 
 
     def draw_page(self):
@@ -114,14 +186,75 @@ class Dashboard:
                                                     st.toast("Successfully deleted workspace", icon="✅")
                                                 except Exception as e:
                                                     st.toast("Failed to delete workspace", icon="❌")
-                                            st.button(label="🗑️ Delete workspace", on_click=delete_workspace, key="btn_delete_workspace")
+                                            def export_workspace():
+
+                                                with st.sidebar:
+                                            
+                                                    with st.spinner(text="Zipping archive"):
+
+                                                        output_file = f"/streamlit-volume/exported_workspaces/{st.session_state.current_workspace.workspace_name}"
+
+                                                        if not os.path.exists(output_file):
+                                                            os.mkdir(output_file)
+
+                                                        export_db_as_json(workspace_id=st.session_state.current_workspace.id, 
+                                                                          output_file=os.path.join(st.session_state.current_workspace.data_dir, 'db.json'))
+
+                                                        workspace_size = get_dir_size(st.session_state.current_workspace.data_dir) / 1000000
+                                                        
+                                                        if workspace_size > 1000: #1GB
+                                                            st.toast(f"Workspace contents are large ({round(workspace_size / 1000, ndigits=2)} GB) may take longer", icon="⚠️")
+                                                        
+                                                        shutil.make_archive(base_name=f"{output_file}/{st.session_state.current_workspace.workspace_name}", 
+                                                            format='zip', root_dir=st.session_state.current_workspace.data_dir)
+                                                    
+                                                    
+                                                    
+                                                    BLOCKSIZE = 65536
+
+                                                    with st.spinner(text="Computing hash"):
+
+                                                        sha256 = hash.sha256()
+                                                        with open(f'{output_file}/{st.session_state.current_workspace.workspace_name}.zip', 'rb') as f:
+                                                            file_buffer = f.read(BLOCKSIZE)
+                                                            while len(file_buffer) > 0:
+                                                                sha256.update(file_buffer)
+                                                                file_buffer = f.read(BLOCKSIZE)
+#
+                                                            digest = sha256.hexdigest()
+                                                            with open(f'{output_file}/checksum.sha256', 'wb') as sha256_f:
+                                                                sha256_f.write(digest.encode('utf-8'))
+
+
+                                                            st.markdown("""<p style='font-size:18px; text-align: center; font-weight: bold;'>Exported files</p>""", unsafe_allow_html=True)
+                                                            st.download_button(label="📁 Download", data=f, file_name=st.session_state.current_workspace.workspace_name, mime="application/zip", use_container_width=True)
+                                                            st.info(f"File saved to:\n{output_file}")
+
+                                                        st.markdown("### 🔑 Sha256 sum:", help="The checksum for verifying if files have been modified. The recipient should paste this string when importing a workspace. Checksums are stored in /streamlit-volume/exported_workspaces.")
+                                                        st.code(digest)
+                                                        # write hash to txt file
+
+                                                        
+                                                        
+
+                                                    
+                                                    st.toast("Completed workspace export!", icon="✅")
+                                                    st.divider()
+                                                    
+
+                                            sidebar_col1, sidebar_col2 = st.columns(2, gap="small")
+                                            sidebar_col1.button(label="📁 Export", on_click=export_workspace, use_container_width=True)
+                                            sidebar_col2.button(label="🗑️ Delete", on_click=delete_workspace, key="btn_delete_workspace", use_container_width=True)
                                             st.divider()
         else:
             st.markdown("""<p style='font-size: 20px;'>You don't have any workspaces yet 🧪</p>""", unsafe_allow_html=True)
 
 
         with st.sidebar:
-            st.button(label="New workspace", on_click=self.new_workspace, key="btn_new_workspace", use_container_width=True)
+            
+            self.new_workspace()
+
+            self.import_workspace()
 
             st.markdown(f"""<div style='position: fixed; margin-left: 5px; bottom: 5px;'>
                         <div style='font-size: 16px; color: rgba(255, 255, 255, 0.4)'>Nuwa v{os.getenv('NUWA_VERSION')}</div>
