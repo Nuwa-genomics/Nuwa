@@ -59,7 +59,7 @@ class Dashboard:
         st.session_state['workspaces'] = [WorkspaceModel(id=workspace.id, workspace_name=workspace.workspace_name, data_dir=workspace.data_dir, created=workspace.created, description=workspace.description) for workspace in workspaces]
 
 
-    def write_workspace_to_db(self):
+    def _write_workspace_to_db(self):
         try:
             #create workspace dir
             dir = sha256(st.session_state.ti_new_workspace_name.encode('utf-8')).hexdigest()[:16]
@@ -82,7 +82,7 @@ class Dashboard:
             st.toast("Failed to create workspace", icon="❌")
 
 
-    def save_imported_files(self, file_name):
+    def _save_imported_files(self, file_name):
         new_dir = f'/streamlit-volume/{file_name[:-4]}'
         if not os.path.isdir(new_dir):
             os.mkdir(new_dir)
@@ -106,7 +106,7 @@ class Dashboard:
                 col1, _, _ = st.columns(3)
                 save_btn = col1.form_submit_button(label="Save", use_container_width=True)
                 if save_btn:
-                    self.write_workspace_to_db()
+                    self._write_workspace_to_db()
 
 
     def import_workspace(self):
@@ -144,14 +144,14 @@ class Dashboard:
                         if checksum: 
                             if checksum == st.session_state["sha256_to_verify"]: # checksums match
                                 st.success("Checksums match")
-                                self.save_imported_files(zip_filename)
+                                self._save_imported_files(zip_filename)
                             else:
                                 st.toast("Checksums don't match", icon="❌")
                             
                             #delete from session state
                             del st.session_state["sha256_true"]
                         else:
-                            self.save_imported_files(zip_filename)
+                            self._save_imported_files(zip_filename)
 
 
     def draw_page(self):
