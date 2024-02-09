@@ -187,6 +187,10 @@ class Dashboard:
     def export_workspace(self):
         """
         Export a workspace which can be shared and re-imported into another project. Includes a checksum.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/export_workspace.png
         """
         with st.sidebar:
                                             
@@ -238,7 +242,11 @@ class Dashboard:
 
     def delete_workspace(self):
         """
-        Delete a workspace from the dashboard. This will not delete the files associated with the workspace and can be found in /streamlit-volume/<projectname_id>
+        Delete a workspace from the dashboard. This will not delete the files associated with the workspace and can be found in /streamlit-volume/<projectname_id>.
+        
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/delete_workspace.png
         """
         try:
             self.conn.query(schemas.Workspaces).filter(schemas.Workspaces.id == st.session_state.current_workspace.id).delete()
