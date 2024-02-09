@@ -29,8 +29,10 @@ for cls in classes_ordered:
 
 src_root = "app/pages" #root folder for source code
 
+dashboard_file = glob.glob("*.py", root_dir="app")
 python_files = glob.glob("*.py", root_dir=src_root)
-python_files = ['Dashboard', python_files]
+# join dashboard file
+python_files = [dashboard_file, python_files]
 
 for file in python_files:
         with open(os.path.join(src_root, file)) as fd:
