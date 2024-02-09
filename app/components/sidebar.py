@@ -50,6 +50,13 @@ class Sidebar:
                 
                 
     def export_script(self):
+        """
+        Export a python script containing any processing and analysis done in the web app. This is useful for reproducibility and documenting analysis done on data.
+        
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/export_script.png
+        """
         with st.sidebar:
             with st.expander(label="Export python script"):
                 scripts: list(str) = st.session_state.script_state.load_script()
@@ -60,7 +67,14 @@ class Sidebar:
 
 
 
-    def show_notes(self):
+    def notes(self):
+        """
+        Add notes to current experiment.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/notes.png
+        """
         with st.sidebar:
  
             notes = st.session_state.adata_state.load_adata(workspace_id=st.session_state.current_workspace.id, adata_name=st.session_state.sb_adata_selection).notes
@@ -80,12 +94,31 @@ class Sidebar:
         return 0
     
     
-    def add_experiment_expander(self):
+    def add_experiment(self):
+        """
+        Add a new experiment using a pre-existing dataset.
+
+        Parameters
+        ----------
+        name: str
+            Name of experiment.
+
+        dataset: Anndata
+            Dataset to use in new experiment.
+
+        notes: str
+            Add notes to new experiment if desired.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/add_experiment.png
+        """
         with st.sidebar:
             with st.expander(label="Add experiment", expanded=False):
                 try:
                     st.subheader("Create New Adata")
                     st.text_input(label="Name", key="ti_new_adata_name")
+                    st.selectbox(label="Dataset", key="sb_new_experiment_dataset", options=st.session_state.adata_state.get_adata_options())
                     st.text_input(label="Notes", key="ti_new_adata_notes")
                     st.button(label="Save", on_click=self.write_adata, key="btn_add_adata")
                 except Exception as e:
@@ -93,7 +126,22 @@ class Sidebar:
                     st.error(e)
                     
                 
-    def download_adata_expander(self):
+    def download_adata(self):
+        """
+        Download adata in h5ad or seurat format.
+
+        Parameters
+        ----------
+        seurat_format: bool
+            Save in seurat format.
+
+        download_directory: str
+            File path where the data will be saved. This must be in the 'streamlit-volume' directory to be accessible on the host's filesystem.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/download_adata.png
+        """
         with st.sidebar:
             with st.expander(label="Download adata file", expanded=False):
                 try:
@@ -158,6 +206,14 @@ class Sidebar:
 
     @staticmethod
     def gene_format():
+        """
+        Change the format from gene symbols to ensembl ID or vice versa. This uses the biomart external api in scanpy to fetch gene info. Available for H. sapiens, M. musculus, R. rattus, D. melanogaster and D. rerio.
+
+        Parameters
+        ----------
+        ensembl_id: bool
+            Toggle to switch between gene symbols and ensembl IDs.
+        """
         try:
             format = ""
             for var in st.session_state.adata_state.current.adata.var_names[:5]:
@@ -261,11 +317,11 @@ class Sidebar:
                 Sidebar.gene_format()
                 
             
-            self.download_adata_expander()
+            self.download_adata()
                     
-            self.add_experiment_expander()
+            self.add_experiment()
                     
-            self.show_notes()
+            self.notes()
 
             
             
