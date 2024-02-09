@@ -20,7 +20,7 @@ os.mkdir('./docs/reference')
 with open(f"./docs/reference/README.md", "w") as f:
     f.write("# Reference\n\n{% include list.liquid all=true %}")
 
-classes_ordered = ["Upload", "Preprocess", "Integrate", "Create_CiteSeq_model", "Create_Solo_model", "Cluster_analysis", "Differential_gene_expression", "Trajectory_inference", "Spatial_transcriptomics", "Terminal", "Plotly_3D", "Utils"]
+classes_ordered = ["Dashboard", "Upload", "Preprocess", "Integrate", "Create_CiteSeq_model", "Create_Solo_model", "Cluster_analysis", "Differential_gene_expression", "Trajectory_inference", "Spatial_transcriptomics", "Terminal", "Plotly_3D", "Utils"]
 
 #make the sub dirs
 for cls in classes_ordered:
@@ -30,6 +30,7 @@ for cls in classes_ordered:
 src_root = "app/pages" #root folder for source code
 
 python_files = glob.glob("*.py", root_dir=src_root)
+python_files = python_files.insert(0, 'Dashboard')
 
 for file in python_files:
         with open(os.path.join(src_root, file)) as fd:

@@ -40,6 +40,13 @@ with open('css/workspace.css') as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 class Dashboard:
+    """
+    Dashboard page for all workspaces. Create, export, import and delete workspaces here.
+
+    Notes
+    -----
+    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/dashboard_page.png
+    """
     def __init__(self):
         self.conn: Session = SessionLocal()
         if not os.path.exists('/streamlit-volume/exported_workspaces'):
