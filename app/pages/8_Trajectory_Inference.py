@@ -72,7 +72,7 @@ class Trajectory_inference:
         """
         with self.col1:
             try:
-                st.subheader("Cluster chart")
+                st.subheader("Force-directed graph")
                 with st.spinner(text="Plotting clusters"):
                     subcol1, _, _, _ = st.columns(4, gap='large')
                     key_index = self.adata.obs_keys().index('louvain') #created in constructor
@@ -84,8 +84,8 @@ class Trajectory_inference:
                     #sc.tl.diffmap(self.adata)
                     #sc.pp.neighbors(self.adata, n_neighbors=10, use_rep='X_diffmap')
                     #sc.tl.draw_graph(self.adata)
-                    self.ax_df = pd.DataFrame({'fr1': self.adata.obsm['X_draw_graph_fr'][:,0], 'fr2': self.adata.obsm['X_draw_graph_fr'][:,1], 'color': self.adata.obs[st.session_state.sb_plt_colors]})
-                    st.scatter_chart(self.ax_df, x='fr1', y='fr2', color='color', height=600, size=st.session_state.sl_traj_graph_size)
+                    self.ax_df = pd.DataFrame({'fa1': self.adata.obsm['X_draw_graph_fa'][:,0], 'fa2': self.adata.obsm['X_draw_graph_fa'][:,1], 'color': self.adata.obs[st.session_state.sb_plt_colors]})
+                    st.scatter_chart(self.ax_df, x='fa1', y='fa2', color='color', height=600, size=st.session_state.sl_traj_graph_size)
 
             except Exception as e:
                 st.error(e)

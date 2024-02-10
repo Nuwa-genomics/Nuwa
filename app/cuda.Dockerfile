@@ -22,6 +22,7 @@ RUN pip3 install -r requirements.txt
 RUN pip3 install pyg_lib torch-scatter torch-sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.1.0+cu121.html
 COPY conda.yaml .
 RUN conda env create -n $CONDA_ENV -f conda.yaml
+RUN conda install -y -c conda-forge fa2==0.3.5
 COPY . .
 RUN rm -rf tests
 CMD ["streamlit", "run", "Dashboard.py", "--server.port=8501", "--server.address=0.0.0.0"]
