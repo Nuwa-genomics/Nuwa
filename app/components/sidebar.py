@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from utils.AdataState import AdataState
 from pathlib import Path
 from utils.Gene_info import Gene_info
+from utils.species import *
+import numpy as np
 
 class Sidebar:
     """
@@ -205,9 +207,23 @@ class Sidebar:
 
 
     @staticmethod
+    def species():
+        """
+        Select species which gene profile belongs to. This is needed when changing gene format if spacies cannot be inferred from gene names. Available species are H. sapiens, M. musculus and D. rerio.
+
+        Parameters
+        ----------
+        species: str
+            Species name in format <genus abbr> <species>. 
+        """
+        st.selectbox(label="Species", key="sb_sidebar_species", options=np.append('None selected', get_species_names_long()), index=infer_species()[0]+1)
+        
+
+
+    @staticmethod
     def gene_format():
         """
-        Change the format from gene symbols to ensembl ID or vice versa. This uses the biomart external api in scanpy to fetch gene info. Available for H. sapiens, M. musculus, R. rattus, D. melanogaster and D. rerio.
+        Change the format from gene symbols to ensembl ID or vice versa. This uses the biomart external api in scanpy to fetch gene info. Available for H. sapiens, M. musculus and D. rerio.
 
         Parameters
         ----------
@@ -224,6 +240,9 @@ class Sidebar:
 
             def change_gene_format():
                 gene_info = Gene_info(st.session_state.adata_state.current.adata)
+                if gene_info.fail == -1:
+                    st.session_state["toggle_gene_format"] = not st.session_state["toggle_gene_format"]
+                    return -1
                 if st.session_state.toggle_gene_format: #change to gene ensembl format
                     gene_info.convert_symbols_to_ensembl()
                 else:
@@ -314,6 +333,8 @@ class Sidebar:
             else:
                 st.selectbox(label="Current Experiment:", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection", on_change=set_adata, index=st.session_state.adata_state.get_index_of_current())
 
+                Sidebar.species()
+                
                 Sidebar.gene_format()
                 
             
