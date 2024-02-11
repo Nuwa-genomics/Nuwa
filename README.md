@@ -224,6 +224,10 @@ If you have a feature request, notice a bug or have issues running the app pleas
 
 *[2] Bernstein, N., Fong, N., Lam, I. et al. (2020). Solo: Doublet Identification in Single-Cell RNA-Seq via Semi-Supervised Deep Learning. https://www.cell.com/cell-systems/fulltext/S2405-4712(20)30195-2.*
 
+*[3] Adam Gayoso., Jonathan Shor. (2022). JonathanShor/DoubletDetection: doubletdetection v4.2 (v4.2). Zenodo. https://doi.org/10.5281/zenodo.6349517.*
+
+*[4] Samuel L. Wolock., Romain Lopez., Allon M. Klein. (2019). Scrublet: Computational Identification of Cell Doublets in Single-Cell Transcriptomic Data. https://www.sciencedirect.com/science/article/pii/S2405471218304745.*
+
 ## Donate ₿❤️
 
 All development is non-profit, any contributions are greatly appreciated! Donate in bitcoin to:

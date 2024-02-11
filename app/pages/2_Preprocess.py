@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from database.schemas import schemas
 from utils.AdataState import AdataState
+import doubletdetection
 from time import sleep
 import os
 import re
@@ -755,12 +756,23 @@ class Preprocess:
                 #make adata
                 self.save_adata()
                 st.toast("Filtered haemoglobin genes", icon="✅")
+
+
+    def predict_doublets(self):
+        st.subheader("Predict doublets")
+        scrublet, doubletdetection = st.tabs(['scrublet', 'doubletdetection'])
+
+        with scrublet:
+            self.run_scrublet()
+
+        with doubletdetection:
+            self.run_doubletdetection()
                 
                 
 
     def run_scrublet(self):
         """
-        Predict if an observation (cell) is likely to be a doublet and remove from the dataset. Doublets arise when multiple cells are mistaken as a single cell in droplet-based technologies. This affects biological signal, for example during PCA doublets may form separate clusters not reflecting biological difference.
+        Uses [Scrublet](https://github.com/swolock/scrublet?tab=readme-ov-file) to predict if an observation (cell) is likely to be a doublet and remove from the dataset. Doublets arise when multiple cells are mistaken as a single cell in droplet-based technologies. This affects biological signal, for example during PCA doublets may form separate clusters not reflecting biological difference.
 
         Parameters
         ----------
@@ -802,7 +814,7 @@ class Preprocess:
         plt.show()
         """
         with st.form(key="scrublet_form"):
-            st.subheader("Doublet Prediction", help="Use Scrublet to remove cells predicted to be doublets.")
+            st.subheader("Scrublet", help="Use Scrublet to remove cells predicted to be doublets.")
             col1, col2, col3 = st.columns(3)
             sim_doublet_ratio = col1.number_input(label="Sim doublet ratio", value=2.00, key="ni_sim_doublet_ratio")
             expected_doublet_rate = col2.number_input(label="Exp doublet rate", value=0.05, key="ni_expected_doublet_rate")
@@ -832,7 +844,137 @@ class Preprocess:
                     st.session_state["script_state"].add_script(f"#Detect doublets with scrublet\nadata_scrublet = sc.external.pp.scrublet(adata, sim_doublet_ratio={sim_doublet_ratio}, expected_doublet_rate={expected_doublet_rate})")
                     #make adata
                     self.save_adata()
-                    st.toast("Completed doublet predictions", icon="✅")
+                    st.toast("Run scrublet", icon="✅")
+
+
+    def run_doubletdetection(self):
+        """
+        Uses [doubletdetection](https://zenodo.org/records/6349517) to predict if an observation (cell) is likely to be a doublet and remove from the dataset. Doublets arise when multiple cells are mistaken as a single cell in droplet-based technologies. This affects biological signal, for example during PCA doublets may form separate clusters not reflecting biological difference.
+        
+        Parameters
+        ----------
+        n_iters: int
+            Number of fit operations from which to collect p-values. Defualt value is 25.
+
+        pseudocount: float
+            Pseudocount used in normalize_counts. If 1 is used, and standard_scaling=False, the classifier is much more memory efficient; however, this may result in fewer doublets detected.
+        
+        boost_rate: float
+            Proportion of cell population size to produce as synthetic doublets.
+
+        clustering_algorithm: str
+            Clustering algorithm to use (Louvain, Leiden or phenograph).
+
+        voter_thresh: float
+            Fraction of iterations a cell must be called a doublet.
+
+        standard_scaling: bool
+            Set to True to enable standard scaling of normalized count matrix prior to PCA. Recommended when not using Phenograph.
+
+        n_top_var_genes: int
+            Number of highest variance genes to use; other genes discarded. Will use all genes when zero.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/doubletdetection.png
+
+        Example
+        -------
+        # Example taken from doubletdetection tutorial for PBMC3K available at: https://doubletdetection.readthedocs.io/en/latest/tutorial.html
+        !pip install doubletdetection # install doubletdetection
+        import doubletdetection
+        import scanpy as sc
+        import matplotlib.pyplot as plt
+
+        adata = sc.read_10x_h5(
+            "pbmc_10k_v3_filtered_feature_bc_matrix.h5",
+            backup_url="https://cf.10xgenomics.com/samples/cell-exp/3.0.0/pbmc_10k_v3/pbmc_10k_v3_filtered_feature_bc_matrix.h5"
+        )
+        adata.var_names_make_unique()
+
+        sc.pp.filter_genes(adata, min_cells=1)
+
+        clf = doubletdetection.BoostClassifier(
+            n_iters=10,
+            clustering_algorithm="louvain",
+            standard_scaling=True,
+            pseudocount=0.1,
+            n_jobs=-1,
+        )
+        doublets = clf.fit(adata.X).predict(p_thresh=1e-16, voter_thresh=0.5)
+        doublet_score = clf.doublet_score()
+
+        adata.obs["doublet"] = doublets
+        adata.obs["doublet_score"] = doublet_score
+
+        sc.pp.normalize_total(adata)
+        sc.pp.log1p(adata)
+        sc.pp.highly_variable_genes(adata)
+        sc.tl.pca(adata)
+        sc.pp.neighbors(adata)
+        sc.tl.umap(adata)
+
+        sc.pl.umap(adata, color=["doublet", "doublet_score"])
+        sc.pl.violin(adata, "doublet_score")
+        """
+        with st.form(key="Doubletdetection_form"):
+            st.subheader("Doubletdetection")
+            col1, col2, col3 = st.columns(3)
+            n_iters = col1.number_input(label="n_iters", min_value=1, step=1, value=10)
+            pseudocount = col2.number_input(label="pseudocount", value=0.1, step=0.1)
+            boost_rate = col3.number_input(label="boost rate", value=0.25, step=0.01)
+            clustering_algorithm = col1.selectbox(label="algorithm", options=['leiden', 'louvain', 'phenograph'])
+            voter_thresh = col2.number_input(label="p thresh", value=0.5, step=0.1)
+            n_top_var_genes = col3.number_input(label="n_top_var_genes", value=10000, step=1)
+            standard_scaling = st.toggle(label="standard scaling", value=False)
+            subcol1, _, _ = st.columns(3)
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+            
+
+            if "doublet_doubletdetection" in self.adata.obs:
+                pca, umap, violin = st.tabs(['PCA', 'UMAP', 'Violin'])
+                with pca:
+                    df = pd.DataFrame({'PCA 1': self.adata.obsm['X_pca'][:,0], 'PCA 2': self.adata.obsm['X_pca'][:,1], 'Predicted doublet': self.adata.obs.doublet_doubletdetection})
+                    st.scatter_chart(df, x='PCA 1', y='PCA 2', color='Predicted doublet', size=10)
+                with umap:
+                    df = pd.DataFrame({'UMAP 1': self.adata.obsm['X_umap'][:,0], 'UMAP 2': self.adata.obsm['X_umap'][:,1], 'Predicted doublet': self.adata.obs.doublet_doubletdetection})
+                    st.scatter_chart(df, x='UMAP 1', y='UMAP 2', color='Predicted doublet', size=10)
+
+            if submit_btn:
+                with st.spinner("Running doubletdetection"):
+                    clf = doubletdetection.BoostClassifier(
+                        n_iters=n_iters,
+                        n_top_var_genes=n_top_var_genes,
+                        clustering_algorithm=clustering_algorithm,
+                        standard_scaling=standard_scaling,
+                        pseudocount=pseudocount,
+                        boost_rate=boost_rate,
+                        n_jobs=-1,
+                    )
+                    doublets = clf.fit(self.adata.X).predict(p_thresh=1e-16, voter_thresh=voter_thresh)
+                    doublet_score = clf.doublet_score()
+
+                    self.adata.obs["doublet_doubletdetection"] = doublets
+                    self.adata.obs["doublet_score_doubletdetection"] = doublet_score
+
+                    sc.pp.normalize_total(self.adata)
+                    sc.pp.log1p(self.adata)
+                    sc.pp.highly_variable_genes(self.adata)
+                    sc.tl.pca(self.adata)
+                    sc.pp.neighbors(self.adata)
+                    sc.tl.umap(self.adata)
+
+                    pca, umap, violin = st.tabs(['PCA', 'UMAP', 'Violin'])
+                    
+                    with pca:
+                        df = pd.DataFrame({'PCA 1': self.adata.obsm['X_pca'][:,0], 'PCA 2': self.adata.obsm['X_pca'][:,1], 'Predicted doublet': self.adata.obs.doublet_doubletdetection})
+                        st.scatter_chart(df, x='PCA 1', y='PCA 2', color='Predicted doublet', size=10)
+                    with umap:
+                        df = pd.DataFrame({'UMAP 1': self.adata.obsm['X_umap'][:,0], 'UMAP 2': self.adata.obsm['X_umap'][:,1], 'Predicted doublet': self.adata.obs.doublet_doubletdetection})
+                        st.scatter_chart(df, x='UMAP 1', y='UMAP 2', color='Predicted doublet', size=10)
+
+                st.toast("Run doubletdetection", icon="✅")
+
                     
                     
     def regress_out(self):
@@ -1392,7 +1534,7 @@ try:
     with col2:
         preprocess.filter_cells()
         preprocess.filter_genes()
-        preprocess.run_scrublet()
+        preprocess.predict_doublets()
         preprocess.recipes()
         preprocess.batch_effect_removal()
         preprocess.measure_gene_counts()
