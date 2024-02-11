@@ -6,7 +6,7 @@ import warnings
 import numpy as np
 
 from models.AdataModel import AdataModel
-from utils.plotting import highest_expr_genes_box_plot
+from utils.plotting import highest_expr_genes_box_plot, plot_doubletdetection_threshold_heatmap
 from components.sidebar import *
 from datetime import datetime
 
@@ -18,6 +18,7 @@ from utils.AdataState import AdataState
 import doubletdetection
 from time import sleep
 import os
+import plotly.figure_factory as ff
 import re
 import plotly.graph_objects as go
 
@@ -832,12 +833,22 @@ class Preprocess:
                     # plot PCA to see doublets
                     sc.external.pl.scrublet_score_distribution(self.adata)
                     sc.pp.pca(self.adata)
-                    pca, observed_transcriptomes, simulated_doublets = st.tabs(['PCA', 'Observed transcriptomes', 'Simulated doublets'])
+                    sc.pp.neighbors(self.adata)
+                    sc.tl.umap(self.adata)
+                    pca, umap, distplot, simulated_doublets = st.tabs(['PCA', 'UMAP', 'Distplot', 'Simulated doublets'])
                     with pca:
                         df = pd.DataFrame({'PCA 1': self.adata.obsm['X_pca'][:,0], 'PCA 2': self.adata.obsm['X_pca'][:,1], 'Predicted doublet': self.adata.obs.predicted_doublet})
                         st.scatter_chart(df, x='PCA 1', y='PCA 2', color='Predicted doublet', size=10)
-                    with observed_transcriptomes:
-                        st.write("To implement")
+                    with umap:
+                        df = pd.DataFrame({'UMAP 1': self.adata.obsm['X_umap'][:,0], 'UMAP 2': self.adata.obsm['X_umap'][:,1], 'Predicted doublet': self.adata.obs.predicted_doublet})
+                        st.scatter_chart(df, x='UMAP 1', y='UMAP 2', color='Predicted doublet', size=10)
+                    with distplot:
+                        fig = ff.create_distplot([self.adata.obs.doublet_score.values], group_labels=['doublet_score'], 
+                            bin_size=0.02, show_rug=False, show_curve=False, colors=["#31abe8"])
+                        fig.update_layout(yaxis_type="log") 
+                        fig.add_vline(x=self.adata.uns['scrublet']['threshold'], line_color="red")
+                        fig.update_layout(xaxis_title="Doublet score", yaxis_title="Probability density", title="Observed transcriptomes")
+                        st.plotly_chart(fig, use_container_width=True)
                     with simulated_doublets:
                         st.write("To implement")
                     #write to script state
@@ -932,13 +943,16 @@ class Preprocess:
             
 
             if "doublet_doubletdetection" in self.adata.obs:
-                pca, umap, violin = st.tabs(['PCA', 'UMAP', 'Violin'])
+                pca, umap, threshold  = st.tabs(['PCA', 'UMAP', 'Threshold'])
                 with pca:
                     df = pd.DataFrame({'PCA 1': self.adata.obsm['X_pca'][:,0], 'PCA 2': self.adata.obsm['X_pca'][:,1], 'Predicted doublet': self.adata.obs.doublet_doubletdetection})
                     st.scatter_chart(df, x='PCA 1', y='PCA 2', color='Predicted doublet', size=10)
                 with umap:
                     df = pd.DataFrame({'UMAP 1': self.adata.obsm['X_umap'][:,0], 'UMAP 2': self.adata.obsm['X_umap'][:,1], 'Predicted doublet': self.adata.obs.doublet_doubletdetection})
                     st.scatter_chart(df, x='UMAP 1', y='UMAP 2', color='Predicted doublet', size=10)
+                with threshold:
+                    fig_heatmap = plot_doubletdetection_threshold_heatmap(clf=st.session_state.doubletdetection_clf, height=400)
+                    st.plotly_chart(fig_heatmap, use_container_width=True)
 
             if submit_btn:
                 with st.spinner("Running doubletdetection"):
@@ -951,6 +965,7 @@ class Preprocess:
                         boost_rate=boost_rate,
                         n_jobs=-1,
                     )
+                    st.session_state["doubletdetection_clf"] = clf
                     doublets = clf.fit(self.adata.X).predict(p_thresh=1e-16, voter_thresh=voter_thresh)
                     doublet_score = clf.doublet_score()
 
@@ -964,14 +979,16 @@ class Preprocess:
                     sc.pp.neighbors(self.adata)
                     sc.tl.umap(self.adata)
 
-                    pca, umap, violin = st.tabs(['PCA', 'UMAP', 'Violin'])
-                    
+                    pca, umap, threshold  = st.tabs(['PCA', 'UMAP', 'Threshold'])
                     with pca:
                         df = pd.DataFrame({'PCA 1': self.adata.obsm['X_pca'][:,0], 'PCA 2': self.adata.obsm['X_pca'][:,1], 'Predicted doublet': self.adata.obs.doublet_doubletdetection})
                         st.scatter_chart(df, x='PCA 1', y='PCA 2', color='Predicted doublet', size=10)
                     with umap:
                         df = pd.DataFrame({'UMAP 1': self.adata.obsm['X_umap'][:,0], 'UMAP 2': self.adata.obsm['X_umap'][:,1], 'Predicted doublet': self.adata.obs.doublet_doubletdetection})
                         st.scatter_chart(df, x='UMAP 1', y='UMAP 2', color='Predicted doublet', size=10)
+                    with threshold:
+                        fig_heatmap = plot_doubletdetection_threshold_heatmap(clf=st.session_state.doubletdetection_clf, height=400)
+                        st.plotly_chart(fig_heatmap, use_container_width=True)
 
                 st.toast("Run doubletdetection", icon="✅")
 

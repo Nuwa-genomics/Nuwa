@@ -244,4 +244,60 @@ def plot_top_ranked_genes(adata, cluster_name, method, n_rows=5, height = None, 
 
     return fig
 
+
+def plot_doubletdetection_threshold_heatmap(
+    clf,
+    show=False,
+    save=None,
+    log10=True,
+    log_p_grid=None,
+    voter_grid=None,
+    height=None,
+    width=None,
+    v_step=2,
+    p_step=5,
+):
+    """Produce a plot showing number of cells called doublet across
+       various thresholds
+
+    Args:
+        clf (BoostClassifier object): Fitted classifier
+        show (bool, optional): If True, runs plt.show()
+        save (str, optional): If provided, the figure is saved to this
+            filepath.
+        log10 (bool, optional): Use log 10 if true, natural log if false.
+        log_p_grid (ndarray, optional): log p-value thresholds to use.
+            Defaults to np.arange(-100, -1). log base decided by log10
+        voter_grid (ndarray, optional): Voting thresholds to use. Defaults to
+            np.arange(0.3, 1.0, 0.05).
+        p_step (int, optional): number of xlabels to skip in plot
+        v_step (int, optional): number of ylabels to skip in plot
+
+
+    Returns:
+        matplotlib figure
+    """
+    # Ignore numpy complaining about np.nan comparisons
+    with np.errstate(invalid="ignore"):
+        all_log_p_values_ = np.copy(clf.all_log_p_values_)
+        if log10:
+            all_log_p_values_ /= np.log(10)
+        if log_p_grid is None:
+            log_p_grid = np.arange(-100, -1)
+        if voter_grid is None:
+            voter_grid = np.arange(0.3, 1.0, 0.05)
+        doubs_per_t = np.zeros((len(voter_grid), len(log_p_grid)))
+        for i in range(len(voter_grid)):
+            for j in range(len(log_p_grid)):
+                voting_average = np.mean(
+                    np.ma.masked_invalid(all_log_p_values_) <= log_p_grid[j], axis=0
+                )
+                labels = np.ma.filled((voting_average >= voter_grid[i]).astype(float), np.nan)
+                doubs_per_t[i, j] = np.nansum(labels)
+
+    df = pd.DataFrame(data=doubs_per_t, index=voter_grid, columns=log_p_grid)
+    fig = px.imshow(df, height=height, width=width, aspect="auto", labels=dict(x="log10 p-value", y="Voting threshold", color="Predicted doublets"), title="Threshold Diagnostics")
+    fig.update_coloraxes(colorbar_title_side="right")
+    return fig
+
     

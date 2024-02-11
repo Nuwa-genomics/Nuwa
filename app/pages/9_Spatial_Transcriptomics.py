@@ -182,7 +182,7 @@ class Spatial_transcriptomics:
                 st.subheader("Neighbourhood Enrichment")
                 try:
                     cluster_key = st.selectbox(label="Cluster Key", options=self.adata.obs_keys())
-                    col1, col2 = st.columns(2, gap="large")
+                    col1, col2 = st.columns(2)
                     n_perms = col1.number_input(label="n_perms", min_value=1, value=1000)
                     mode = col2.selectbox(label="mode", options=['zscore', 'count'])
                     subcol1, _, _, _ = st.columns(4)
