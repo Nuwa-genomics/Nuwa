@@ -172,6 +172,10 @@ The streamlit volume is mounted within the installation path of the git reposito
 ```python
 ├── Nuwa
     ├── streamlit-volume
+        ├── exported_workspaces
+        |   ├── workspace_6f2b160d4a89bafe
+        |       ├── workspace_6f2b160d4a89bafe.h5ad
+        |       ├── checksum.sha256
         ├── workspace_6f2b160d4a89bafe
             ├── adata
             |   ├── example.h5ad
