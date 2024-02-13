@@ -16,6 +16,10 @@ Currently in beta version, **not** recommended for use in research or commercial
 
 Nuwa is an open-source, graphical web tool for single cell RNA seq analysis. It primarily focuses on functions available within the Scanpy library, but also incorporates other software packages and deep learning models. Nuwa runs on a local web server which users access in their browser. 
 
+## Goals
+
+Nuwa is a free resource that aims to speed up single cell analysis with no coding required. It is also possible to export work done in Nuwa to a python script for reproducible analysis results (it may also be possible in the future to export as an R script). When the project matures institutions such as universities may wish to host it as a service to students/researches in their internal organisation (made easier with our docker compose files). We hope that in the future Nuwa will be an addition to other open-source software for lowering the cost of scRNA-seq analysis. 
+
 ## Quick start
 
 **Clone the repo:**
@@ -51,7 +55,7 @@ Navigate to http://localhost to use the app. Files are mounted to the streamlit-
 ## Features
 
 - Upload scRNA expression matrices in multiple formats (h5ad, mtx, loom supported) including built-in datasets and online datasets using their EBI accession key
-- Preprocess data (includes mito, ribo and haem annotation, cell & gene filtering, highly variable genes, data scaling and normalization, cell-cycle scoring, batch effect correction, doublet detection, downsampling, subsampling and automated preprocessing recipes included in scanpy.)
+- Preprocess data (includes mito, ribo and haem annotation, cell & gene filtering, highly variable genes, data scaling and normalization, cell-cycle scoring, batch effect correction, doublet detection, downsampling, subsampling and automated preprocessing recipes included in scanpy)
 - Integrate different dataset types using BBKNN, scanorama and Ingest
 - Visualise differential gene expression using multiple statistical tests across clusters or individual genes
 - A variety of deep learning models such as doublet detection with Solo and cluster analysis using Cite-seq autoencoder. Adjustable hyperparameters and hardware devices

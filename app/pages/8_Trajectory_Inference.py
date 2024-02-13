@@ -9,6 +9,7 @@ import time
 from models.AdataModel import AdataModel
 from components.sidebar import *
 import os
+from utils.paga import *
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -25,8 +26,12 @@ with open('css/common.css') as f:
 class Trajectory_inference:
     """
     Trajectory inference gives key insights into cell differentiation through ordering the stages of development into a continuous sequence of clusters.
+
+    Notes
+    -----
+    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/trajectory_inference_page.png
     """
-    def __init__(self, adata):
+    def __init__(self, adata: AnnData):
         try:
             self.adata = adata
             self.adata.raw = adata
@@ -37,8 +42,7 @@ class Trajectory_inference:
             #compute neighbours
             sc.pp.neighbors(self.adata, n_neighbors=4, n_pcs=20)
             sc.tl.draw_graph(self.adata)
-            #compute louvain clusters
-            sc.tl.louvain(self.adata, resolution=1.0)
+            sc.tl.louvain(adata)
 
         except Exception as e:
             st.error(e)
@@ -90,51 +94,108 @@ class Trajectory_inference:
             except Exception as e:
                 st.error(e)
 
-    def draw_graph_paga(self):
-        with self.col2:
-            try:
-                with st.form(key="form_draw_graph_paga"):
-                    st.subheader("Louvain with PAGA embedding")
-                    plt.style.use('dark_background')
-                    graph_paga_options = st.multiselect(label="Gene", options=np.append(self.adata.to_df().columns, 'louvain'), default=['louvain', self.adata.to_df().columns[0]], key="ms_louvain_colors_paga")
-                    subcol1, _, _, _ = st.columns(4)
-                    empty = st.container()
-                    draw_paga_graph_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
-                    if draw_paga_graph_btn:
-                        with st.spinner(text="Recomputing with PAGA initialisation"):
-                            sc.tl.draw_graph(self.adata, init_pos='paga')
-                            ax = sc.pl.draw_graph(self.adata, color=graph_paga_options, legend_loc='on data')
-                            empty.pyplot(ax)
-                            #write to script
-                            st.session_state["script_state"].add_script("sc.tl.draw_graph(adata, init_pos='paga')")
-                            st.session_state["script_state"].add_script(f"sc.pl.draw_graph(adata, color={graph_paga_options}, legend_loc='on data')")
-                            st.session_state["script_state"].add_script("plt.show()")
-            
-            except Exception as e:
-                st.error(e)
 
 
+    def paga_clustering(self):
+        """
+        Computes a PAGA graph using louvain/leiden embeddings. View expression levels for individual genes across nodes of the graph. You may also recompute a scatter chart based on PAGA initialization. 
 
-    def louvain_cluster(self):
+        Parameters
+        ----------
+        algorithm: str
+            Clustering algorithm to using as PAGA groups.
+
+        resolution: float
+            Resolution to use in clustering algorithm. A higher resolution produces more clusters.
+
+        threshold: float
+            Do not draw edges for weights below this threshold. Set to 0 if you want all edges. 
+            Discarding low-connectivity edges helps in getting a much clearer picture of the graph.
+
+        root: str | int
+            This is the index of the root node or a list of root node indices. If this is a non-empty vector then the supplied node IDs are used as the roots of the trees (or a single tree if the graph is connected). 
+            If this is None or an empty list, the root vertices are automatically calculated based on topological sorting.
+
+        n_neighbours: int
+            The size of local neighborhood (in terms of number of neighboring data points) used for manifold approximation. 
+            Larger values result in more global views of the manifold, while smaller values result in more local data being preserved. In general values should be in the range 2 to 100.
+
+        n_pcs: int
+            Number of PCs.
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/paga1.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/paga2.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/paga3.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        adata = sc.datasets.paul15()
+
+        # louvain cluster
+        sc.pp.neighbors(adata, n_neighbors=4, n_pcs=20)
+        sc.tl.louvain(adata, resolution=resolution)
+
+        # run PAGA             
+        sc.tl.paga(adata, groups=algorithm)
+        sc.pl.paga(adata, color=['louvain', 'CD8A'])
+
+        # recompute paga
+        sc.tl.draw_graph(adata, init_pos='paga')
+        sc.pl.draw_graph(adata, color=['louvain', 'CD8A'], legend_loc='on data')
+        """
         with self.col2:
             try:
                 with st.form(key="louvain_cluster_form"):
                     st.subheader("PAGA")
-                    plt.style.use('classic')
-                    options = st.multiselect(label="Gene", options=np.append(self.adata.to_df().columns, 'louvain'), default=['louvain', self.adata.to_df().columns[0]], key="ms_louvain_colors")
-                    empty = st.container()
+
+                    #algorithm
+                    col1, col2 = st.columns(2)
+                    algorithm = col1.radio(label="Clustering algorithm", options=['leiden', 'louvain'])
+                    resolution = col2.number_input(label="Resolution", min_value=0.01, value=1.00, step=0.10)
+                    #paga
+                    col1, col2 = st.columns(2)
+                    threshold = col1.number_input(label="Paga threshold", min_value=0.01, value=0.03, step=0.01)
+                    root = col2.text_input(label="Root")
+                    #neighbours
+                    col1, col2 = st.columns(2)
+                    n_neighbours = col1.number_input(label="n_neighbours", value=4, step=1, format="%i")
+                    n_pcs = col2.number_input(label="n_pcs", value=20, step=1, format="%i")
+                    #genes
+                    options = st.multiselect(label="Genes", options=self.adata.var_names, default=[self.adata.var_names[0]])
                     subcol1, _, _, _ = st.columns(4)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     
                     if submit_btn:
-                        with st.spinner(text="Computing clusters"):
+                        with st.spinner(text="Computing paga clusters"):
                             #louvain cluster
-                            sc.tl.louvain(self.adata, resolution=1.0)
+                            sc.pp.neighbors(self.adata, n_neighbors=n_neighbours, n_pcs=n_pcs)
+
+                            if algorithm == "louvain":
+                                sc.tl.louvain(self.adata, resolution=resolution)
+                                options = np.append(['louvain'], options)
+                            elif algorithm == "leiden":
+                                sc.tl.leiden(self.adata, resolution=resolution)
+                                options = np.append(['leiden'], options)
+                            
+                            sc.tl.paga(self.adata, groups=algorithm)
 
                             #paga
-                            sc.tl.paga(self.adata, groups='louvain')
-                            ax = sc.pl.paga(self.adata, colors=st.session_state.ms_louvain_colors, cmap='viridis', node_size_scale=3)
-                            empty.pyplot(ax)
+                            st.session_state.trajectory_plots["paga"] = compute_paga(self.adata, color=options, height=500)
+                            if not root:
+                                root = 0
+                            sc.pl.paga(adata, threshold=threshold, root=root)
+
+                            #recompute paga
+                            sc.tl.draw_graph(self.adata, init_pos='paga')
+                            sc.pl.draw_graph(self.adata, color=options, legend_loc='on data')
+                            st.session_state.trajectory_plots["paga_cluster_colors"] = options
+
+                            st.toast("Added PAGA embeddings", icon="✅")
+
                             
                             #write to script state
                             st.session_state["script_state"].add_script("sc.tl.louvain(adata, resolution=1.0)")
@@ -146,15 +207,53 @@ class Trajectory_inference:
             except Exception as e:
                 st.error(e)
 
+
+    def draw_plots(self):
+        st.subheader("Plots")
+        paga, paga_embed, dpt = st.tabs(['Paga', 'Paga Embedding', 'Diffusion Pseudotime'])
+        with paga:
+            if st.session_state.trajectory_plots["paga"] == None:
+                st.info("You must run paga first.")
+            else:
+                figs = st.session_state.trajectory_plots["paga"]
+                col1, col2 = st.columns(2)
+                columns = [col1, col2]
+                for i, fig in enumerate(figs):
+                    with columns[i % 2]:
+                        st.plotly_chart(fig, use_container_width=True)
+        
+        with paga_embed:
+            if not isinstance(st.session_state.trajectory_plots["paga_cluster_colors"], np.ndarray):
+                st.info("You must run paga first.") 
+            else:
+                colors = st.session_state.trajectory_plots["paga_cluster_colors"]
+                col1, col2 = st.columns(2)
+                columns = [col1, col2]
+                for i, color in enumerate(colors):
+                    if color in self.adata.obs:
+                        df = pd.DataFrame({'fa1': self.adata.obsm['X_draw_graph_fa'][:, 0], 'fa2': self.adata.obsm['X_draw_graph_fa'][:, 1], f'{color}': self.adata.obs['louvain']})
+                        with columns[i % 2]:
+                            st.markdown(f"""<p style='font-size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
+                            st.scatter_chart(df, x='fa1', y='fa2', color=f'{color}', size=10, height=500, use_container_width=True)
+                    else:
+                        df = pd.DataFrame({'fa1': self.adata.obsm['X_draw_graph_fa'][:,0], 'fa2': self.adata.obsm['X_draw_graph_fa'][:,1], f'{color}': self.adata.to_df()[color].values})
+                        with columns[i % 2]:
+                            st.markdown(f"""<p style='font-size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
+                            st.scatter_chart(df, x='fa1', y='fa2', color=f'{color}', size=10, height=500, use_container_width=True)
+
+
     def draw_page(self):
         st.title("Trajectory Inference")
+        #graphs
+        if 'trajectory_plots' not in st.session_state:
+            st.session_state["trajectory_plots"] = dict(paga=None, paga_cluster_colors=None, dpt=None)
         #columns
         self.col1, self.col2 = st.columns(2, gap="medium")
         self.draw_graph()
-        self.louvain_cluster()
+        self.paga_clustering()
         self.dpt()
-        self.draw_graph_paga()
         #self.show_path()
+        self.draw_plots()
 
 
     def dpt(self):
@@ -262,7 +361,7 @@ try:
 
 except KeyError as ke:
     print("KeyError: ", ke)
-    st.error("Couldn't find adata object in session, have you uploaded one?")
+    st.error(ke)
 
 
 

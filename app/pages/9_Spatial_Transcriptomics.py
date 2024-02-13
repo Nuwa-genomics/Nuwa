@@ -39,7 +39,6 @@ class Spatial_transcriptomics:
 
     def draw_page(self):
         st.title("Spatial Transcriptomics")
-        plt.style.use('dark_background')
         self.col1, self.col2, self.col3 = st.columns(3, gap="medium")
         if 'spatial_plots' not in st.session_state:
             st.session_state["spatial_plots"] = dict(nhood_enrichment=None, interaction_matrix=None, ripley_score=None, co_occurance_score=None, centrality_score=None)
