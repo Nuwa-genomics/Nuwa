@@ -141,11 +141,11 @@ class Trajectory_inference:
 
         # run PAGA             
         sc.tl.paga(adata, groups=algorithm)
-        sc.pl.paga(adata, color=['louvain', 'CD8A'])
+        sc.pl.paga(adata, color=['louvain', '0610007L01Rik'])
 
         # recompute paga
         sc.tl.draw_graph(adata, init_pos='paga')
-        sc.pl.draw_graph(adata, color=['louvain', 'CD8A'], legend_loc='on data')
+        sc.pl.draw_graph(adata, color=['louvain', '0610007L01Rik'], legend_loc='on data')
         """
         with self.col2:
             try:
