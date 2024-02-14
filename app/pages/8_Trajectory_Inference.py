@@ -193,6 +193,7 @@ class Trajectory_inference:
                             sc.tl.draw_graph(self.adata, init_pos='paga')
                             sc.pl.draw_graph(self.adata, color=options, legend_loc='on data')
                             st.session_state.trajectory_plots["paga_cluster_colors"] = options
+                            st.session_state.trajectory_plots["paga_cluster_embedding"] = self.adata.obsm["X_draw_graph_fa"]
 
                             st.toast("Added PAGA embeddings", icon="✅")
 
@@ -231,51 +232,102 @@ class Trajectory_inference:
                 columns = [col1, col2]
                 for i, color in enumerate(colors):
                     if color in self.adata.obs:
-                        df = pd.DataFrame({'fa1': self.adata.obsm['X_draw_graph_fa'][:, 0], 'fa2': self.adata.obsm['X_draw_graph_fa'][:, 1], f'{color}': self.adata.obs['louvain']})
+                        df = pd.DataFrame({'fa1': st.session_state.trajectory_plots["paga_cluster_embedding"][:, 0], 'fa2': st.session_state.trajectory_plots["paga_cluster_embedding"][:, 1], f'{color}': self.adata.obs['louvain']})
                         with columns[i % 2]:
                             st.markdown(f"""<p style='font-size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
                             st.scatter_chart(df, x='fa1', y='fa2', color=f'{color}', size=10, height=500, use_container_width=True)
                     else:
-                        df = pd.DataFrame({'fa1': self.adata.obsm['X_draw_graph_fa'][:,0], 'fa2': self.adata.obsm['X_draw_graph_fa'][:,1], f'{color}': self.adata.to_df()[color].values})
+                        df = pd.DataFrame({'fa1': st.session_state.trajectory_plots["paga_cluster_embedding"][:,0], 'fa2': st.session_state.trajectory_plots["paga_cluster_embedding"][:,1], f'{color}': self.adata.to_df()[color].values})
                         with columns[i % 2]:
                             st.markdown(f"""<p style='font-size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
                             st.scatter_chart(df, x='fa1', y='fa2', color=f'{color}', size=10, height=500, use_container_width=True)
+
+        with dpt:
+            if st.session_state.trajectory_plots["dpt_cluster_color"] == None:
+                st.info("You must run dpt first.") 
+            else:
+                color = st.session_state.trajectory_plots["dpt_cluster_color"]
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    df = pd.DataFrame({'fa1': st.session_state.trajectory_plots["paga_cluster_embedding"][:, 0], 'fa2': st.session_state.trajectory_plots["paga_cluster_embedding"][:, 1], f'{color}': self.adata.obs[color]})
+                    st.markdown(f"""<p style='font-size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
+                    st.scatter_chart(df, x='fa1', y='fa2', color=f'{color}', size=10, height=500, use_container_width=True)
+
+                with col2:
+                    df = pd.DataFrame({'fa1': st.session_state.trajectory_plots["paga_cluster_embedding"][:, 0], 'fa2': st.session_state.trajectory_plots["paga_cluster_embedding"][:, 1], 'dpt_pseudotime': self.adata.obs['dpt_pseudotime']})
+                    st.markdown(f"""<p style='font-size: 16px; font-weight: bold;'>Diffusion pseudotime</p>""", unsafe_allow_html=True)
+                    st.scatter_chart(df, x='fa1', y='fa2', color='dpt_pseudotime', size=10, height=500, use_container_width=True)
+                
 
 
     def draw_page(self):
         st.title("Trajectory Inference")
         #graphs
         if 'trajectory_plots' not in st.session_state:
-            st.session_state["trajectory_plots"] = dict(paga=None, paga_cluster_colors=None, dpt=None)
+            st.session_state["trajectory_plots"] = dict(paga=None, paga_cluster_colors=None, dpt_cluster_color=None, paga_cluster_embedding=None)
         #columns
         self.col1, self.col2 = st.columns(2, gap="medium")
         self.draw_graph()
         self.paga_clustering()
-        self.dpt()
+        self.diffusion_pseudotime()
         #self.show_path()
         self.draw_plots()
 
 
-    def dpt(self):
+    def diffusion_pseudotime(self):
+        """
+        Infer progression of cells through geodesic distance along the graph [Haghverdi16]_ [Wolf19]_.
+
+        Parameters
+        ----------
+        algorithm: str
+            Clustering algorithm to use as embedding.
+
+        root: int | str
+            This is the index of the root node or a list of root node indices. use this node as the root cell for diffusion pseudotime. 
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/dpt2.png
+        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/dpt2.png
+
+        Example
+        -------
+        import scanpy as sc
+
+        sc.tl.louvain(adata)
+        adata.uns['iroot'] = np.flatnonzero(adata.obs['louvain'] == '16')[0]
+        sc.tl.dpt(adata)
+        sc.pl.draw_graph(adata, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')
+        """
         with self.col2:
             try:
                 with st.form(key="dpt_form"):
                     st.subheader("Diffusion Pseudotime")
-                    plt.style.use('dark_background')
-                    root_cell = st.selectbox(label='Root cell', options=(self.adata.obs['louvain'].unique()), key='sb_root_cell')
-                    empty = st.container()
+                    algorithm = st.radio(label="Clustering algorithm", options=['leiden', 'louvain'])
+                    root = st.selectbox(label='Root cell', options=(self.adata.obs['louvain'].unique()))
                     subcol1, _, _, _ = st.columns(4)
                     dpt_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     if dpt_btn:
                         with st.spinner(text="Computing dpt"):
-                            self.adata.uns['iroot'] = np.flatnonzero(self.adata.obs['louvain']  == st.session_state.sb_root_cell)[0]
+                            if algorithm not in self.adata.obs:
+                                if algorithm == "leiden":
+                                    sc.tl.leiden(self.adata)
+                                if algorithm == "louvain":
+                                    sc.tl.louvain(self.adata)
+                            
+                            st.session_state["trajectory_plots"]["dpt_cluster_color"] = algorithm
+
+                            self.adata.uns['iroot'] = np.flatnonzero(self.adata.obs[algorithm]  == root)[0]
                             
                             sc.tl.dpt(self.adata)
-                            sc.pp.log1p(self.adata)
-                            sc.pp.scale(self.adata)
+                            #sc.pp.log1p(self.adata)
+                            #sc.pp.scale(self.adata)
 
-                            ax1 = sc.pl.draw_graph(self.adata, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')
-                            empty.pyplot(ax1)
+                            sc.pl.draw_graph(self.adata, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')
+
+                            st.toast("Finished dpt analysis", icon="✅")
                             
                             #add to script state
                             
