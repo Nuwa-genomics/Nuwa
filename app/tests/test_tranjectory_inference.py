@@ -1,7 +1,5 @@
 from streamlit.testing.v1 import AppTest
-from utils.AdataState import AdataState
-import time
-import scanpy as sc
+from state.AdataState import AdataState
 
 class bcolors:
     HEADER = '\033[95m'

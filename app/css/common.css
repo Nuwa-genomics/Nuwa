@@ -8,10 +8,7 @@
     }
 }
 
-.block-container {
-    animation: fadein;
-    animation-duration: 0.4s;
-}
+
 
 footer {visibility: hidden;}
             .st-emotion-cache-1cypcdb {background: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%); box-shadow: 1px 0 10px -2px #000;}

@@ -7,11 +7,13 @@ from scipy import io
 from models.AdataModel import AdataModel
 from database.database import SessionLocal
 from sqlalchemy.orm import Session
-from utils.AdataState import AdataState
+from state.AdataState import AdataState
 from pathlib import Path
 from utils.Gene_info import Gene_info
 from utils.species import *
 import numpy as np
+
+
 
 class Sidebar:
     """
@@ -53,20 +55,33 @@ class Sidebar:
                 
     def export_script(self):
         """
-        Export a python script containing any processing and analysis done in the web app. This is useful for reproducibility and documenting analysis done on data.
+        Export a python or R script containing any processing and analysis done in the web app. This is useful for reproducibility and documenting analysis done on data.
         
         Notes
         -----
         .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/export_script.png
         """
         with st.sidebar:
-            with st.expander(label="Export python script"):
-                scripts: list(str) = st.session_state.script_state.load_script()
-                full_script = ""
-                for script in scripts:
-                    full_script += script + '\n'
-                st.code(full_script, language="python", line_numbers=True)
-
+            with st.expander(label="Export script"):
+                python, r = st.tabs(['Python', 'R'])
+                with python:
+                    python_scripts = st.session_state.script_state.load_script(language = "python")
+                    if python_scripts:
+                        full_python_script = ""
+                        for script in python_scripts:
+                            full_python_script += script + '\n'
+                        st.code(full_python_script, language="python", line_numbers=True)
+                    else:
+                        st.warning("Python script not available")
+                with r:
+                    r_scripts = st.session_state.script_state.load_script(language = "R")
+                    if r_scripts:
+                        full_r_script = ""
+                        for script in r_scripts:
+                            full_r_script += script + '\n'
+                        st.code(full_r_script, language="r", line_numbers=True)
+                    else:
+                        st.warning("R script not available")
 
 
     def notes(self):

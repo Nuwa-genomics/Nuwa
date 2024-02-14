@@ -18,7 +18,7 @@ Nuwa is an open-source, graphical web tool for single cell RNA seq analysis. It 
 
 ## Goals of the project
 
-Nuwa is a free resource that aims to speed up single cell analysis with no coding required. Users can export work done in Nuwa to a python script for reproducible analysis results (it may also be possible in the future to export as an R script). When the project matures, institutions such as universities may wish to host it as a service to students/researches in their internal organisation (made easier with our docker compose files). We hope that in the future Nuwa will be an addition to other open-source software for lowering the cost of scRNA-seq analysis. 
+Nuwa is a free resource that aims to speed up single cell analysis with no coding required. However it is designed to be used alongside scripting in python or R by exporting scripts in Nuwa for reproducible analysis results. When the project matures, institutions such as universities may wish to host it as a service to students/researches in their internal organisation (made easier with our docker compose files). We hope that in the future Nuwa will be an addition to other open-source software for lowering the cost of scRNA-seq analysis. 
 
 ## Quick start
 

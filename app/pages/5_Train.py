@@ -8,7 +8,7 @@ from ml.solo_scvi.solo_model import solo_model
 from ml.DeepST.deepst.main import *
 from models.AdataModel import AdataModel
 from components.sidebar import *
-from utils.AdataState import AdataState
+from state.AdataState import AdataState
 import os
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬', layout="centered")

@@ -6,7 +6,6 @@ import os
 import numpy as np
 import pandas as pd
 import scanpy as sc
-import gseapy
 import matplotlib.pyplot as plt
 from matplotlib_venn import venn3
 import altair as alt

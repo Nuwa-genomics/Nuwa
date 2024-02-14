@@ -6,7 +6,7 @@ import scanpy as sc
 import streamlit as st
 from database.database import SessionLocal
 from sqlalchemy.orm import Session
-from utils.ScriptState import ScriptState
+from state.ScriptState import ScriptState
 import os
 
 class AdataState:

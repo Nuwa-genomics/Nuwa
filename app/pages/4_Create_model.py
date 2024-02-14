@@ -14,7 +14,7 @@ from ml.DeepST.deepst.main import *
 import torch
 from components.sidebar import *
 from models.AdataModel import AdataModel
-from utils.AdataState import AdataState
+from state.AdataState import AdataState
 
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')

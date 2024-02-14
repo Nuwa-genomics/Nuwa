@@ -11,7 +11,7 @@ from utils.plotting import plot_ripley, plot_co_occurrence, plot_centrality_scor
 
 from models.AdataModel import AdataModel
 from components.sidebar import *
-from utils.AdataState import AdataState
+from state.AdataState import AdataState
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 

@@ -1,15 +1,10 @@
 from streamlit.testing.v1 import AppTest
-import streamlit as st
-import scanpy as sc
-import os
 from models.AdataModel import AdataModel
-from utils.AdataState import AdataState
-from models.AdataModel import AdataModel
+from state.AdataState import AdataState
 from models.WorkspaceModel import WorkspaceModel
 from database.database import SessionLocal
 from sqlalchemy.orm import Session
 from database.schemas import schemas
-from utils.AdataState import AdataState
 
 class bcolors:
     HEADER = '\033[95m'

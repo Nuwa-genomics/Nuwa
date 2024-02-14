@@ -9,8 +9,8 @@ from models.WorkspaceModel import WorkspaceModel
 from database.database import SessionLocal
 from sqlalchemy.orm import Session
 from database.schemas import schemas
-from utils.AdataState import AdataState
-from utils.ScriptState import ScriptState
+from state.AdataState import AdataState
+from state.ScriptState import ScriptState
 from utils.session_cache import load_data_from_cache, cache_data_to_session
 import loompy as lmp
 import glob
@@ -311,9 +311,11 @@ class Upload:
                 #see if dataset already in db
                 if self.first_load: #TODO: this doesn't take into account loading a new dataset into original workspace. adata definition won't show
                     if f != None:
-                        st.session_state["script_state"].add_script(f"#Uploaded adata should be added here. Adata used for current experiment was {filename}.h5ad\n")
+                        st.session_state["script_state"].add_script(f"#Uploaded adata should be added here. Adata used for current experiment was {filename}.h5ad\n", language="python")
+                        st.session_state["script_state"].add_script(f"#Uploaded adata should be added here. Adata used for current experiment was {filename}.h5ad\n", language="R")
                     else:
-                        st.session_state["script_state"].add_script(f"#Uploaded adata should be added here.\n")
+                        st.session_state["script_state"].add_script(f"#Uploaded adata should be added here.\n", language="python")
+                        st.session_state["script_state"].add_script(f"#Uploaded adata should be added here.\n", language="R")
 
                 st.toast("Successfully uploaded file", icon='✅')
                 

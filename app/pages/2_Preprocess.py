@@ -13,14 +13,18 @@ from datetime import datetime
 from database.database import SessionLocal
 from sqlalchemy.orm import Session
 
+from scripts.preprocessing.Highest_expr_genes import Highest_expr_genes
+
 from database.schemas import schemas
-from utils.AdataState import AdataState
+from state.AdataState import AdataState
+from state.ScriptState import ScriptState
 import doubletdetection
 from time import sleep
 import os
 import plotly.figure_factory as ff
 import re
 import plotly.graph_objects as go
+from models.ScriptModel import Language
 
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
@@ -93,9 +97,14 @@ class Preprocess:
 
             if submit_btn:
                 with st.spinner(text="Calculating highest expressed genes"):
-                    st.session_state["script_state"].add_script(f"\n#Show highest expr genes\nsc.pl.highest_expr_genes(adata, n_top=20)\n")
                     fig = highest_expr_genes_box_plot(self.adata, n_top=n_top_genes)
                     st.plotly_chart(fig)
+
+                    # write to script state
+                    # python
+                    Highest_expr_genes.add_script(object="adata", n_top_genes=n_top_genes, language=Language.python)
+                    # R
+                    Highest_expr_genes.add_script(object="sce", n_top_genes=n_top_genes, language=Language.R)
                         
                         
     def remove_genes(self):
@@ -117,10 +126,10 @@ class Preprocess:
 
         remove_genes_list = ['malat1']
         for gene in remove_genes_list:
-            remove_genes = self.adata.var_names.str.startswith(gene)
+            remove_genes = adata.var_names.str.startswith(gene)
             remove = np.array(remove_genes)
             keep = np.invert(remove)
-            adata = self.adata[:,keep]
+            adata = adata[:,keep]
         """
         with st.form(key="remove_genes_form"):
             st.subheader("Remove genes")
@@ -136,7 +145,7 @@ class Preprocess:
                         self.adata = self.adata[:,keep]
                         self.save_adata()
                     #write to script state
-                    st.session_state["script_state"].add_script(f"#remove selected genes\nfor gene in {remove_genes}:\n\tremove_genes = adata.var_names.str.startswith(gene)\nremove = np.array(remove_genes)\nkeep = np.invert(remove)\nadata = self.adata[:,keep]")
+                    st.session_state["script_state"].add_script(f"#remove selected genes\nfor gene in {remove_genes}:\n\tremove_genes = adata.var_names.str.startswith(gene)\nremove = np.array(remove_genes)\nkeep = np.invert(remove)\nadata = adata[:,keep]", language=Language.python.value)
 
 
     def filter_highly_variable_genes(self):
@@ -187,11 +196,30 @@ class Preprocess:
                     sc.pp.log1p(self.adata)     
                     sc.pp.highly_variable_genes(self.adata, flavor=flavour, n_top_genes=n_top_genes, min_mean=min_mean, max_mean=max_mean, min_disp=min_disp, max_disp=max_disp)
 
-                    #write to script state
-                    st.session_state["script_state"].add_script("#Filter highly variable genes")
-                    st.session_state["script_state"].add_script("sc.pp.normalize_total(adata, target_sum=1e4)")
-                    st.session_state["script_state"].add_script("sc.pp.log1p(adata)")
-                    st.session_state["script_state"].add_script(f"sc.pp.highly_variable_genes(adata, min_mean={min_mean}, max_mean={max_mean}, min_disp=0.5)")
+                    # write to script state
+                    # python
+                    st.session_state["script_state"].add_script("#Filter highly variable genes", language=Language.python.value)
+                    st.session_state["script_state"].add_script("sc.pp.normalize_total(adata, target_sum=1e4)", language=Language.python.value)
+                    st.session_state["script_state"].add_script("sc.pp.log1p(adata)", language=Language.python.value)
+                    st.session_state["script_state"].add_script(f"sc.pp.highly_variable_genes(adata, min_mean={min_mean}, max_mean={max_mean}, min_disp=0.5)", language=Language.python.value)
+                    st.session_state["script_state"].add_script("sc.pl.highly_variable_genes(adata)", language=Language.python.value)
+                    # R
+                    st.session_state["script_state"].add_script("\n#Compute highly variable genes. This uses the FindVariableFeatures method in seurat", language=Language.R.value)
+                    st.session_state["script_state"].add_script("\n#If you have been using bioconductor's sce object you will need to reload it in as a seurat object.", language=Language.R.value)
+                    st.session_state["script_state"].add_script("\npbmc.data <- Read10X(data.dir = 'path_to_mtx_files')", language=Language.R.value)
+                    st.session_state["script_state"].add_script("\npbmc <- CreateSeuratObject(counts = pbmc.data, project = 'pbmc3k'", language=Language.R.value)
+                    
+                    st.session_state["script_state"].add_script("\n#Log normalize\npbmc <- NormalizeData(pbmc, normalization.method = 'LogNormalize', scale.factor = 10000)", language=Language.R.value)
+                    st.session_state["script_state"].add_script("\npbmc <- NormalizeData(pbmc)", language=Language.R.value)
+                    st.session_state["script_state"].add_script("\npbmc <- FindVariableFeatures(pbmc, selection.method = 'vst', nfeatures = 2000)", language=Language.R.value)
+
+                    st.session_state["script_state"].add_script("\n# Identify the n most highly variable genes", language=Language.R.value)
+                    st.session_state["script_state"].add_script("\ntop10 <- head(VariableFeatures(pbmc), 10)", language=Language.R.value)
+
+                    st.session_state["script_state"].add_script("\n# plot variable features with and without labels", language=Language.R.value)
+                    st.session_state["script_state"].add_script("\nplot1 <- VariableFeaturePlot(pbmc)", language=Language.R.value)
+                    st.session_state["script_state"].add_script("\nplot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)", language=Language.R.value)
+                    st.session_state["script_state"].add_script("\nCombinePlots(plots = list(plot1, plot2))", language=Language.R.value)
                         
                     if remove:
                         self.adata = self.adata[:, self.adata.var.highly_variable]
@@ -205,8 +233,6 @@ class Preprocess:
                     with dispersions_norm_tab:
                         dispersions_norm_tab.scatter_chart(self.adata.var, x='means', y='dispersions_norm', color='highly_variable', size=10)
 
-                    #add to script state
-                    st.session_state["script_state"].add_script("sc.pl.highly_variable_genes(adata)")
 
             st.subheader("Highly variable genes")
             seurat_tab, cell_ranger_tab, seuratv3_tab = st.tabs(['Seurat', 'Cell ranger', 'Seurat v3'])
