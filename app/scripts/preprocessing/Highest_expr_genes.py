@@ -3,6 +3,9 @@ import streamlit as st
 from state.ScriptState import ScriptState
 
 class Highest_expr_genes:
+    """
+    Exports an R or python script for plotting highest expressed genes.
+    """
 
     @staticmethod
     def add_script(language: Language | str, object: str, n_top_genes: int = 20):

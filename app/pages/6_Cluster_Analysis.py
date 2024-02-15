@@ -50,7 +50,7 @@ class Cluster_analysis:
     """
     def __init__(self, adata):
 
-        st.title("Analysis")
+        st.title("Cluster analysis")
 
         self.col1, self.col2 = st.columns(2, gap="medium")
 

@@ -14,6 +14,7 @@ from database.database import SessionLocal
 from sqlalchemy.orm import Session
 
 from scripts.preprocessing.Highest_expr_genes import Highest_expr_genes
+from scripts.preprocessing.Highly_variable_genes import Highly_variable_genes
 
 from database.schemas import schemas
 from state.AdataState import AdataState
@@ -160,6 +161,9 @@ class Preprocess:
         n_top_genes: int
             Number of top variable genes to display. Mandatory for flavour 'seurat_v3'.
 
+        loess_span: float, default = 0.3
+            The fraction of the data (cells) used when estimating the variance in the loess model fit if flavor='seurat_v3'.
+
         min_mean: float
             Minimum mean. Ignored if flavour = 'seurat_v3'.
 
@@ -190,36 +194,20 @@ class Preprocess:
         """
         try:
 
-            def run_highly_variable(flavour, min_mean=None, max_mean=None, min_disp=None, max_disp=None, n_top_genes=None):
+            def run_highly_variable(flavour, min_mean=None, max_mean=None, min_disp=None, max_disp=None, n_top_genes=None, span=None):
                 with st.spinner(text="Calculating highly variable genes"):
                     sc.pp.normalize_total(self.adata, target_sum=1e4); 
                     sc.pp.log1p(self.adata)     
-                    sc.pp.highly_variable_genes(self.adata, flavor=flavour, n_top_genes=n_top_genes, min_mean=min_mean, max_mean=max_mean, min_disp=min_disp, max_disp=max_disp)
+                    sc.pp.highly_variable_genes(
+                        self.adata, flavor=flavour, n_top_genes=n_top_genes, min_mean=min_mean, 
+                        max_mean=max_mean, min_disp=min_disp, max_disp=max_disp, span=span
+                    )
 
                     # write to script state
                     # python
-                    st.session_state["script_state"].add_script("#Filter highly variable genes", language=Language.python.value)
-                    st.session_state["script_state"].add_script("sc.pp.normalize_total(adata, target_sum=1e4)", language=Language.python.value)
-                    st.session_state["script_state"].add_script("sc.pp.log1p(adata)", language=Language.python.value)
-                    st.session_state["script_state"].add_script(f"sc.pp.highly_variable_genes(adata, min_mean={min_mean}, max_mean={max_mean}, min_disp=0.5)", language=Language.python.value)
-                    st.session_state["script_state"].add_script("sc.pl.highly_variable_genes(adata)", language=Language.python.value)
+                    Highly_variable_genes.add_script(language=Language.python, object="adata", min_mean=min_mean, max_mean=max_mean, min_disp=min_disp, n_top_genes=n_top_genes, span=span)
                     # R
-                    st.session_state["script_state"].add_script("\n#Compute highly variable genes. This uses the FindVariableFeatures method in seurat", language=Language.R.value)
-                    st.session_state["script_state"].add_script("\n#If you have been using bioconductor's sce object you will need to reload it in as a seurat object.", language=Language.R.value)
-                    st.session_state["script_state"].add_script("\npbmc.data <- Read10X(data.dir = 'path_to_mtx_files')", language=Language.R.value)
-                    st.session_state["script_state"].add_script("\npbmc <- CreateSeuratObject(counts = pbmc.data, project = 'pbmc3k'", language=Language.R.value)
-                    
-                    st.session_state["script_state"].add_script("\n#Log normalize\npbmc <- NormalizeData(pbmc, normalization.method = 'LogNormalize', scale.factor = 10000)", language=Language.R.value)
-                    st.session_state["script_state"].add_script("\npbmc <- NormalizeData(pbmc)", language=Language.R.value)
-                    st.session_state["script_state"].add_script("\npbmc <- FindVariableFeatures(pbmc, selection.method = 'vst', nfeatures = 2000)", language=Language.R.value)
-
-                    st.session_state["script_state"].add_script("\n# Identify the n most highly variable genes", language=Language.R.value)
-                    st.session_state["script_state"].add_script("\ntop10 <- head(VariableFeatures(pbmc), 10)", language=Language.R.value)
-
-                    st.session_state["script_state"].add_script("\n# plot variable features with and without labels", language=Language.R.value)
-                    st.session_state["script_state"].add_script("\nplot1 <- VariableFeaturePlot(pbmc)", language=Language.R.value)
-                    st.session_state["script_state"].add_script("\nplot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)", language=Language.R.value)
-                    st.session_state["script_state"].add_script("\nCombinePlots(plots = list(plot1, plot2))", language=Language.R.value)
+                    Highly_variable_genes.add_script(language=Language.R, object="sce", min_mean=min_mean, max_mean=max_mean, min_disp=min_disp, n_top_genes=n_top_genes, span=span)
                         
                     if remove:
                         self.adata = self.adata[:, self.adata.var.highly_variable]
@@ -234,45 +222,23 @@ class Preprocess:
                         dispersions_norm_tab.scatter_chart(self.adata.var, x='means', y='dispersions_norm', color='highly_variable', size=10)
 
 
-            st.subheader("Highly variable genes")
-            seurat_tab, cell_ranger_tab, seuratv3_tab = st.tabs(['Seurat', 'Cell ranger', 'Seurat v3'])
 
-            with seurat_tab.form(key="form_highly_variable_seurat"):
-                n_top_genes = st.number_input(label="n_top_genes", min_value=1, key="ni:pp:highly_variable:seurat_n_top_genes", step=1, value=2000)
+            with st.form(key="form_highly_variable_seurat"):
+                st.subheader("Highly variable genes", help="Compute highly variable genes and plot results. Based on Seurat's FindVariableFeatures method (https://satijalab.org/seurat/reference/findvariablefeatures). First, a log norm is computed then a dispersion-based method is applied to select most variable genes. In the future we may add additional flavours available in Scanpy.")
                 subcol1, subcol2 = st.columns(2)
-                min_mean = subcol1.number_input(label="min mean", format='%.4f', value=0.0125, key="ni:pp:highly_variable:seurat_min_mean")
-                max_mean = subcol2.number_input(label="max mean", format='%.4f', value=3.0, key="ni:pp:highly_variable:seurat_max_mean")
-                min_disp = subcol1.number_input(label="min_disp", format='%.4f', value=0.5, key="ni:pp:highly_variable:seurat_min_disp")
-                max_disp = subcol2.number_input(label="max_disp", format='%.4f', value=3.0, key="ni:pp:highly_variable:seurat_max_disp")
+                n_top_genes = subcol1.number_input(label="n_top_genes", min_value=1, key="ni:pp:highly_variable:seurat_n_top_genes", step=1, value=2000)
+                loess_span = subcol2.number_input(label="Loess span", value=0.3, step=0.1)
+                mean = st.slider(label="Mean expression", min_value=0.0000, max_value=20.0000, value=(0.0125, 3.0000), format="%.4f")
+                disp = st.slider(label="Disp", min_value=0.00, max_value=100.00, value=(0.50, 100.00), format="%.2f")
                 remove = st.toggle(label="Remove non-variable genes", value=False, key="toggle:pp:highly_variable:seurat_remove", help="By default, highly variable genes are only annoted. This option will remove genes without highly variable expression.")
                 subcol1, _, _ = st.columns(3)
                 submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
 
                 if submit_btn:
-                    run_highly_variable(flavour="seurat", n_top_genes=n_top_genes, min_mean=min_mean, max_mean=max_mean, min_disp=min_disp, max_disp=max_disp)
-
-            with cell_ranger_tab.form(key="form_highly_variable_cellranger"):
-                n_top_genes = st.number_input(label="n_top_genes", min_value=1, key="ni:pp:highly_variable:cellranger_n_top_genes", step=1, value=2000)
-                subcol1, subcol2 = st.columns(2)
-                min_mean = subcol1.number_input(label="min mean", format='%.4f', value=0.0125, key="ni:pp:highly_variable:cellranger_min_mean")
-                max_mean = subcol2.number_input(label="max mean", format='%.4f', value=3.0, key="ni:pp:highly_variable:cellranger_max_mean")
-                min_disp = subcol1.number_input(label="min_disp", format='%.4f', value=0.5, key="ni:pp:highly_variable:cellranger_min_disp")
-                max_disp = subcol2.number_input(label="max_disp", format='%.4f', value=3.0, key="ni:pp:highly_variable:cellranger_max_disp")
-                remove = st.toggle(label="Remove non-variable genes", value=False, key="toggle:pp:highly_variable:cellranger_remove", help="By default, highly variable genes are only annoted. This option will remove genes without highly variable expression.")
-                subcol1, _, _ = st.columns(3)
-                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
-
-                if submit_btn:
-                    run_highly_variable(flavour="cell_ranger", n_top_genes=n_top_genes, min_mean=min_mean, max_mean=max_mean, min_disp=min_disp, max_disp=max_disp)
-
-            with seuratv3_tab.form(key="form_highly_variable_seuratv3"):
-                n_top_genes = st.number_input(label="n_top_genes", min_value=1, step=1, key="ni:pp:highly_variable:seurat_v3_n_top_genes", value=2000)
-                remove = st.toggle(label="Remove non-variable genes", value=False, help="By default, highly variable genes are only annoted. This option will remove genes without highly variable expression.")
-                subcol1, _, _ = st.columns(3)
-                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
-
-                if submit_btn:
-                    run_highly_variable(flavour="seurat_v3", n_top_genes=n_top_genes)
+                    min_mean, max_mean = mean
+                    min_disp, max_disp = disp
+                    run_highly_variable(flavour="seurat", n_top_genes=n_top_genes, min_mean=min_mean, max_mean=max_mean, 
+                        min_disp=min_disp, max_disp=max_disp, span=loess_span)
 
         except Exception as e:
             st.toast(f"Failed to normalize data: {e}", icon="❌")
