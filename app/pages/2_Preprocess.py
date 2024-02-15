@@ -15,6 +15,8 @@ from sqlalchemy.orm import Session
 
 from scripts.preprocessing.Highest_expr_genes import Highest_expr_genes
 from scripts.preprocessing.Highly_variable_genes import Highly_variable_genes
+from scripts.preprocessing.Filter_cells import Filter_cells
+from scripts.preprocessing.Filter_genes import Filter_genes
 
 from database.schemas import schemas
 from state.AdataState import AdataState
@@ -102,10 +104,8 @@ class Preprocess:
                     st.plotly_chart(fig)
 
                     # write to script state
-                    # python
-                    Highest_expr_genes.add_script(object="adata", n_top_genes=n_top_genes, language=Language.python)
-                    # R
-                    Highest_expr_genes.add_script(object="sce", n_top_genes=n_top_genes, language=Language.R)
+                    Highest_expr_genes.add_script(n_top_genes=n_top_genes, language=Language.ALL_SUPPORTED)
+
                         
                         
     def remove_genes(self):
@@ -205,10 +205,8 @@ class Preprocess:
 
                     # write to script state
                     # python
-                    Highly_variable_genes.add_script(language=Language.python, object="adata", min_mean=min_mean, max_mean=max_mean, min_disp=min_disp, n_top_genes=n_top_genes, span=span)
-                    # R
-                    Highly_variable_genes.add_script(language=Language.R, object="sce", min_mean=min_mean, max_mean=max_mean, min_disp=min_disp, n_top_genes=n_top_genes, span=span)
-                        
+                    Highly_variable_genes.add_script(language=Language.ALL_SUPPORTED, min_mean=min_mean, max_mean=max_mean, min_disp=min_disp, n_top_genes=n_top_genes, span=span)
+
                     if remove:
                         self.adata = self.adata[:, self.adata.var.highly_variable]
                         
@@ -239,6 +237,8 @@ class Preprocess:
                     min_disp, max_disp = disp
                     run_highly_variable(flavour="seurat", n_top_genes=n_top_genes, min_mean=min_mean, max_mean=max_mean, 
                         min_disp=min_disp, max_disp=max_disp, span=loess_span)
+                    
+                    st.toast("Filtered highly variable genes", icon="✅")
 
         except Exception as e:
             st.toast(f"Failed to normalize data: {e}", icon="❌")
@@ -301,17 +301,8 @@ class Preprocess:
 
         Parameters
         ----------
-        min_counts: int
-            Minimum number of counts required for a cell to pass filtering.
-
-        max_counts: int
-            Maximum number of counts required for a cell to pass filtering.
-
         min_genes: int
             Minimum number of genes expressed required for a cell to pass filtering.
-
-        max_genes: int
-            Maximum number of genes expressed required for a cell to pass filtering.
 
         Notes
         -----
@@ -325,22 +316,16 @@ class Preprocess:
         """
         with st.form(key="form_filter_cells"):
             st.subheader("Filter Cells")
-            subcol1, subcol2 = st.columns(2)
-            with subcol1:
-                min_counts = st.number_input(label="Min counts", min_value=1, value=None, key="filter_cell_min_counts")
-                min_genes = st.number_input(label="min genes for cell", min_value=1, value=None, key="filter_cell_min_genes")
+            min_genes = st.number_input(label="min genes for cell", min_value=1, value=None, key="filter_cell_min_genes")
 
-            with subcol2:
-                max_counts = st.number_input(label="Max counts", min_value=1, value=None, key="filter_cell_max_counts")
-                max_genes = st.number_input(label="max genes for cell", min_value=1, value=None, key="filter_cell_max_genes")
-      
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
             if submit_btn:
-                sc.pp.filter_cells(self.adata, max_genes=max_genes, min_genes=min_genes, max_counts=max_counts, min_counts=min_counts)
+                sc.pp.filter_cells(self.adata, min_genes=min_genes)
                 #write to script state
-                st.session_state["script_state"].add_script(f"#Filter cells\nsc.pp.filter_cells(adata, max_genes={max_genes}, min_genes={min_genes}, max_counts={max_counts}, min_counts={min_counts})")
+                Filter_cells.add_script(language=Language.ALL_SUPPORTED, min_genes=min_genes)
+                
                 #make adata
                 self.save_adata()
                 st.toast("Filtered cells", icon='✅')
@@ -352,17 +337,8 @@ class Preprocess:
 
         Parameters
         ----------
-        min_counts: int
-            Minimum number of counts required for a gene to pass filtering.
-
-        max_counts: int
-            Maximum number of counts required for a gene to pass filtering.
-
         min_cells: int
             Minimum number of cells expressed required for a gene to pass filtering.
-
-        max_cells: int
-            Maximum number of cells expressed required for a gene to pass filtering.
 
         Notes
         -----
@@ -376,20 +352,15 @@ class Preprocess:
         """
         with st.form(key="form_filter_genes"):
             st.subheader("Filter Genes")
-            subcol1, subcol2 = st.columns(2)
-            with subcol1:
-                min_count = st.number_input(label="Min count", min_value=1, value=None, key="filter_gene_min_count")
-                min_cells = st.number_input(label="min cells for gene", min_value=1, value=None, key="filter_gene_min_cells")
+            min_cells = st.number_input(label="min cells for gene", min_value=1, value=None, key="filter_gene_min_cells")
 
-            with subcol2:
-                max_count = st.number_input(label="Max count", min_value=1, value=None, key="filter_gene_max_count")
-                max_cells = st.number_input(label="max cells for gene", min_value=1, value=None, key="filter_gene_max_cells")
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if submit_btn:
-                sc.pp.filter_genes(self.adata, max_cells=max_cells, min_cells=min_cells, max_counts=max_count, min_counts=min_count)
+                sc.pp.filter_genes(self.adata, min_cells=min_cells)
                 #write to script state
-                st.session_state["script_state"].add_script(f"#Filter genes\nsc.pp.filter_genes(adata, max_cells={max_cells}, min_cells={min_cells}, max_counts={max_count}, min_counts={min_count})")
+                Filter_genes.add_script(language=Language.ALL_SUPPORTED, min_cells=min_cells)
+
                 #make adata
                 self.save_adata()
                 st.toast("Filtered genes", icon='✅')

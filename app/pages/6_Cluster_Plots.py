@@ -7,6 +7,7 @@ from ml.citeseq.train import get_encodings
 from ml.citeseq.model import CiteAutoencoder
 from ml.solo_scvi.solo_model import solo_model
 from ml.DeepST.deepst.main import *
+import plotly.express as px
 
 import pandas as pd
 
@@ -40,7 +41,7 @@ common_style = """
 st.markdown(common_style, unsafe_allow_html=True)
 
 
-class Cluster_analysis:
+class Cluster_plots:
     """
     Run clustering using a variety of dimensionality reduction algorithms and deep learning models.
 
@@ -50,7 +51,7 @@ class Cluster_analysis:
     """
     def __init__(self, adata):
 
-        st.title("Cluster analysis")
+        st.title("Cluster plots")
 
         self.col1, self.col2 = st.columns(2, gap="medium")
 
@@ -285,7 +286,10 @@ class Cluster_analysis:
                             df["PC"] = df["PC"].astype("category")
 
                             empty.empty()
-                            empty.scatter_chart(df[:n_pcs], x='PC', y='value', color="PC")
+                            fig = px.scatter(df, x="PC", y="value", color="PC")
+                            fig.update_layout(showlegend=False)
+                            empty.plotly_chart(fig, use_container_width=True)
+                            #empty.scatter_chart(df[:n_pcs], x='PC', y='value', color="PC")
 
                 with st.form(key="variance_ratio_form"):
                     st.subheader("PCA variance ratio")
@@ -467,7 +471,7 @@ try:
     sidebar = Sidebar()
     sidebar.show()
 
-    analysis = Cluster_analysis(adata)
+    analysis = Cluster_plots(adata)
 
     analysis.autoencoder_cluster_plot()
     analysis.tsne_graph()

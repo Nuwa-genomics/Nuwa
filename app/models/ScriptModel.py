@@ -13,3 +13,4 @@ class ScriptModel(BaseModel):
 class Language(Enum):
     python = "python"
     R = "R"
+    ALL_SUPPORTED = [python, R]

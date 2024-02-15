@@ -4,7 +4,7 @@ from test_dashboard import Test_Dashboard
 from test_upload import Test_Upload
 from test_create_model import Test_Create_Model
 from test_train import Test_Train
-from test_cluster_analysis import Test_Cluster_Analysis
+from test_cluster_plots import Test_Cluster_Plots
 from test_tranjectory_inference import Test_Trajectory_Inference
 from test_spatial_transcriptomics import Test_Spatial_Transcriptomics
 from test_terminal import Test_Terminal
@@ -72,7 +72,7 @@ try:
 
     print()
     print(f"{bcolors.BOLD}===============Testing Citeseq Cluster Analysis===============")
-    cluster_analysis_test = Test_Cluster_Analysis(session_state=train_state)
+    cluster_analysis_test = Test_Cluster_Plots(session_state=train_state)
     cluster_analysis_state = cluster_analysis_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
@@ -93,7 +93,7 @@ try:
 
     print()
     print(f"{bcolors.BOLD}===============Testing Solo Cluster Analysis===============")
-    cluster_analysis_test = Test_Cluster_Analysis(session_state=train_state)
+    cluster_analysis_test = Test_Cluster_Plots(session_state=train_state)
     cluster_analysis_state = cluster_analysis_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")

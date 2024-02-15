@@ -12,10 +12,10 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-class Test_Cluster_Analysis:
+class Test_Cluster_Plots:
     def __init__(self, session_state = None):
         print(f"{bcolors.OKBLUE}Initialising page... {bcolors.ENDC}", end="")
-        self.at = AppTest.from_file("pages/6_Cluster_Analysis.py")
+        self.at = AppTest.from_file("pages/6_Cluster_Plots.py")
         if session_state is not None:
             self.at.session_state = session_state
         self.at.run(timeout=1000)
