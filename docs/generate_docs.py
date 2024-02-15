@@ -20,7 +20,7 @@ os.mkdir('./docs/reference')
 with open(f"./docs/reference/README.md", "w") as f:
     f.write("# Reference\n\n{% include list.liquid all=true %}")
 
-classes_ordered = ["Dashboard", "Upload", "Preprocess", "Integrate", "Create_CiteSeq_model", "Create_Solo_model", "Cluster_Plots", "Differential_gene_expression", "Trajectory_inference", "Spatial_transcriptomics", "Terminal", "Plotly_3D", "Sidebar"]
+classes_ordered = ["Dashboard", "Upload", "Preprocess", "Integrate", "Create_CiteSeq_model", "Create_Solo_model", "Cluster_plots", "Differential_gene_expression", "Trajectory_inference", "Spatial_transcriptomics", "Terminal", "Plotly_3D", "Sidebar"]
 
 #make the sub dirs
 for cls in classes_ordered:

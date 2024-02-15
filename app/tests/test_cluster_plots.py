@@ -15,7 +15,7 @@ class bcolors:
 class Test_Cluster_Plots:
     def __init__(self, session_state = None):
         print(f"{bcolors.OKBLUE}Initialising page... {bcolors.ENDC}", end="")
-        self.at = AppTest.from_file("pages/6_Cluster_Plots.py")
+        self.at = AppTest.from_file("pages/6_Cluster_plots.py")
         if session_state is not None:
             self.at.session_state = session_state
         self.at.run(timeout=1000)
