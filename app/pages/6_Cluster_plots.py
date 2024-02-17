@@ -49,7 +49,7 @@ class Cluster_plots:
 
     Notes
     -----
-    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/cluster_analysis_page.png
+    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/cluster_plots_page.png
     """
     def __init__(self, adata):
 
