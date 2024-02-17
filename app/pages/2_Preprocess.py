@@ -227,7 +227,7 @@ class Preprocess:
                 n_top_genes = subcol1.number_input(label="n_top_genes", min_value=1, key="ni:pp:highly_variable:seurat_n_top_genes", step=1, value=2000)
                 loess_span = subcol2.number_input(label="Loess span", value=0.3, step=0.1)
                 mean = st.slider(label="Mean expression", min_value=0.0000, max_value=20.0000, value=(0.0125, 3.0000), format="%.4f")
-                disp = st.slider(label="Disp", min_value=0.00, max_value=100.00, value=(0.50, 100.00), format="%.2f")
+                disp = st.slider(label="Dispersion", min_value=0.00, max_value=100.00, value=(0.50, 100.00), format="%.2f")
                 remove = st.toggle(label="Remove non-variable genes", value=False, key="toggle:pp:highly_variable:seurat_remove", help="By default, highly variable genes are only annoted. This option will remove genes without highly variable expression.")
                 subcol1, _, _ = st.columns(3)
                 submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
@@ -315,7 +315,7 @@ class Preprocess:
         sc.pp.filter_cells(adata, max_genes=None, min_genes=200, max_counts=None, min_counts=None)
         """
         with st.form(key="form_filter_cells"):
-            st.subheader("Filter Cells")
+            st.subheader("Filter Cells", help="Filter cell outliers based on counts and numbers of genes expressed. Only keep cells with at least min_genes genes expressed. This is equivalent to min.features in Seurat.")
             min_genes = st.number_input(label="min genes for cell", min_value=1, value=None, key="filter_cell_min_genes")
 
             subcol1, _, _ = st.columns(3)
@@ -351,9 +351,9 @@ class Preprocess:
         sc.pp.filter_genes(adata, max_cells=None, min_cells=None, max_counts=None, min_counts=3)
         """
         with st.form(key="form_filter_genes"):
-            st.subheader("Filter Genes")
+            st.subheader("Filter Genes", help="Filter genes based on number of cells or counts. Keep genes that are in at least min_cells cells. Equivalent to min.cells in Seurat.")
             min_cells = st.number_input(label="min cells for gene", min_value=1, value=None, key="filter_gene_min_cells")
-
+ 
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if submit_btn:

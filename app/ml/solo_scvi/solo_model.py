@@ -1,5 +1,7 @@
 import scvi
 import scanpy as sc
+import streamlit as st
+import pandas as pd
 
 class solo_model():
     
@@ -19,6 +21,7 @@ class solo_model():
     def train_solo(self):
         self.solo = scvi.external.SOLO.from_scvi_model(self.vae)
         self.solo.train(max_epochs=self.epochs, lr=self.lr, use_gpu=self.use_gpu, train_size=self.train_size)
+
 
     def predict_solo(self):
         df = self.solo.predict()

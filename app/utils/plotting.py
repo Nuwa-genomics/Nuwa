@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Iterable, Optional
 import plotly.graph_objects as go
 import numpy as np
 import scanpy as sc
@@ -300,4 +300,9 @@ def plot_doubletdetection_threshold_heatmap(
     fig.update_coloraxes(colorbar_title_side="right")
     return fig
 
+def get_color_embeddings_from_key(key: str, adata: AnnData):
+    if key in adata.obs_keys():
+        return adata.obs[key].values
+    else:
+        return adata.to_df()[key].values
     

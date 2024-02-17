@@ -8,12 +8,14 @@ from ml.citeseq.model import CiteAutoencoder
 from ml.solo_scvi.solo_model import solo_model
 from ml.DeepST.deepst.main import *
 import plotly.express as px
+from ml.solo_scvi.utils import *
 
 import pandas as pd
 
 import scanpy as sc
 import streamlit as st
 import umap.umap_ as umap
+from utils.plotting import get_color_embeddings_from_key
 
 from components.sidebar import *
 from models.AdataModel import AdataModel
@@ -53,11 +55,17 @@ class Cluster_plots:
 
         st.title("Cluster plots")
 
-        self.col1, self.col2 = st.columns(2, gap="medium")
+        self.col1, self.col2, self.col3 = st.columns(3)
 
         self.adata = adata
 
         self.conn: SessionLocal = SessionLocal()
+
+        self.PLOT_HEIGHT = 800
+        self.MARKER_SIZE = 32
+
+        if "cluster_plots" not in st.session_state:
+            st.session_state["cluster_plots"] = dict(pca=None, tsne=None, autoencoder=None, umap=None, variance_ratio=None)
 
 
     def save_adata(self, name):
@@ -73,6 +81,38 @@ class Cluster_plots:
             self.conn.refresh(new_adata)
         except Exception as e:
             print(e)
+
+    def _autoencoder_cluster_plot(self, colors):
+
+        trained_model = st.session_state["trained_model"]
+        if isinstance(trained_model, CiteAutoencoder):
+            device = st.session_state["device"]
+            
+            if st.session_state["cluster_plots"]["autoencoder"] == None:
+                sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
+                sc.tl.leiden(self.adata)
+
+            rna_df_original = self.adata.to_df()
+            rna_df = rna_df_original.reset_index(drop=True)
+
+            test_ds = TabularDataset(rna_df.to_numpy(dtype=np.float32))
+            test_dl = DataLoader(test_ds, batch_size=64, shuffle=False)
+
+            encodings = get_encodings(trained_model, test_dl, device)
+            encodings = encodings.cpu().numpy()
+            metadata_df = self.adata.obs
+            cell_ids = rna_df_original.index.values
+            plot_df = metadata_df.loc[metadata_df.index.isin(cell_ids)]
+            embedding2d = umap.UMAP(random_state=0).fit_transform(encodings)
+            embedding3d = umap.UMAP(random_state=0, n_components=3).fit_transform(encodings)
+
+            st.session_state.adata_state.current.adata.obsm["X_citeseq_2d"] = embedding2d
+            st.session_state.adata_state.current.adata.obsm["X_citeseq_3d"] = embedding3d
+                                        
+            plot_df["UMAP1"] = embedding2d[:, 0]
+            plot_df["UMAP2"] = embedding2d[:, 1]
+                                    
+            st.session_state["cluster_plots"]["autoencoder"] = dict(df=plot_df, x="UMAP1", y="UMAP2", color_keys=np.array([colors]).flatten(), size=self.MARKER_SIZE)
 
     def autoencoder_cluster_plot(self):
         """
@@ -97,54 +137,35 @@ class Cluster_plots:
         with self.col1:
             try:
                 if "trained_model" not in st.session_state:
-                    st.error("Model hasn't been trained to provide data")
+                    st.subheader("Autoencoder")
+                    st.divider()
+                    st.warning("Model hasn't been trained to provide data")
                 else:
                     trained_model = st.session_state["trained_model"]
-                    device = st.session_state["device"]
+                    
 
                     if isinstance(trained_model, CiteAutoencoder):
                         with st.form(key="citeseq_form"):
                             st.subheader("Autoencoder Clusters")
                             
-                            with st.spinner(text="Preparing embeddings"): 
-                            
-                                rna_df_original = self.adata.to_df()
-                                rna_df = rna_df_original.reset_index(drop=True)
+                            options = np.append(self.adata.obs_keys(), self.adata.var_names)
+                            colors = st.multiselect(label="Colour", options=options, default='leiden')
 
-                                test_ds = TabularDataset(rna_df.to_numpy(dtype=np.float32))
-                                test_dl = DataLoader(test_ds, batch_size=64, shuffle=False)
-                                
-                                
-                                sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
-                                sc.tl.leiden(self.adata)
-
-                                encodings = get_encodings(trained_model, test_dl, device)
-                                encodings = encodings.cpu().numpy()
-                                metadata_df = self.adata.obs
-                                cell_ids = rna_df_original.index.values
-                                plot_df = metadata_df.loc[metadata_df.index.isin(cell_ids)]
-                                embedding2d = umap.UMAP(random_state=0).fit_transform(encodings)
-                                embedding3d = umap.UMAP(random_state=0, n_components=3).fit_transform(encodings)
-
-                                st.session_state.adata_state.current.adata.obsm["X_citeseq_2d"] = embedding2d
-                                st.session_state.adata_state.current.adata.obsm["X_citeseq_3d"] = embedding3d
-                                
-                                plot_df["UMAP1"] = embedding2d[:, 0]
-                                plot_df["UMAP2"] = embedding2d[:, 1]
-                            
-                                colors_var = reversed(self.adata.obs.columns)
-                                
-                                citeseq_container = st.empty()
-
-                                color = st.selectbox(label="Colour", options=(colors_var), key="sb_auto_colors")
-                                citeseq_container.scatter_chart(plot_df, x="UMAP1", y="UMAP2", color='leiden', size=18)
-                                
-                                subcol1, _, _, _ = st.columns(4)
-                                submit_btn = subcol1.form_submit_button(label="Update colours")
-                                
-                                if submit_btn:
-                                    with st.spinner(text="Replotting chart"):
-                                        citeseq_container.scatter_chart(plot_df, x="UMAP1", y="UMAP2", color=color, size=18)
+                            if "losses" in st.session_state:
+                                losses = st.session_state["losses"]
+                                training_loss = losses["train"]
+                                valid_loss = losses["valid"]
+                                losses_df = pd.DataFrame({'Train': training_loss, 'Valid': valid_loss})
+                                st.markdown("""<p style='font-size: 16px; text-align: center; font-weight: bold;'>Training/validation losses</p>""", unsafe_allow_html=True)
+                                st.line_chart(losses_df, use_container_width=True, height=290)
+                                    
+                            subcol1, _, _ = st.columns(3)
+                            submit_btn = subcol1.form_submit_button(label="Update", use_container_width=True)
+                                        
+                            if submit_btn:
+                                df = st.session_state["cluster_plots"]["autoencoder"]["df"]
+                                st.session_state["cluster_plots"]["autoencoder"] = dict(df=df, x="UMAP1", y="UMAP2", color_keys=np.array([colors]).flatten(), size=self.MARKER_SIZE)
+                                st.toast("Upadated colours", icon="✅")
 
                     elif(isinstance(trained_model, solo_model)):
                         with st.form(key="solo_doublet_form"):
@@ -152,11 +173,18 @@ class Cluster_plots:
                             
                             with st.spinner("Loading Solo doublet predictions"):
                                 
-                                df_solo = pd.DataFrame({'umap1': self.adata.obsm['X_umap'][:,0], 'umap2': self.adata.obsm['X_umap'][:,1], 'color': self.adata.obs['prediction']})
+                                df_solo = pd.DataFrame({'UMAP1': self.adata.obsm['X_umap'][:,0], 'UMAP2': self.adata.obsm['X_umap'][:,1]})
                             
-                                st.scatter_chart(data=df_solo, x='umap1', y='umap2', color='color', size=18)
+                                st.session_state["cluster_plots"]["autoencoder"] = dict(df=df_solo, x="UMAP1", y="UMAP2", color_keys=['prediction'], size=self.MARKER_SIZE)
                                 
-                                subcol1, _, _, _ = st.columns(4)
+                                solo_df, vae_df = get_solo_model_history(solo=trained_model.solo, vae=trained_model.vae)
+                                solo, vae = st.tabs(['Solo', 'Vae'])
+                                with solo:
+                                    st.line_chart(solo_df, use_container_width=True, height=360, color=['#52f27d', '#f25272'])
+                                with vae:
+                                    st.line_chart(vae_df, use_container_width=True, height=360, color=['#52f27d', '#f25272'])
+
+                                subcol1, _, _ = st.columns(3)
                                 submit_btn = subcol1.form_submit_button(label="Filter doublets", use_container_width=True)
                                 
                                 if submit_btn:
@@ -170,6 +198,18 @@ class Cluster_plots:
 
             except Exception as e:
                 st.error(e)
+
+
+    def _do_pca(self, zero_center = True):
+        sc.tl.pca(self.adata, zero_center=zero_center, svd_solver='arpack', random_state=42)
+        use_raw = True
+        if self.adata.raw:
+            for var in self.adata.var_names:
+                if not (self.adata.raw.var_names.__contains__(var)):
+                    use_raw = False
+                    st.info("Gene ID format has been changed, setting 'use_raw' to false.")
+                    # TODO: decide how to handle use_raw for streamlit plots
+                    break
 
 
     def pca_graph(self):
@@ -193,56 +233,54 @@ class Cluster_plots:
         sc.tl.pca(adata, svd_solver='arpack')
         sc.pl.pca(adata, color=genes)
         """
-        with self.col1:
+        with self.col3:
             try:
+
                 with st.form(key="pca_cluster_form"):
                     st.subheader("PCA")
-                    genes = st.multiselect(label="Gene", options=self.adata.var_names, default=(self.adata.var_names[0]), key="ms_pca_gene", max_selections=24)
-                    pca_empty = st.empty()
-                    info_container = st.empty()
-                    
-                    with st.spinner(text="Computing PCA"):
-                        sc.tl.pca(self.adata, svd_solver='arpack')
-                        colors = st.session_state.ms_pca_gene or self.adata.var_names[0]
-                        use_raw = True
-                        if self.adata.raw:
-                            for var in self.adata.var_names:
-                                if not (self.adata.raw.var_names.__contains__(var)):
-                                    use_raw = False
-                                    info_container.info("Gene ID format has been changed, setting 'use_raw' to false.")
-                                    break
-                        pca_empty.empty()
-                        for color in colors:
-                            df = pd.DataFrame({'pca1': self.adata.obsm['X_pca'][:,0], 'pca2': self.adata.obsm['X_pca'][:,1], f'{color}': self.adata.to_df()[color].values})
-                            pca_empty.markdown(f"""<p style='text-align: center; size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
-                            pca_empty.scatter_chart(df, x='pca1', y='pca2', size=10, color=f'{color}')
-                            
+                    pca_colors = st.multiselect(label="Color", options=np.append(self.adata.obs_keys(), self.adata.var_names), default=(self.adata.var_names[0]), key="ms_pca_gene", max_selections=24)
 
-                        
-                    subcol1, _, _, _ = st.columns(4)
+                    zero_center = st.toggle(label="zero center", value=True)
+                    df_pca = pd.DataFrame({'PCA1': self.adata.obsm['X_pca'][:,0], 'PCA2': self.adata.obsm['X_pca'][:,1]})  
+                    st.session_state["cluster_plots"]["pca"] = dict(df=df_pca, color_keys=np.array([pca_colors]).flatten(), x="PCA1", y="PCA2", size=self.MARKER_SIZE)
+
+                    subcol1, _, _ = st.columns(3)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                     if submit_btn:
-                        with st.spinner(text="Computing PCA"):
-                            sc.tl.pca(self.adata, svd_solver='arpack')
-                            colors = genes or [self.adata.var_names[0]]
-                            use_raw = True
-                            if self.adata.raw:
-                                for var in self.adata.var_names:
-                                    if not (self.adata.raw.var_names.__contains__(var)):
-                                        use_raw = False
-                                        info_container.info("Gene ID format has been changed, setting 'use_raw' to false.")
-                                        break
-                            df = pd.DataFrame({'pca1': self.adata.obsm['X_pca'][:,0], 'pca2': self.adata.obsm['X_pca'][:,1], f'{color}': self.adata.to_df()[color].values})
-                            pca_empty.empty()
-                            for color in colors:
-                                pca_empty.markdown(f"""<p style='text-align: center; size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
-                                pca_empty.scatter_chart(df, x='pca1', y='pca2', size=10, color=f'{color}')
+                        with st.spinner("Computing PCA coordinates"):
+                            self._do_pca(zero_center=zero_center)
+                            df_pca = pd.DataFrame({'PCA1': self.adata.obsm['X_pca'][:,0], 'PCA2': self.adata.obsm['X_pca'][:,1]})  
+                            st.session_state["cluster_plots"]["pca"] = dict(df=df_pca, color_keys=np.array([pca_colors]).flatten(), x="PCA1", y="PCA2", size=self.MARKER_SIZE)
+                            st.toast("Recomputed PCA", icon="✅")
 
 
             except Exception as e:
                 st.error(e)
 
-    def variance_ratio(self):
+
+    def _do_var_ratio(self, n_pcs = 30, log = False):
+
+        sc.pl.pca_variance_ratio(adata, log=log, n_pcs=n_pcs)
+
+        pcs = []
+        pc_val = []
+
+        for i, pc in enumerate(adata.uns['pca']['variance_ratio']):
+            pcs.append(i+1)
+            pc_val.append(pc)
+
+        pcs = np.array(pcs)
+        pc_val = np.array(pc_val)
+        df = pd.DataFrame({'PC': pcs, 'value': pc_val})
+        df["PC"] = df["PC"].astype("category")
+
+        fig = px.scatter(df, x="PC", y="value", color="PC", height=self.PLOT_HEIGHT)
+        fig.update_layout(showlegend=False)
+                        
+        st.session_state["cluster_plots"]["variance_ratio"] = fig
+
+
+    def variance_ratio_graph(self):
         """
         Compare variance between principle components.
 
@@ -265,47 +303,29 @@ class Cluster_plots:
         sc.tl.pca(adata, svd_solver='arpack')
         sc.pl.pca_variance_ratio(adata, log=True)
         """
-        with self.col1:
+        with self.col2:
             try:
-                def do_var_ratio():
-                    with st.spinner(text="Computing variance ratio"):
-                            
-                            empty = st.empty()
-                            sc.pl.pca_variance_ratio(adata, log=log)
-
-                            pcs = []
-                            pc_val = []
-
-                            for i, pc in enumerate(adata.uns['pca']['variance_ratio']):
-                                pcs.append(i+1)
-                                pc_val.append(pc)
-
-                            pcs = np.array(pcs)
-                            pc_val = np.array(pc_val)
-                            df = pd.DataFrame({'PC': pcs, 'value': pc_val})
-                            df["PC"] = df["PC"].astype("category")
-
-                            empty.empty()
-                            fig = px.scatter(df, x="PC", y="value", color="PC")
-                            fig.update_layout(showlegend=False)
-                            empty.plotly_chart(fig, use_container_width=True)
-                            #empty.scatter_chart(df[:n_pcs], x='PC', y='value', color="PC")
-
+ 
                 with st.form(key="variance_ratio_form"):
                     st.subheader("PCA variance ratio")
                     subcol1, subcol2 = st.columns(2)
                     n_pcs = subcol1.number_input(label="n_pcs", min_value=1, max_value=50, value=30)
-                    log = subcol1.checkbox(label="Log", value=True)
-                    subcol1, _, _, _ = st.columns(4)
+                    log = subcol1.toggle(label="Log", value=True)
+                    subcol1, _, _ = st.columns(3)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
-                    do_var_ratio()
+
                     if submit_btn:
-                        do_var_ratio()
+                        with st.spinner("Computing variance ratio"):
+                            self._do_var_ratio(n_pcs=n_pcs, log=log)
             
             except Exception as e:
                 print("Error ", e)
                 st.error(e)
 
+    def _do_tSNE(self, perplexity):
+        sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
+        sc.tl.leiden(self.adata) 
+        sc.tl.tsne(self.adata, perplexity=perplexity)  
 
 
     def tsne_graph(self):
@@ -337,35 +357,39 @@ class Cluster_plots:
         """
         with self.col2:
             try:
-                        
+  
                 with st.form(key="tsne_form"):
-                            
-                             
+
                     st.subheader("tSNE")
-                    perplexity = st.slider(label="Perplexity", min_value=1, max_value=100, value=30)
-                    colors_var = reversed(self.adata.obs.columns)
                     
-                    tsne_color = st.selectbox(label="Colour", options=(colors_var), key="sb_tsne_colors")
-                    tsne_container = st.empty()
-                    
-                    with st.spinner(text="Computing tSNE"):
-                        sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
-                        sc.tl.leiden(self.adata) 
-                        sc.tl.tsne(self.adata, perplexity=30)   
-                        df_tsne = pd.DataFrame({'tsne1': self.adata.obsm['X_tsne'][:,0], 'tsne2': self.adata.obsm['X_tsne'][:,1], 'color': self.adata.obs[f'leiden']})  
-                        tsne_container.scatter_chart(data=df_tsne, x='tsne1', y='tsne2', color='color', size=18)  
-                    
-                    subcol1, _, _, _ = st.columns(4)
+                    options = np.append(self.adata.obs_keys(), self.adata.var_names)
+                    tsne_colors = st.multiselect(label="Colour", options=options, default='leiden')
+                    perplexity = st.number_input(label="Perplexity", min_value=1, value=30)
+
+                    df_tsne = pd.DataFrame({'tSNE1': self.adata.obsm['X_tsne'][:,0], 'tSNE2': self.adata.obsm['X_tsne'][:,1]})  
+                    st.session_state["cluster_plots"]["tsne"] = dict(df=df_tsne, color_keys=np.array([tsne_colors]).flatten(), x="tSNE1", y="tSNE2", size=self.MARKER_SIZE)
+
+                    subcol1, _, _ = st.columns(3)
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
 
                     if submit_btn:
-                        sc.tl.tsne(self.adata, perplexity=perplexity)   
-                        df_tsne = pd.DataFrame({'tsne1': self.adata.obsm['X_tsne'][:,0], 'tsne2': self.adata.obsm['X_tsne'][:,1], 'color': self.adata.obs[f'{tsne_color}']})  
-                        tsne_container.scatter_chart(data=df_tsne, x='tsne1', y='tsne2', color='color', size=18)  
+                        with st.spinner("Computing tSNE coordinates"):
+                            # Perplexity may have changed in form so recompute tSNE before plotting
+                            self._do_tsne(perplexity=perplexity)
+                            df_tsne = pd.DataFrame({'tSNE1': self.adata.obsm['X_tsne'][:,0], 'tSNE2': self.adata.obsm['X_tsne'][:,1]})  
+                            st.session_state["cluster_plots"]["tsne"] = dict(df=df_tsne, color_keys=np.array([tsne_colors]).flatten(), x="tSNE1", y="tSNE2", size=self.MARKER_SIZE)
                         
             except Exception as e:
                 st.error(e)
 
+
+    def _do_umap(self, resolution = 1, n_neighbors = 10, n_pcs = 40):
+        #TODO: the use_raw may need to be set to false if gene symbols change
+        sc.pp.neighbors(self.adata, n_neighbors=n_neighbors, n_pcs=n_pcs, random_state=42)
+        sc.tl.leiden(self.adata, random_state=42, resolution=resolution) 
+        sc.tl.paga(self.adata)
+        sc.pl.paga(self.adata, plot=False)
+        sc.tl.umap(self.adata, init_pos='paga')
 
 
     def neighbourhood_graph(self):
@@ -393,75 +417,86 @@ class Cluster_plots:
         sc.tl.umap(adata, init_pos='paga')  
         sc.pl.umap(adata)     
         """
-        plt.style.use('dark_background')
-        with self.col2:
+
+        with self.col3:
             try:
+
                 with st.form(key="nhood_graph_form"):
                     st.subheader("Neighbourhood graph")
                     
-                    umap_options = np.append(self.adata.var_names, 'leiden')
-                    genes = st.multiselect(label='Gene', options=(umap_options), key="ms_umap_select_gene", default=["leiden", self.adata.var_names[0]], max_selections=24) 
-                        
-                    nhood_container = st.container()
-                    info_container = st.empty() 
-                    
-                    with st.spinner(text="Computing neighbourhood graph"):
-                                
-                        colors = genes or 'leiden'
-                        use_raw = True
-                        if self.adata.raw:
-                            for var in self.adata.var_names:
-                                if not (self.adata.raw.var_names.__contains__(var)):
-                                    use_raw = False
-                                    info_container.info("Gene ID format has been changed, setting 'use_raw' to false.")
-                                    break
+                    options = np.append(self.adata.obs_keys(), self.adata.var_names)
+                    umap_colors = st.multiselect(label='Gene', options=options, default="leiden") 
+                    col1, col2, col3 = st.columns(3)
 
-                        sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
-                        sc.tl.leiden(self.adata) 
-                        sc.tl.paga(self.adata)
-                        sc.pl.paga(self.adata, use_raw=use_raw, plot=False)
-                        sc.tl.umap(self.adata, init_pos='paga')
+                    resolution = col1.number_input(label="Resolution", value=1.0, step=0.1)
+                    n_neighbors = col2.number_input(label="n_neighbors", value=10, step=1, min_value=1, format="%i")
+                    n_pcs = col3.number_input(label="n_pcs", value=40, step=1, min_value=1, format="%i")
 
-                        for color in colors:
-                            if color in self.adata.obs_keys():
-                                df = pd.DataFrame({'umap1': self.adata.obsm['X_umap'][:,0], 'umap2': self.adata.obsm['X_umap'][:,1], f'{color}': self.adata.obs[color].values})
-                            else:
-                                df = pd.DataFrame({'umap1': self.adata.obsm['X_umap'][:,0], 'umap2': self.adata.obsm['X_umap'][:,1], f'{color}': self.adata.to_df()[color].values})
-                            nhood_container.markdown(f"""<p style='text-align: center; size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
-                            nhood_container.scatter_chart(df, x='umap1', y='umap2', size=10, color=f'{color}')
+                    df_umap = pd.DataFrame({'UMAP1': self.adata.obsm['X_umap'][:,0], 'UMAP2': self.adata.obsm['X_umap'][:,1]})  
+                    st.session_state["cluster_plots"]["umap"] = dict(df=df_umap, color_keys=np.array([umap_colors]).flatten(), x="UMAP1", y="UMAP2", size=self.MARKER_SIZE)
                         
-                    subcol1, _, _, _ = st.columns(4)
+                    subcol1, _, _ = st.columns(3)
                         
                     submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
                         
                     if submit_btn:
-                        with st.spinner(text="Computing neighbourhood graph"):
-
-                            colors = genes or 'leiden'
-                            use_raw = True
-                            if self.adata.raw:
-                                for var in self.adata.var_names:
-                                    if not (self.adata.raw.var_names.__contains__(var)):
-                                        use_raw = False
-                                        info_container.info("Gene ID format has been changed, setting 'use_raw' to false.")
-                                        break
-                                
-                            sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
-                            sc.tl.leiden(self.adata) 
-                            sc.tl.paga(self.adata)
-                            sc.pl.paga(self.adata, use_raw=use_raw, plot=False)
-                            sc.tl.umap(self.adata, init_pos='paga')
-
-                            for color in colors:
-                                if color in self.adata.obs_keys():
-                                    df = pd.DataFrame({'umap1': self.adata.obsm['X_umap'][:,0], 'umap2': self.adata.obsm['X_umap'][:,1], f'{color}': self.adata.obs[color].values})
-                                else:
-                                    df = pd.DataFrame({'umap1': self.adata.obsm['X_umap'][:,0], 'umap2': self.adata.obsm['X_umap'][:,1], f'{color}': self.adata.to_df()[color].values})
-                                nhood_container.markdown(f"""<p style='text-align: center; size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
-                                nhood_container.scatter_chart(df, x='umap', y='umap2', size=10, color=f'{color}')
+                        with st.spinner("Computing UMAP coordinates"):
+                            self._do_umap(resolution=resolution, n_pcs=n_pcs, n_neighbors=n_neighbors)
+                            df_umap = pd.DataFrame({'UMAP1': self.adata.obsm['X_umap'][:,0], 'UMAP2': self.adata.obsm['X_umap'][:,1]})  
+                            st.session_state["cluster_plots"]["umap"] = dict(df=df_umap, color_keys=np.array([umap_colors]).flatten(), x="UMAP1", y="UMAP2", size=self.MARKER_SIZE)
 
             except Exception as e:
                 st.error(e)
+
+
+    def plots(self):
+        st.subheader("Plots")
+        autoencoder_plot, tSNE_plot, pca_plot, nhood_plot, variance_ratio_plot = st.tabs(['Autoencoder', 'tSNE', 'PCA', 'UMAP', 'Variance ratio'])
+        with autoencoder_plot:
+            if st.session_state["cluster_plots"]["autoencoder"] == None:
+                st.info("You must train a model first.")
+            else:
+                params = st.session_state["cluster_plots"]["autoencoder"]
+                self._plot_charts(params)
+
+        with tSNE_plot:
+            if st.session_state["cluster_plots"]["tsne"] == None:
+                st.info("You must run tSNE.")
+            else:
+                params = st.session_state["cluster_plots"]["tsne"]
+                self._plot_charts(params)
+
+        with pca_plot:
+            if st.session_state["cluster_plots"]["pca"] == None:
+                st.info("You must run PCA first.")
+            else:
+                params = st.session_state["cluster_plots"]["pca"]
+                self._plot_charts(params)
+
+        with variance_ratio_plot:
+            if st.session_state["cluster_plots"]["variance_ratio"] == None:
+                st.info("You must run Variance ratio first.")
+            else:
+                fig = st.session_state["cluster_plots"]["variance_ratio"] 
+                st.plotly_chart(fig, use_container_width=True)
+
+        with nhood_plot:
+            if st.session_state["cluster_plots"]["umap"] == None:
+                st.info("You must run UMAP first.")
+            else:
+                params = st.session_state["cluster_plots"]["umap"]
+                self._plot_charts(params)
+
+
+    def _plot_charts(self, params):
+        color_keys = params["color_keys"]
+        for color in color_keys:
+            color_embed = get_color_embeddings_from_key(key=color, adata=self.adata)
+            st.markdown(f"""<p style='text-align: center; size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
+            df = params["df"]
+            df["color"] = color_embed
+            st.scatter_chart(data=df, x=params['x'], y=params['y'], color='color', size=params["size"], use_container_width=True, height=self.PLOT_HEIGHT)
+
 
 
 
@@ -473,11 +508,27 @@ try:
 
     analysis = Cluster_plots(adata)
 
+    if st.session_state["cluster_plots"]["pca"] == None:
+        my_bar = st.progress(3, text="Preparing embeddings from neural network")
+        analysis._autoencoder_cluster_plot(colors='leiden')
+        my_bar.progress(50, "Computing tSNE")
+        analysis._do_tSNE(perplexity=30)
+        my_bar.progress(70, "Computing neighbourhood graph")
+        analysis._do_umap()
+        my_bar.progress(85, "Computing PCA")
+        analysis._do_pca()
+        my_bar.progress(95, "Computing variance ratio")
+        analysis._do_var_ratio()
+        my_bar.progress(100, "Complete")
+        my_bar.empty()
+
     analysis.autoencoder_cluster_plot()
-    analysis.tsne_graph()
     analysis.neighbourhood_graph()
+    analysis.tsne_graph()
     analysis.pca_graph()
-    analysis.variance_ratio()
+    analysis.variance_ratio_graph()
+    st.divider()
+    analysis.plots()
 
     sidebar.show_preview()
     sidebar.export_script()
@@ -487,7 +538,7 @@ try:
 
 except KeyError as ke:
     print("KeyError: ", ke)
-    st.error("Couldn't find adata object in session, have you uploaded one?")
+    st.error(ke)
 
 
 
