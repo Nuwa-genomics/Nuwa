@@ -154,14 +154,9 @@ class Differential_gene_expression:
                         sc.tl.umap(adata, random_state=42)
                         df_umap = pd.DataFrame({'umap1': adata.obsm['X_umap'][:,0], 'umap2': adata.obsm['X_umap'][:,1], 'color': adata.obs[f'{st.session_state.sb_umap_color_dge}']})  
                         umap_empty.empty()
-                        umap_empty.scatter_chart(data=df_umap, x='umap1', y='umap2', color='color', size=18)
-                    
-                
-                index = 0      
-                for i, item in enumerate(self.adata.obs_keys()):
-                    if item.lower().replace("_", "").__contains__("leiden") or item.lower().replace("_", "").__contains__("louvain") or item.lower().replace("_", "").__contains__("celltype"): #give precedence to batch if present since it is relevant to preprocessing
-                        index = i           
-                umap_color = st.selectbox(label="Color", options=self.adata.obs_keys(), key="sb_umap_color_dge", index=index)
+                        umap_empty.scatter_chart(data=df_umap, x='umap1', y='umap2', color='color', size=14)
+                           
+                umap_color = st.selectbox(label="Color", options=self.adata.obs_keys(), key="sb_umap_color_dge")
                 subcol1, _, _ = st.columns(3)
                 umap_dge_btn = subcol1.form_submit_button("Apply", use_container_width=True)
                 umap_empty = st.empty()
