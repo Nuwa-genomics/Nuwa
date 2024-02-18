@@ -15,12 +15,12 @@ class Highly_variable_genes:
 
         if language == Language.R or language == Language.R.value or language == Language.ALL_SUPPORTED:
             if object == None:
-                object = "pbms.data"
+                object = "pbmc.data"
             script = f""" \
             \n#Compute highly variable genes. This uses the FindVariableFeatures method in seurat \
             \n#If you have been using bioconductor's sce object you will need to reload it in as a seurat object. \
-            \n{object}.data <- Read10X(data.dir = 'path_to_mtx_files') \
-            \n{object} <- CreateSeuratObject(counts = pbmc.data, project = 'pbmc3k') \
+            \n{object} <- Read10X(data.dir = 'path_to_mtx_files') \
+            \n{object} <- CreateSeuratObject(counts = {object}, project = 'pbmc3k') \
             \n#Log normalize \
             \n{object} <- NormalizeData({object}, normalization.method = 'LogNormalize', scale.factor = 10000) \
             \n{object} <- FindVariableFeatures({object}, selection.method = 'dispersion', nfeatures = {n_top_genes}, mean.cutoff = c({min_mean}, {max_mean}), dispersion.cutoff = c({min_disp}, {max_disp}), loess.span={span}) \

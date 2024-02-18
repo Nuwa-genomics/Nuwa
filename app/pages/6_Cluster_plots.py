@@ -498,8 +498,6 @@ class Cluster_plots:
             st.scatter_chart(data=df, x=params['x'], y=params['y'], color='color', size=params["size"], use_container_width=True, height=self.PLOT_HEIGHT)
 
 
-
-
 try:
     adata = st.session_state.adata_state.current.adata
 
@@ -539,6 +537,3 @@ try:
 except KeyError as ke:
     print("KeyError: ", ke)
     st.error(ke)
-
-
-

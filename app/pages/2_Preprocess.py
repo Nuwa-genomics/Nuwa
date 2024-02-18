@@ -17,6 +17,10 @@ from scripts.preprocessing.Highest_expr_genes import Highest_expr_genes
 from scripts.preprocessing.Highly_variable_genes import Highly_variable_genes
 from scripts.preprocessing.Filter_cells import Filter_cells
 from scripts.preprocessing.Filter_genes import Filter_genes
+from scripts.preprocessing.PCA import PCA
+from scripts.preprocessing.Normalize import Normalize
+from scripts.preprocessing.Annotate_mito import Annotate_mito, Filter_mito
+from scripts.preprocessing.Scale import Scale
 
 from database.schemas import schemas
 from state.AdataState import AdataState
@@ -290,7 +294,7 @@ class Preprocess:
                 if log_transform_total:
                     sc.pp.log1p(self.adata)
                 #write to script state
-                st.session_state["script_state"].add_script(f"#Normalize counts (total)\nsc.pp.normalize_total(adata, target_sum={target_sum}, exclude_highly_expressed={exclude_high_expr})")
+                Normalize.add_script(language=Language.ALL_SUPPORTED, scale_factor=target_sum, log_norm=log_transform_total)
                 #make adata
                 self.save_adata()
                 st.toast("Normalized data", icon='✅')
@@ -530,16 +534,13 @@ class Preprocess:
 
             subcol1, _, _ = st.columns(3)
             mito_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+            Annotate_mito.add_script(language=Language.ALL_SUPPORTED)
 
             if mito_annot_submit_btn:
                 plot_charts(color_key_mito)
                 self.adata = self.adata[self.adata.obs.pct_counts_mt < ni_pct_counts_mt, :]
                 #write to script state
-                st.session_state["script_state"].add_script("#Filter mitochondrial genes")
-                st.session_state["script_state"].add_script("sc.pl.scatter(adata, x='total_counts', y='pct_counts_mt')")
-                st.session_state["script_state"].add_script("sc.pl.violin(adata, 'pct_counts_mt')")
-                st.session_state["script_state"].add_script("sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)")
-                st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_mt < {ni_pct_counts_mt}, :]")
+                Filter_mito.add_script(language=Language.ALL_SUPPORTED, mito_pct=ni_pct_counts_mt)
                 #make adata
                 self.save_adata()
                 st.toast("Filtered mitochondrial genes", icon="✅")
@@ -1025,7 +1026,7 @@ class Preprocess:
                 if st.session_state.ni_scale_data_max_value:
                     sc.pp.scale(self.adata, zero_center=zero_center, max_value=max_value)
                     #write to script state
-                    st.session_state["script_state"].add_script(f"#Scale to unit variance\nsc.pp.scale(adata, max_value={st.session_state.ni_scale_data_max_value})")
+                    Scale.add_script(language=Language.ALL_SUPPORTED, max_value=max_value, zero_center=zero_center)
                     self.save_adata()
                     st.toast("Successfully scaled data", icon="✅")
                 else:
@@ -1218,9 +1219,8 @@ class Preprocess:
             run_pca(self.adata)
             
             if pca_pp_btn:
-                st.session_state["script_state"].add_script("#Run PCA")
-                st.session_state["script_state"].add_script("sc.pp.pca(adata, random_state=42)")
-                st.session_state["script_state"].add_script("sc.pl.pca(adata, random_state=42)")
+                # add script
+                PCA.add_script(Language.ALL_SUPPORTED, color=pca_color)
                 run_pca(self.adata)
                 
     
