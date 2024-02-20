@@ -7,7 +7,7 @@ import threading
 import numpy as np
 import os
 import plotly.express as px
-from utils.plotting import plot_ripley, plot_co_occurrence, plot_centrality_scores
+from utils.plotting import plot_ripley, plot_co_occurrence, plot_centrality_scores, get_color_embeddings_from_key
 
 from models.AdataModel import AdataModel
 from components.sidebar import *
@@ -36,6 +36,9 @@ class Spatial_transcriptomics:
 
     def __init__(self, adata):
         self.adata = adata
+        if "leiden" not in self.adata.obs_keys():
+            sc.pp.neighbors(self.adata)
+            sc.tl.leiden(self.adata, resolution=1.0)
 
     def draw_page(self):
         st.title("Spatial Transcriptomics")
@@ -143,10 +146,13 @@ class Spatial_transcriptomics:
                 st.subheader("Spatial plot")
                 try:
                     plt.style.use('seaborn-v0_8-pastel')
-                    st.selectbox(label="Colour", options=reversed(self.adata.obs.columns), key="sb_spatial_colours")
-                    ax_df = pd.DataFrame({'spatial1': self.adata.obsm['spatial'][:,0], 'spatial2': self.adata.obsm['spatial'][:,1], 'color': self.adata.obs[st.session_state.sb_spatial_colours]})
+                    st.multiselect(label="Colour", options=np.append(self.adata.obs_keys(), self.adata.var_names), key="sb_spatial_colours", default="leiden")
                     st.slider(label="Point size", min_value=1, max_value=100, value=10, key="sl_point_size")
-                    st.scatter_chart(ax_df, x='spatial1', y='spatial2', color='color', height=480, size=st.session_state.sl_point_size)
+                    for color in st.session_state["sb_spatial_colours"]:
+                        color_embeddings = get_color_embeddings_from_key(key=color, adata=self.adata)
+                        ax_df = pd.DataFrame({'spatial1': self.adata.obsm['spatial'][:,0], 'spatial2': self.adata.obsm['spatial'][:,1], 'color': color_embeddings})
+                        st.markdown(f"""<p style='font-size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
+                        st.scatter_chart(ax_df, x='spatial1', y='spatial2', color='color', height=480, size=st.session_state.sl_point_size)
                     
                 except Exception as e:
                     st.error(e)
