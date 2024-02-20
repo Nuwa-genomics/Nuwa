@@ -4,11 +4,7 @@ sort: 1
 
 # Clustering
 
-```
-{% raw %}{% include list.liquid all=true %}{% endraw %}
-
-{% include list.liquid all=true %}
-```
+This set of tutorials will be a complete walkthrough of preprocessing, integrating and clustering multiple covid datasets using Nuwa. It is based on the set of tutorials by [NBISweden](https://nbisweden.github.io/workshop-scRNAseq/home_contents.html). Only minimal knowledge of single cell analysis is required for this tutorial. 
 
 {% include list.liquid all=true %}
 
