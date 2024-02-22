@@ -359,9 +359,6 @@ class Upload:
                 st.text("No var to show")
                 
             
-
-        
-        
         
 upload_page = Upload()
 
