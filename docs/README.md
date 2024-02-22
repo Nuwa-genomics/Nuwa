@@ -26,7 +26,7 @@ Nuwa is a free resource that aims to speed up single cell analysis with no codin
 
 ```bash
 #clone repo
-git clone https://github.com/ch1ru/Nuwa.git && cd Nuwa
+git clone https://github.com/nuwa-genomics/Nuwa.git && cd Nuwa
 ```
 
 ```note
