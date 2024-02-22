@@ -31,7 +31,7 @@ class Spatial_transcriptomics:
 
     Notes
     -----
-    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/spatial_page.png
+    .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/spatial_page.png
     """
 
     def __init__(self, adata):
@@ -133,7 +133,7 @@ class Spatial_transcriptomics:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/spatial_plot.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/spatial_plot.png
         
         Example
         -------
@@ -171,8 +171,8 @@ class Spatial_transcriptomics:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/nhood_enrichment1.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/nhood_enrichment2.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/nhood_enrichment1.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/nhood_enrichment2.png
 
         Example
         -------
@@ -234,8 +234,8 @@ class Spatial_transcriptomics:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/ripley_score1.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/ripley_score2.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/ripley_score1.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/ripley_score2.png
 
         Example
         -------
@@ -285,8 +285,8 @@ class Spatial_transcriptomics:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/cooccurance1.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/cooccurance2.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/cooccurance1.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/cooccurance2.png
 
         Example
         -------
@@ -333,8 +333,8 @@ class Spatial_transcriptomics:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/interaction_matrix1.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/interaction_matrix2.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/interaction_matrix1.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/interaction_matrix2.png
         
         Example
         -------
@@ -379,8 +379,8 @@ class Spatial_transcriptomics:
         
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/centrality_score1.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/centrality_score2.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/centrality_score1.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/centrality_score2.png
 
         Example
         -------

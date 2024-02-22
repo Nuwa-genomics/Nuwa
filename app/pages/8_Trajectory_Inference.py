@@ -29,7 +29,7 @@ class Trajectory_inference:
 
     Notes
     -----
-    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/trajectory_inference_page.png
+    .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/trajectory_inference_page.png
     """
     def __init__(self, adata: AnnData):
         try:
@@ -59,7 +59,7 @@ class Trajectory_inference:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/traj_infer_graph.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/traj_infer_graph.png
         
         Example
         -------
@@ -125,9 +125,9 @@ class Trajectory_inference:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/paga1.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/paga2.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/paga3.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/paga1.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/paga2.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/paga3.png
 
         Example
         -------
@@ -289,8 +289,8 @@ class Trajectory_inference:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/dpt1.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/dpt2.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/dpt1.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/dpt2.png
 
         Example
         -------

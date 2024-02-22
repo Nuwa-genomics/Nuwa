@@ -29,7 +29,7 @@ class Differential_gene_expression:
 
     Notes
     -----
-    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/de_page.png
+    .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/de_page.png
     """
     def __init__(self, adata):
         self.adata = adata
@@ -70,7 +70,7 @@ class Differential_gene_expression:
             
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/stats_test.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/stats_test.png
         
         Example
         -------
@@ -135,7 +135,7 @@ class Differential_gene_expression:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/umap_de.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/umap_de.png
 
         Example
         -------
@@ -184,7 +184,7 @@ class Differential_gene_expression:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/cluster_embeddings.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/cluster_embeddings.png
 
         Example
         -------
@@ -236,10 +236,10 @@ class Differential_gene_expression:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/viz_de_dotplot.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/viz_de_heatmap.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/viz_de_stacked_violin.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/viz_de_matrix.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/viz_de_dotplot.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/viz_de_heatmap.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/viz_de_stacked_violin.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/viz_de_matrix.png
 
         Example
         -------
@@ -314,9 +314,9 @@ class Differential_gene_expression:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/elbow_plot.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/violin_plot_de.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/violin_plot_de_specific.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/elbow_plot.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/violin_plot_de.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/violin_plot_de_specific.png
 
         Example
         -------
@@ -488,8 +488,8 @@ class Differential_gene_expression:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/top_ranked_genes_heatmap1.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/top_ranked_genes_heatmap2.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/top_ranked_genes_heatmap1.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/top_ranked_genes_heatmap2.png
 
         Example
         -------

@@ -57,7 +57,7 @@ class Preprocess:
 
     Notes
     -----
-    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/preprocess_page.png
+    .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/preprocess_page.png
     
     Attributes
     ----------
@@ -89,7 +89,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/highest_expr_genes.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/highest_expr_genes.png
 
         Example
         -------
@@ -123,7 +123,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/remove_genes.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/remove_genes.png
 
         Example
         -------
@@ -185,7 +185,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/highly_variable.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/highly_variable.png
 
         Example
         -------
@@ -270,7 +270,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/normalize_counts.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/normalize_counts.png
 
         Example
         -------
@@ -310,7 +310,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/filter_cells.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/filter_cells.png
 
         Example
         -------
@@ -346,7 +346,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/filter_genes.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/filter_genes.png
 
         Example
         -------
@@ -396,7 +396,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/recipes.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/recipes.png
 
         Example
         -------
@@ -479,8 +479,8 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/mito1.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/mito2.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/mito1.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/mito2.png
 
         Example
         -------
@@ -561,8 +561,8 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/ribo1.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/ribo2.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/ribo1.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/ribo2.png
 
         Example
         -------
@@ -649,8 +649,8 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/hb1.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/hb2.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/hb1.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/hb2.png
 
         Example
         -------
@@ -755,7 +755,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/scrublet.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/scrublet.png
 
         Example
         -------
@@ -851,7 +851,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/doubletdetection.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/doubletdetection.png
 
         Example
         -------
@@ -969,7 +969,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/regress_out.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/regress_out.png
 
         Example
         -------
@@ -1008,7 +1008,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/scale.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/scale.png
 
         Example
         -------
@@ -1048,7 +1048,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/downsample.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/downsample.png
 
         Example
         -------
@@ -1097,7 +1097,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/subsample.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/subsample.png
 
         Example
         -------
@@ -1149,7 +1149,7 @@ class Preprocess:
         
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/batch_effect_removal.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/batch_effect_removal.png
 
         Example
         -------
@@ -1187,7 +1187,7 @@ class Preprocess:
         
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/pca.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/pca.png
 
         Example
         -------
@@ -1238,7 +1238,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/measure_gene_counts.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/measure_gene_counts.png
 
         Example
         -------
@@ -1325,7 +1325,7 @@ class Preprocess:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/cell_cycle_scoring.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/cell_cycle_scoring.png
 
         Example
         -------

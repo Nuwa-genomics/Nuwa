@@ -38,7 +38,7 @@
     animation-timing-function: cubic-bezier(.26, .53, .74, 1.48);
     border: none;
     background-size: 200% 150%;
-    background-image: url('https://raw.githubusercontent.com/ch1ru/Nuwa/main/app/css/img/bg.png?raw=True');
+    background-image: url('https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/app/css/img/bg.png?raw=True');
     box-shadow: 0 4px 15px 0 #000;
     border-radius: 10px;
     moz-transition: all .8s ease-in-out;

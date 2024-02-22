@@ -49,7 +49,7 @@ class Cluster_plots:
 
     Notes
     -----
-    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/cluster_plots_page.png
+    .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/cluster_plots_page.png
     """
     def __init__(self, adata):
 
@@ -125,14 +125,14 @@ class Cluster_plots:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/autoencoder_citeseq.png
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/autoencoder_solo.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/autoencoder_citeseq.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/autoencoder_solo.png
 
         Example
         -------
-        # For Citeseq see https://ch1ru.github.io/Nuwa/reference/Create_CiteSeq_model/init_model.html#python-example
+        # For Citeseq see https://nuwa-genomics.github.io/Nuwa/reference/Create_CiteSeq_model/init_model.html#python-example
 
-        # For Solo see https://ch1ru.github.io/Nuwa/reference/Create_Solo_model/init_model.html#python-example
+        # For Solo see https://nuwa-genomics.github.io/Nuwa/reference/Create_Solo_model/init_model.html#python-example
         """
         with self.col1:
             try:
@@ -223,7 +223,7 @@ class Cluster_plots:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/pca_cluster.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/pca_cluster.png
 
         Example
         -------
@@ -294,7 +294,7 @@ class Cluster_plots:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/variance_ratio.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/variance_ratio.png
 
         Example
         -------
@@ -343,7 +343,7 @@ class Cluster_plots:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/tsne.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/tsne.png
 
         Example
         -------
@@ -403,7 +403,7 @@ class Cluster_plots:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/neighbourhood_graph.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/neighbourhood_graph.png
 
         Example
         -------

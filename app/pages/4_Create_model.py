@@ -34,7 +34,7 @@ class Create_CiteSeq_model:
     
     Notes
     -----
-    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/create_model_citeseq_page.png
+    .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/create_model_citeseq_page.png
     """
     def __init__(self, adata):
         self.adata = adata
@@ -105,7 +105,7 @@ class Create_CiteSeq_model:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/citeseq_model.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/citeseq_model.png
 
         Example
         -------
@@ -201,7 +201,7 @@ class Create_Solo_model:
 
     Notes
     -----
-    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/create_model_solo_page.png
+    .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/create_model_solo_page.png
     """
     def __init__(self, adata):
         self.adata = adata
@@ -259,7 +259,7 @@ class Create_Solo_model:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/solo_model.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/solo_model.png
 
         Example
         -------

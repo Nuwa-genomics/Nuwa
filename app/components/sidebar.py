@@ -28,7 +28,7 @@ class Sidebar:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/show_preview.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/show_preview.png
 
         Example
         -------
@@ -59,7 +59,7 @@ class Sidebar:
         
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/export_script.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/export_script.png
         """
         with st.sidebar:
             with st.expander(label="Export script"):
@@ -90,7 +90,7 @@ class Sidebar:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/notes.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/notes.png
         """
         with st.sidebar:
  
@@ -128,7 +128,7 @@ class Sidebar:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/add_experiment.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/add_experiment.png
         """
         with st.sidebar:
             with st.expander(label="Add experiment", expanded=False):
@@ -157,7 +157,7 @@ class Sidebar:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/download_adata.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/download_adata.png
         """
         with st.sidebar:
             with st.expander(label="Download adata file", expanded=False):
