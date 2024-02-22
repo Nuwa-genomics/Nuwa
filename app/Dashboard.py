@@ -45,7 +45,7 @@ class Dashboard:
 
     Notes
     -----
-    .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/dashboard_page.png
+    .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/dashboard_page.png
     """
     def __init__(self):
         self.conn: Session = SessionLocal()
@@ -111,7 +111,7 @@ class Dashboard:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/new_workspace.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/new_workspace.png
         """
         with st.sidebar:
             with st.form(key="new_workspace_form"):
@@ -139,7 +139,7 @@ class Dashboard:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/import_workspace.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/import_workspace.png
         """
         with st.sidebar:
             with st.form(key="form_import_workspace"):
@@ -191,7 +191,7 @@ class Dashboard:
 
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/export_workspace.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/export_workspace.png
         """
         with st.sidebar:
                                             
@@ -247,7 +247,7 @@ class Dashboard:
         
         Notes
         -----
-        .. image:: https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/delete_workspace.png
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/delete_workspace.png
         """
         try:
             self.conn.query(schemas.Workspaces).filter(schemas.Workspaces.id == st.session_state.current_workspace.id).delete()
