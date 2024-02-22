@@ -14,7 +14,12 @@ Next, in the upload page select the covid dataset. You may wish to learn more ab
 
 ## Obs and var
 
-In the file info in the sidebar we can see there are 9000 obs and 33538 vars. Obs (observations) include things like cell annotations (e.g. tumour or normal cell) or other information relating to the dataset. 
+In the file info in the sidebar we can see there are 9000 obs and 33538 vars. 
+
+```note
+## What are obs?
+Obs (observations) include things like cell annotations (e.g. tumour or normal cell) or other information relating to the dataset. 
+```
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/ch1ru/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/covid_upload.png'>
 
@@ -23,7 +28,11 @@ In our case we have 3 obs columns:
 - Sample: Identifier for sample donor
 - Batch: Identifyer for sample batch
 
-Var (variables) refers to annotation of gene/feature metadata. This is a dataframe indexed by unique gene names (or other gene identifier such as ensembl ID). In our case we have 3 columns:
+```note
+## What are vars?
+Var (variables) refers to annotation of gene/feature metadata. This is a dataframe indexed by unique gene names (or other gene identifier such as ensembl ID).
+```
+ In our case we have 3 columns:
 - gene_ids: Ensembl ID of gene
 - feature_types: what the type of data represents (i.e "gene_expression" to signify values are gene counts)
 - genome: Reference genome which these genes were mapped to (in our case human reference genome GRCh38, or the 38th build of Genome Reference Consortium human)
