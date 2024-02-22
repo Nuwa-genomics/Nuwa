@@ -180,7 +180,7 @@ class Upload:
                 if(st.session_state.sb_sc_datasets == 'covid_GSE149689'):
                     self.adata = sc.read_h5ad('/app/data/covid_GSE149689.h5ad')
                     filename="covid_GSE149689"
-                    ds_empty.info("A set of 6 PBMC 10x datasets from 3 covid-19 patients and 3 healthy controls, the samples have been subsampled to 1500 cells per sample and concatenated into a single dataset.")
+                    ds_empty.info("A set of 6 PBMC samples from 3 covid-19 patients and 3 healthy controls, the samples have been subsampled to 1500 cells per sample and concatenated into a single dataset. The original experiment can be found [here](%s)" % "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149689")
                 if(st.session_state.sb_sc_datasets == 'paul15'):
                     self.adata = sc.datasets.paul15()
                     filename="paul15"
