@@ -1,7 +1,7 @@
 # Nuwa
 
 [![](https://dcbadge.vercel.app/api/server/wBDavdWp8n)](https://discord.gg/wBDavdWp8n)
-[![Stars](https://img.shields.io/github/stars/ch1ru/nuwa?logo=GitHub&color=yellow)](https://github.com/Nuwa-genomics/nuwa/stargazers)
+[![Stars](https://img.shields.io/github/stars/nuwa-genomics/nuwa?logo=GitHub&color=yellow)](https://github.com/nuwa-genomics/nuwa/stargazers)
 [![GitHub last commit](https://img.shields.io/github/last-commit/Nuwa-genomics/Nuwa)](https://github.com/Nuwa-genomics/Nuwa/pulse)
 ![CI tests](https://github.com/ch1ru/nuwa/actions/workflows/run_tests.yml/badge.svg?branch=main)
 ![docs](https://github.com/ch1ru/nuwa/actions/workflows/jekyll-gh-pages.yml/badge.svg?branch=main)
