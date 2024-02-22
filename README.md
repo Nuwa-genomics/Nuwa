@@ -23,7 +23,7 @@ Make sure **docker** and **docker-compose** are installed on your host machine.
 
 Next, clone the repo:
 ```bash
-git clone https://github.com/ch1ru/Nuwa.git && cd Nuwa
+git clone https://github.com/nuwa-genomics/Nuwa.git && cd Nuwa
 ```
 
 ### If you have a Nvidia GPU:
@@ -48,7 +48,7 @@ Then visit http://localhost in your browser.
 
 ## Docs
 
-See our [**Documentation**](https://ch1ru.github.io/Nuwa/) for more information and tutorials.
+See our [**Documentation**](https://nuwa-genomics.github.io/Nuwa/) for more information and tutorials.
 
 ## Common issues
 
@@ -220,7 +220,7 @@ docker-compose -f tests.docker-compose.yml up --build
 
 ## Contributing
 
-If you have a feature request, notice a bug or have issues running the app please let us know in the [Issues](https://github.com/ch1ru/Nuwa/issues) or [Discussions](https://github.com/ch1ru/Nuwa/discussions) tabs! Want to make a contribution? Make a pull request!
+If you have a feature request, notice a bug or have issues running the app please let us know in the [Issues](https://github.com/nuwa-genomics/Nuwa/issues) or [Discussions](https://github.com/nuwa-genomics/Nuwa/discussions) tabs! Want to make a contribution? Make a pull request!
 
 ## Citations
 

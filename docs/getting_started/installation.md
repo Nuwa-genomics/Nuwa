@@ -11,10 +11,10 @@ Deleting docker containers and images won't affect any saved data in the 'stream
 ## 2. Clone repo to get the latest version
 
 ```bash
-git clone https://github.com/ch1ru/nuwa
+git clone https://github.com/nuwa-genomics/nuwa
 ```
 
-Alternatively download and extract the zip file of a specific version from the [releases page](https://github.com/ch1ru/Nuwa/releases).
+Alternatively download and extract the zip file of a specific version from the [releases page](https://github.com/nuwa-genomics/Nuwa/releases).
 
 ## 3. Bring up containers
 
