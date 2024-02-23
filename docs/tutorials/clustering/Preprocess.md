@@ -29,9 +29,18 @@ Malat1 gene can be a result of unwanted technical noise so can often be removed 
 
 ### Sample sex
 
-If the sex of the single cell donors is unknown, mislabeled, or we wish to verify the sex from the supplementary materials, we can do this by measuring genes found contained in the sex chromosomes. In this example, we measure the levels of the Xist gene across samples (select the subsample tab). Xist is a non-coding RNA found exclusively in female somatic cells (although can also be found in male germline cells) so will work well for our blood samples. It should be noted that while the coding sequence for Xist is on the X chromosome (so is present in both males and females), the RNA transcript is not produced in makes and therefore won't appear in our dataset. We can see very clearly the sex of each sample:
+If the sex of the single cell donors is unknown, mislabeled, or we wish to verify the sex from the supplementary materials, we can do this by measuring genes found contained in the sex chromosomes. In this example, we measure the levels of the Xist gene across samples (select the subsample tab). Xist is a non-coding RNA found exclusively in female somatic cells (although can also be found in male germline cells) so will work well for our blood samples. It should be noted that while the coding sequence for Xist is on the X chromosome (so is present in both males and females), the RNA transcript is not produced in males and therefore won't appear in our dataset. We can see very clearly the sex of each sample:
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/xist_counts.png'>
+
+| Sample   | Sex     |
+| -------- | ------- |
+| covid_1  | male    |
+| covid_15 | female  |
+| covid_17 | male    |
+| ctr_13   | female  |
+| ctr_14   | female  |
+| ctr_5    | female  |
 
 
 ## Quality control
