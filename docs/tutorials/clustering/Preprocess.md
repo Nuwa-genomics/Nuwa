@@ -4,9 +4,13 @@ sort: 2
 
 # Preprocessing
 
-We will now preprocess our raw data which will reduce noise from non-biological signal as well as filter out low quality cells. Part of the preprocessing stage is also tranforming the data such as log-normalizing or scaling data to a given distribution. This will help give more meaningful results and help remove outliers. These will all be explained in this section.
+We will now preprocess our raw data which will reduce noise from non-biological signal as well as filter out low quality cells. Part of the preprocessing stage is also tranforming the data such as log-normalizing or scaling data to a given distribution. This will help give more meaningful results and help remove outliers.
 
-## Highest expressed genes
+## Exploratory data analysis
+
+In order to better understand our data, we will perform the EDA part of our analysis. This will involve using statistical methods including visualizations to provide a summary of different aspects or characteristics.
+
+### Highest expressed genes
 
 First let's which genes are the most expressed across our dataset:
 
@@ -19,7 +23,50 @@ Hover over the box plots to see their median, q1 & q3, lowest and highest counts
 We can see the most expressed gene by far with a median count of around 3.75, followed by some mitochondrial genes.
 
 ```note
-## Malat1
+### Malat1
 Malat1 gene can be a result of unwanted technical noise so can often be removed from the dataset.
 ```
 
+### Sample sex
+
+If the sex of the single cell donors is unknown, mislabeled, or we wish to verify the sex from the supplementary materials, we can do this by measuring genes found contained in the sex chromosomes. In this example, we measure the levels of the Xist gene across samples (select the subsample tab). Xist is a non-coding RNA found exclusively in female somatic cells (although can also be found in male germline cells) so will work well for our blood samples. It should be noted that while the coding sequence for Xist is on the X chromosome (so is present in both males and females), the RNA transcript is not produced in makes and therefore won't appear in our dataset. We can see very clearly the sex of each sample:
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/xist_counts.png'>
+
+
+## Quality control
+
+An important part of preprocessing is assessing the quality of our dataset. This means removing low quality cells, or cells which have too low or high counts which may interfere with our analysis. 
+
+### Annotating mitochondrial genes
+
+A popular and simple method of predicting low quality cell is by looking at the percentage of mitochondrial genes in each library/cell sample. A high proportion of mitochondrial genes are indicative of low quality cells (Islam et al. 2014; Ilicic et al. 2016). If cytoplasmic RNA is lost due to perforated cells, this leads to an artificial increase in mitochondrial trascripts in our data. Therefore, we will first annotate whether the genes are mitochondrial (denoted by the 'MT-' prefix in gene names) which we can display as scatter or violin plots. 
+
+```warning
+Feature names must be in the correct format for detecting mitochondrial/ribosomal/haemoglobin genes (with the MT-, RB- and HB- prefixes respectively). If gene names are in the ensembl format (e.g. ENSG00000139618) you can convert to gene symbols using the gene format toggle on the sidebar.
+```
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/pct_mt_scatter.png'>
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/pct_mt_violin.png'>
+
+```tip
+Select a color key to compare observations across the dataset. In the above example we can compare individual samples. If no color key is selected the data will be in aggregate.
+```
+
+Next, we will remove cells that containing more than 10% mitochondrial genes. This is an example of filtering based on a fixed threshold (since the 10% doesn't take into account the distribution of mitochondrial reads). In the future we will likely implement adaptive thresholds. 
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/pct_mt_filter_fixed.png'>
+
+### Filtering based on number of genes and cells
+
+Another simple way to filter our data is to only keep cells which contain a minimum number of genes, as well as genes which are expressed in a minimum number of cells. In our case we will only keep:
+
+- cells with at least 200 genes
+- genes which appear in at least 3 cells
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/filter_cells.png'>
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/filter_genes.png'>
+
+This helps to remove low quality cells which may contain a lower reading of transcripts due to technical error. Cells with a lower number of features are also less useful in analysis, as are genes which only appear only a few times in the dataset. In general we are trying to make our data more meaningful and less prone to containing technical noise leading to false conclusions.
