@@ -12,7 +12,7 @@ In order to better understand our data, we will perform the EDA part of our anal
 
 ### Highest expressed genes
 
-First let's which genes are the most expressed across our dataset:
+First let's see which genes are the most expressed across our dataset:
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/highest_expr.png'>
 
@@ -20,7 +20,7 @@ First let's which genes are the most expressed across our dataset:
 Hover over the box plots to see their median, q1 & q3, lowest and highest counts.
 ```
 
-We can see the most expressed gene by far with a median count of around 3.75, followed by some mitochondrial genes.
+We can see the most expressed gene by far with a median count of around 3.75, followed by some mitochondrial genes (denoted by the 'MT-' prefix).
 
 ```note
 ### Malat1
@@ -34,6 +34,7 @@ If the sex of the single cell donors is unknown, mislabeled, or we wish to verif
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/xist_counts.png'>
 
 Sex of the donors (note that we don't have any male control groups in this particular dataset):
+
 | Sample   | Sex     |
 | -------- | ------- |
 | covid_1  | male    |
