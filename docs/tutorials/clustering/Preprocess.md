@@ -33,6 +33,7 @@ If the sex of the single cell donors is unknown, mislabeled, or we wish to verif
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/xist_counts.png'>
 
+Sex of the donors (note that we don't have any male control groups in this particular dataset):
 | Sample   | Sex     |
 | -------- | ------- |
 | covid_1  | male    |
@@ -49,7 +50,7 @@ An important part of preprocessing is assessing the quality of our dataset. This
 
 ### Annotating mitochondrial genes
 
-A popular and simple method of predicting low quality cell is by looking at the percentage of mitochondrial genes in each library/cell sample. A high proportion of mitochondrial genes are indicative of low quality cells (Islam et al. 2014; Ilicic et al. 2016). If cytoplasmic RNA is lost due to perforated cells, this leads to an artificial increase in mitochondrial trascripts in our data. Therefore, we will first annotate whether the genes are mitochondrial (denoted by the 'MT-' prefix in gene names) which we can display as scatter or violin plots. 
+A popular and simple method of predicting low quality cells is by looking at the percentage of mitochondrial genes in each library/cell sample. A high proportion of mitochondrial genes are indicative of low quality cells (Islam et al. 2014; Ilicic et al. 2016). If cytoplasmic RNA is lost due to perforated cells, this leads to an artificial relative increase in mitochondrial trascripts. Therefore, we will first annotate whether the genes are mitochondrial (denoted by the 'MT-' prefix in gene names) which we can display as scatter or violin plots. 
 
 ```warning
 Feature names must be in the correct format for detecting mitochondrial/ribosomal/haemoglobin genes (with the MT-, RB- and HB- prefixes respectively). If gene names are in the ensembl format (e.g. ENSG00000139618) you can convert to gene symbols using the gene format toggle on the sidebar.
@@ -63,7 +64,7 @@ Feature names must be in the correct format for detecting mitochondrial/ribosoma
 Select a color key to compare observations across the dataset. In the above example we can compare individual samples. If no color key is selected the data will be in aggregate.
 ```
 
-Next, we will remove cells that containing more than 10% mitochondrial genes. This is an example of filtering based on a fixed threshold (since the 10% doesn't take into account the distribution of mitochondrial reads). In the future we will likely implement adaptive thresholds. 
+Next, we will remove cells that containing more than 10% mitochondrial genes. This is an example of filtering based on a fixed threshold (since the 10% doesn't take into account the distribution of mitochondrial reads). In the future we will likely implement adaptive thresholds also. 
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/pct_mt_filter_fixed.png'>
 
