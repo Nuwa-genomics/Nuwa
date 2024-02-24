@@ -49,7 +49,7 @@ Sex of the donors (note that we don't have any male control groups in this parti
 
 It would be useful to know which stages of the cell cycle our samples are in, as this leads to potentially unwanted variation between cells. Here's a brief reminder of the cell cycle states:
 
-<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/cell_cycle.png'>
+<img alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/cell_cycle.png'>
 
 - **G0**: Some cells enter G0 once they are fully differentiated. These would include neuron cells and red blood cells and are permanently arrested in this distinct phase
 - **G1**: Gap 1 phase is the beginning of interphase. No DNA synthesis happens here and includes growth of non-chromosomal components of the cell
