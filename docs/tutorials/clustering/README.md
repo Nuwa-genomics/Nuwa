@@ -8,3 +8,4 @@ This set of tutorials will be a complete walkthrough of preprocessing, integrati
 
 {% include list.liquid all=true %}
 
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/plotly_cluster.png'>
