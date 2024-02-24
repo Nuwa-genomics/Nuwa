@@ -69,6 +69,9 @@ Make sure the gene format of your imported marker genes is the same as the one i
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/cell_cycle_panel.png'>
 
+When we run our analysis we see the results as violin plots:
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/cell_cycle_violins.png'>
 
 
 ## Quality control
