@@ -51,6 +51,8 @@ It would be useful to know which stages of the cell cycle our samples are in, as
 
 <img alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/cell_cycle.png'>
 
+*Adapted from Wikipedia (Image License is CC BY-SA 3.0)*
+
 - **G0**: Some cells enter G0 once they are fully differentiated. These would include neuron cells and red blood cells and are permanently arrested in this distinct phase
 - **G1**: Gap 1 phase is the beginning of interphase. No DNA synthesis happens here and includes growth of non-chromosomal components of the cell
 - **S**: Synthesis of DNA through replication of the chromosomes
@@ -69,9 +71,13 @@ Make sure the gene format of your imported marker genes is the same as the one i
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/cell_cycle_panel.png'>
 
-When we run our analysis we see the results as violin plots:
+When we run our analysis we see the results as violin plots and scatter plots of the predicted scores:
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/cell_cycle_violins.png'>
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/cell-cycle_scores_plot.png'>
+
+You can also see a PCA map with the highlighted scores.
 
 
 ## Quality control

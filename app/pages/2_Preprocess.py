@@ -1440,57 +1440,73 @@ class Preprocess:
                         group_by = None
                     sc.tl.score_genes_cell_cycle(self.adata, s_genes=s_genes, g2m_genes=g2m_genes)
 
-                    #using matplotlib
-                    #cell_cycle_ax = sc.pl.violin(self.adata, ['S_score', 'G2M_score'], jitter=0.4, groupby = group_by, rotation=45)
-                    #cell_cycle_container.pyplot(cell_cycle_ax)
 
-                    fig = go.Figure()
+                    violin_tab, scores_tab, pca_tab = st.tabs(['Violin plot', 'Scores', 'PCA'])
 
-                    s_score_df = pd.DataFrame({'phase': np.repeat('S_score', len(self.adata.obs['S_score'])), 'score': self.adata.obs['S_score']})
-                    g2m_score_df = pd.DataFrame({'phase': np.repeat('G2M_score', len(self.adata.obs['G2M_score'])), 'score': self.adata.obs['G2M_score']})
+                    with violin_tab:
 
-                    violin_df = pd.concat([s_score_df, g2m_score_df])
+                        #using matplotlib
+                        #cell_cycle_ax = sc.pl.violin(self.adata, ['S_score', 'G2M_score'], jitter=0.4, groupby = group_by, rotation=45)
+                        #cell_cycle_container.pyplot(cell_cycle_ax)
 
-                    if group_by != None:
+                        fig = go.Figure()
 
-                        violin_df["group"] = self.adata.obs[group_by]
+                        s_score_df = pd.DataFrame({'phase': np.repeat('S_score', len(self.adata.obs['S_score'])), 'score': self.adata.obs['S_score']})
+                        g2m_score_df = pd.DataFrame({'phase': np.repeat('G2M_score', len(self.adata.obs['G2M_score'])), 'score': self.adata.obs['G2M_score']})
 
-                        fig.add_trace(go.Violin(x=violin_df['group'][violin_df['phase'] == 'S_score'], 
-                            y=violin_df['score'][violin_df['phase'] == 'S_score'],
-                            legendgroup='S', scalegroup='S', name='S',
-                            bandwidth=bandwidth, jitter=jitter, line_color='blue')
-                        )
+                        violin_df = pd.concat([s_score_df, g2m_score_df])
 
-                        fig.add_trace(go.Violin(x=violin_df['group'][violin_df['phase'] == 'G2M_score'], 
-                            y=violin_df['score'][violin_df['phase'] == 'G2M_score'],
-                            legendgroup='G2M', scalegroup='G2M', name='G2M',
-                            bandwidth=bandwidth, jitter=jitter, line_color='orange')
-                        )
+                        if group_by != None:
 
-                        fig.update_traces(meanline_visible=True)
-                        fig.update_layout(violingap=0, violinmode='group', xaxis_title=group_by, yaxis_title="Score", legend_title="Phase") #add legend title
+                            violin_df["group"] = self.adata.obs[group_by]
 
-                    else:
+                            fig.add_trace(go.Violin(x=violin_df['group'][violin_df['phase'] == 'S_score'], 
+                                y=violin_df['score'][violin_df['phase'] == 'S_score'],
+                                legendgroup='S', scalegroup='S', name='S',
+                                bandwidth=bandwidth, jitter=jitter, line_color='blue')
+                            )
 
-                        fig.add_trace(go.Violin(x=s_score_df['phase'], 
-                            y=s_score_df['score'],
-                            legendgroup='S', scalegroup='S', name='S',
-                            bandwidth=bandwidth, jitter=jitter, line_color='blue')
-                        )
+                            fig.add_trace(go.Violin(x=violin_df['group'][violin_df['phase'] == 'G2M_score'], 
+                                y=violin_df['score'][violin_df['phase'] == 'G2M_score'],
+                                legendgroup='G2M', scalegroup='G2M', name='G2M',
+                                bandwidth=bandwidth, jitter=jitter, line_color='orange')
+                            )
 
-                        fig.add_trace(go.Violin(x=g2m_score_df['phase'], 
-                            y=g2m_score_df['score'],
-                            legendgroup='G2M', scalegroup='G2M', name='G2M',
-                            bandwidth=bandwidth, jitter=jitter, line_color='orange')
-                        )
+                            fig.update_traces(meanline_visible=True)
+                            fig.update_layout(violingap=0, violinmode='group', xaxis_title=group_by, yaxis_title="Score", legend_title="Phase") #add legend title
 
-                        fig.update_traces(meanline_visible=True)
-                        fig.update_layout(violingap=0, violinmode='overlay', xaxis_title="Phase", yaxis_title="Score", legend_title="Phase") #add legend title
+                        else:
 
-                    
-                    st.markdown("""<div style='margin-left: 20px; display: flex; align-items: center; justify-content: center;'><h1 style='text-align: center; font-size: 2rem;'>Cell cycle score</h1></div>""", unsafe_allow_html=True)
+                            fig.add_trace(go.Violin(x=s_score_df['phase'], 
+                                y=s_score_df['score'],
+                                legendgroup='S', scalegroup='S', name='S',
+                                bandwidth=bandwidth, jitter=jitter, line_color='blue')
+                            )
 
-                    st.plotly_chart(fig, use_container_width=True)
+                            fig.add_trace(go.Violin(x=g2m_score_df['phase'], 
+                                y=g2m_score_df['score'],
+                                legendgroup='G2M', scalegroup='G2M', name='G2M',
+                                bandwidth=bandwidth, jitter=jitter, line_color='orange')
+                            )
+
+                            fig.update_traces(meanline_visible=True)
+                            fig.update_layout(violingap=0, violinmode='overlay', xaxis_title="Phase", yaxis_title="Score", legend_title="Phase") #add legend title
+
+                        
+                        st.markdown("""<div style='margin-left: 20px; display: flex; align-items: center; justify-content: center;'><h1 style='text-align: center; font-size: 2rem;'>Cell cycle score</h1></div>""", unsafe_allow_html=True)
+
+                        st.plotly_chart(fig, use_container_width=True)
+
+
+                    with scores_tab:
+                        df_pca = pd.DataFrame({ 'G2M_score': self.adata.obs['G2M_score'], 'S_score': self.adata.obs['S_score'], 'Phase': self.adata.obs.phase }) 
+                        st.scatter_chart(df_pca, x='G2M_score', y='S_score', color='Phase', size=12, height=600) 
+
+
+                    with pca_tab:
+
+                        df_pca = pd.DataFrame({ 'PCA1': self.adata.obsm['X_pca'][:,0], 'PCA2': self.adata.obsm['X_pca'][:,1], 'Phase': self.adata.obs.phase }) 
+                        st.scatter_chart(df_pca, x='PCA1', y='PCA2', color='Phase', size=12, height=600) 
 
 
 try:
