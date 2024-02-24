@@ -45,6 +45,32 @@ Sex of the donors (note that we don't have any male control groups in this parti
 | ctr_5    | female  |
 
 
+### Cell cycle states 
+
+It would be useful to know which stages of the cell cycle our samples are in, as this leads to potentially unwanted variation between cells. Here's a brief reminder of the cell cycle states:
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/cell_cycle.png'>
+
+- **G0**: Some cells enter G0 once they are fully differentiated. These would include neuron cells and red blood cells and are permanently arrested in this distinct phase
+- **G1**: Gap 1 phase is the beginning of interphase. No DNA synthesis happens here and includes growth of non-chromosomal components of the cell
+- **S**: Synthesis of DNA through replication of the chromosomes
+- **G2**: The cell enlarges for the preparation of mitosis and the spindle fibres start to form
+- **M**: Mitosis phase is the nuclear division of the cell (consisting of prophase, metaphase, anaphase and telophase).
+
+We will be looking at cells in the S and G2 or M phase. To do this we will first need a list of marker genes. To score a gene list, the algorithm calculates the difference of mean expression of the given list and the mean expression of reference genes. To build the reference, the function randomly chooses a bunch of genes matching the distribution of the expression of the given list.
+
+First we will need the [marker gene list](https://raw.githubusercontent.com/Nuwa-genomics/Nuwa/main/app/data/cell_cycle_marker_genes.csv)
+
+Once our marker genes file has been loaded in, ensure the gene and phase columns correspond to the correct column name and select 'Sample' as our group by ID.
+
+```tip
+Make sure the gene format of your imported marker genes is the same as the one in your dataset. In our case we are using the gene names (not ensembl IDs). If your marker genes are in the wrong format, either try to convert them, for example with the biomart API. Alternatively convert the dataset genes using the gene format toggle switch in the sidebar.
+```
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/cell_cycle_panel.png'>
+
+
+
 ## Quality control
 
 An important part of preprocessing is assessing the quality of our dataset. This means removing low quality cells, or cells which have too low or high counts which may interfere with our analysis. 
