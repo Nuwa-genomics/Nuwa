@@ -116,3 +116,11 @@ Another simple way to filter our data is to only keep cells which contain a mini
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/filter_genes.png'>
 
 This helps to remove low quality cells which may contain a lower reading of transcripts due to technical error. Cells with a lower number of features are also less useful in analysis, as are genes which only appear only a few times in the dataset. In general we are trying to make our data more meaningful and less prone to containing technical noise leading to false conclusions.
+
+### Batch effect correction
+
+Often technical variation arises in experiments which don't reflect biological variation. This could be due to different library preparation techniques, batch reagents, different sequencing platforms and labs doing the analysis. In our case using a dataset with multiple sample batches which introduces batch effect, masking biological signal from our analysis. Let's look at the PCA map (Nuwa automatically selects the batch key as the color):
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/pca_batch.png'>
+
+Notice the banding patterns representing our batches? This could lead to misinterpreting our clusters since the difference in experimental batches are mistaken for actual biological variation! Our primary method of combating this is using a regression model to 

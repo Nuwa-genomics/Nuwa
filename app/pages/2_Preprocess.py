@@ -1169,9 +1169,9 @@ class Preprocess:
             btn_batch_effect_removal = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if btn_batch_effect_removal:
                 with st.spinner(text="Running Combat batch effect correction"):
-                    sc.pp.combat(self.adata, key=key, covariates=covariates)
+                    sc.pp.combat(self.adata, key=key, covariates=covariates, inplace=True)
                     #write to script state
-                    st.session_state["script_state"].add_script(f"#Correct batch effect\nsc.pp.combat(adata, key={key}, covariates={covariates})")
+                    
                 self.save_adata()
                 st.toast("Batch corrected data", icon='✅')
                 
@@ -1552,10 +1552,7 @@ try:
     sidebar.delete_experiment_btn()
     sidebar.show_version()
 
-except KeyError as ke:
-    print("KeyError: ", ke)
-    st.error("Couldn't find adata object in session, have you uploaded one?")
-    st.error(ke)
+
 except Exception as e:
     print('Error: ', e)
     st.error(e)
