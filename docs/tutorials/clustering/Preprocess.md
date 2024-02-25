@@ -4,7 +4,7 @@ sort: 2
 
 # Preprocessing
 
-We will now preprocess our raw data which will reduce noise from non-biological signal as well as filter out low quality cells. Part of the preprocessing stage is also tranforming the data such as log-normalizing or scaling data to a given distribution. This will help give more meaningful results and help remove outliers.
+We will now preprocess our raw data which will reduce noise from non-biological signal as well as filter out low quality cells. Part of the preprocessing stage is also tranforming the data such as log-normalizing or scaling data to a given distribution. This will help give more meaningful results and help remove or reduce the effect of outliers.
 
 ## Exploratory data analysis
 
@@ -20,7 +20,7 @@ First let's see which genes are the most expressed across our dataset:
 Hover over the box plots to see their median, q1 & q3, lowest and highest counts.
 ```
 
-We can see the most expressed gene by far with a median count of around 3.75, followed by some mitochondrial genes (denoted by the 'MT-' prefix).
+We can see the most expressed gene by far is Malat1 with a median count of around 3.75, followed by some mitochondrial genes (denoted by the 'MT-' prefix).
 
 ```note
 ### Malat1
@@ -29,7 +29,7 @@ Malat1 gene can be a result of unwanted technical noise so can often be removed 
 
 ### Sample sex
 
-If the sex of the single cell donors is unknown, mislabeled, or we wish to verify the sex from the supplementary materials, we can do this by measuring genes found contained in the sex chromosomes. In this example, we measure the levels of the Xist gene across samples (select the subsample tab). Xist is a non-coding RNA found exclusively in female somatic cells (although can also be found in male germline cells) so will work well for our blood samples. It should be noted that while the coding sequence for Xist is on the X chromosome (so is present in both males and females), the RNA transcript is not produced in males and therefore won't appear in our dataset. We can see very clearly the sex of each sample:
+If the sex of the donors is unknown, mislabeled, or we wish to verify the sex from the supplementary materials, we can do this by measuring genes found contained in the sex chromosomes. In this example, we measure the levels of the Xist gene across samples (select the subsample tab). Xist is a non-coding RNA found exclusively in female somatic cells (although can also be found in male germline cells) so will work well for our blood samples. It should be noted that while the coding sequence for Xist is on the X chromosome (so is present in both males and females), the RNA transcript is not produced in males and therefore won't appear in our dataset. We can see very clearly the sex of each sample:
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/xist_counts.png'>
 
@@ -47,7 +47,7 @@ Sex of the donors (note that we don't have any male control groups in this parti
 
 ### Cell cycle states 
 
-It would be useful to know which stages of the cell cycle our samples are in, as this leads to potentially unwanted variation between cells. Here's a brief reminder of the cell cycle states:
+It would be useful to know which stages of the cell cycle our samples are in, as this leads to potentially unwanted variation between cells. Here's a brief reminder of the cell cycle phases:
 
 <img alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/cell_cycle.png'>
 
@@ -59,7 +59,7 @@ It would be useful to know which stages of the cell cycle our samples are in, as
 - **G2**: The cell enlarges for the preparation of mitosis and the spindle fibres start to form
 - **M**: Mitosis phase is the nuclear division of the cell (consisting of prophase, metaphase, anaphase and telophase).
 
-We will be looking at cells in the S and G2 or M phase. To do this we will first need a list of marker genes. To score a gene list, the algorithm calculates the difference of mean expression of the given list and the mean expression of reference genes. To build the reference, the function randomly chooses a bunch of genes matching the distribution of the expression of the given list.
+We will be scoring cells on which phase it is likely in using a set of marker genes indicative of that phase. Marker genes act as a type of identity or signature of a particular cell state, type, or some other intracellular process we are interested in. To score a gene list, the algorithm calculates the difference of mean expression of the given list and the mean expression of reference genes. To build the reference, the function randomly chooses a bunch of genes matching the distribution of the expression of the given list.
 
 First we will need the [marker gene list](https://raw.githubusercontent.com/Nuwa-genomics/Nuwa/main/app/data/cell_cycle_marker_genes.csv)
 
@@ -123,4 +123,4 @@ Often technical variation arises in experiments which don't reflect biological v
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/pca_batch.png'>
 
-Notice the banding patterns representing our batches? This could lead to misinterpreting our clusters since the difference in experimental batches are mistaken for actual biological variation! Our primary method of combating this is using a regression model to 
+Notice the banding patterns representing our batches? This could lead to misinterpreting clusters since the difference in experimental batches are mistaken for actual biological variation! Our primary method of combating this is using a regression model, often in high dimensional space
