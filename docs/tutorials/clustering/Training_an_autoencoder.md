@@ -16,7 +16,10 @@ An autoencoder is a type of generative neural network. Generative in this contex
 - When we've reached a satisfactory value for our loss function, or reached the end of our training epochs, we can finally extract the latent dimension in the neural network. In the diagram below we have 3 neurons which would represent the x, y and z axis. In practice this could be much larger, for example 100 neurons, so further dimensionality reduction would be required. 
 
 ```note
-Our ultimate goal training an autoencoder is to define a loss function (the difference between x and x') then find a local minimum of that function by backprogation. Once we have a trained model we can use the latent representation for representing our expression profile in a lower dimensionality.
+### Loss function in autoencoders
+Our ultimate goal training an autoencoder is to define a loss function (the difference between x and x') then find a local minimum of that function by backprogation. We can broadly define the loss function as:
+
+$L = | y - ŷ |
 ```
 
 Below shows a simplified version of an autoencoder, notice how the encoder and decoder are mirror images of each other:
@@ -61,3 +64,5 @@ There is no definitive range the loss values should be in, it is highly dependen
 ```
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/train_complete_page.png'>
+
+For a more in-depth article about autoencoders try [this one](https://www.v7labs.com/blog/autoencoders-guide) by v7 labs.
