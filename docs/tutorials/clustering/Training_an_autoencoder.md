@@ -21,7 +21,7 @@ Our ultimate goal training an autoencoder is to define a loss function (the diff
 
 Below shows a simplified version of an autoencoder, notice how the encoder and decoder are mirror images of each other:
 
-<img alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/autoencoder.png'>
+<img style='width: 100%;' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/autoencoder.png'>
 
 **Layers**
 -----------
@@ -32,3 +32,8 @@ Below shows a simplified version of an autoencoder, notice how the encoder and d
 - **X'**: This is the output layer (also the reverse of the first input layer). Notice how this is the same shape as our inputs? This is because it is actually an artificially generated expression profile of our original data. 
 
 <img alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/neuron.png'>
+
+
+## Training an autoencoder in Nuwa
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/create_model_citeseq_page.png'>
