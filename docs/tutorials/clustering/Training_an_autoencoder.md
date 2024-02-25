@@ -34,6 +34,8 @@ Below shows a simplified version of an autoencoder, notice how the encoder and d
 - **H'**: The reverse of the first hidden layer from the encoder.
 - **X'**: This is the output layer (also the reverse of the first input layer). Notice how this is the same shape as our inputs? This is because it is actually an artificially generated expression profile of our original data. 
 
+## Single perceptron
+
 <img alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/neuron.png'>
 
 
