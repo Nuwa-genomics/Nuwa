@@ -21,7 +21,7 @@ Our ultimate goal training an autoencoder is to define a loss function (the diff
 
 Below shows a simplified version of an autoencoder, notice how the encoder and decoder are mirror images of each other:
 
-<img style='width: 100%;' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/autoencoder.png'>
+<img alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/autoencoder.png'>
 
 **Layers**
 -----------
