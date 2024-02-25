@@ -4,11 +4,11 @@ sort: 3
 
 # Training an autoencoder
 
-In this section, we'll train a type of neural network called an autoencoder as an alternative to other dimensionality reduction algorithms such as tSNE or UMAP. 
+In this section, we'll train a type of neural network called an autoencoder as an alternative to other dimensionality reduction algorithms such as tSNE or UMAP. In the cluster analysis section, we'll create embeddings to our datasets from the deep learning model we train in this section. 
 
 ## What is an autoencoder?
 
-An autoencoder is a type of generative neural network. Generative in this context means it will create an artificial expression profile mimicking our real data. However we are not actually interested in the generated data but rather one of the internal layers called the latent dimension. This can represent our data in a lower dimensionality in a similar way that PCA or UMAP can. Although it should be noted that neural networks can learn non-linear characteristics of our data due to something called activation functions in each layer. Without activation functions, neural netoworks would only have linear transformations and therefore couldn't detect complex non-linearities in our dataset. Detecting non-linearities substantially reduces the reconstruction loss when generating our synthetic cell transcriptome data. To summarize:
+An autoencoder is a type of generative neural network. Generative in this context means it will create an artificial expression profile mimicking our real data. However we are not actually interested in the generated data but rather one of the internal layers called the latent dimension. This can represent our data in a lower dimensionality in a similar way that PCA or UMAP can. Although it should be noted that neural networks can learn non-linear characteristics of our data due to something called activation functions in each layer. Without activation functions, neural netoworks would only have linear transformations stacked on top of the other at each layer and therefore couldn't detect complex non-linearities in our dataset. Detecting non-linearities substantially reduces the reconstruction loss when generating our synthetic cell transcriptome data. To summarize:
 
 - We pass our data through the neural network. In the first pass our network weights and biases (see below) are initialized over a Gausion distribution
 - We calculate a reconstruction loss using a loss function. In our case the loss function is defined as being the difference between the original cell transcriptomes and the predicted cell transcriptomes.
@@ -36,4 +36,18 @@ Below shows a simplified version of an autoencoder, notice how the encoder and d
 
 ## Training an autoencoder in Nuwa
 
-<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/create_model_citeseq_page.png'>
+In the create model page, we will use the [Citeseq model](https://github.com/naity/citeseq_autoencoder/tree/main). We can adjust hyperparamers to suit our training needs. This includes things like epoch number, learning rate optimizer. For this tutorial we'll use the default values. 
+
+```note
+Nuwa automatically selects a GPU device if it finds one and you are running the Cuda docker image. 
+```
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/create_model_page.png'>
+
+Next, we can go to the training page. If you are training on cuda device you'll notice a significant reduction in training time. If not, the animation will be different to the one below and will take longer to train. 
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/train_page.png'>
+
+Once our training is complete we can see the final training and validation loss.
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/train_complete_page.png'>
