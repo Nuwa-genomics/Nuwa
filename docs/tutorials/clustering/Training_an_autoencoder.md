@@ -44,10 +44,20 @@ Nuwa automatically selects a GPU device if it finds one and you are running the 
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/create_model_page.png'>
 
-Next, we can go to the training page. If you are training on cuda device you'll notice a significant reduction in training time. If not, the animation will be different to the one below and will take longer to train. 
+Next, we can go to the training page. If you are training on cuda device you'll notice a significant reduction in training time. If not, the animation will be different to the one below and will take longer to train.
+
+```note
+### Learning rate
+The learning rate acts as a scalar applied to the gradient function when adjusting model parameters. A higher learning rate can reduce training time by increasing jumps during gradient descent. When the learning rate is too low, the training time will take too long to converge. However when the learning rate is too high, the convergence will be unstable and miss the minima.
+```
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/train_page.png'>
 
-Once our training is complete we can see the final training and validation loss.
+Once our training is complete we can see the final training and validation loss. In the next section, we'll be able to see the convergence of training and validation losses over epochs. If the loss value is too high, or the embeddings in the cluster plots seem to yield less than useful insights, you may wish to retrain your model with different hyperparameters.
+
+```tip
+### What is a good loss value?
+There is no definitive range the loss values should be in, it is highly dependent on the data and you will likely have to rerun the training to fine tune the results. However there are some general guidelines. If the training loss is significantly lower than the validation loss this could be indicative of overfitting. This means the model has not generalised well enough to unseen data and fitted too well to the training set. To solve this we can add regularization such as L1 & L2 regularization and dropout layers.  
+```
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/train_complete_page.png'>
