@@ -133,7 +133,7 @@ Notice the banding patterns representing our batches? This could lead to misinte
 
 Doublets or multiplets are caused when 2 or more cells take up the same droplet in droplet-based scRNA-seq protocols. This gives the appearance of upregulated genes when in fact it is including RNA counts from 2 different cells. One of the ways Doublets can cause issues is by forming their own clusters when performing dimensionality reduction, which don't reflect any biologically distinct cell population. 
 
-<img alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/doublet_10x.png'>
+<img alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/doublets_10x.png'>
 
 In a typical 10x experiment the proportion of doublets is linearly dependent on the amount of loaded cells. In our covid dataset, we actually have a subsample (the original contained more groups including an influenza group which we removed). The original dataset contained about 5000 cells per sample, which equates to around 9000 cells loaded in. From the specs in the [10x Chromium user guide](https://cdn.10xgenomics.com/image/upload/v1668017706/support-documents/CG000315_ChromiumNextGEMSingleCell3-_GeneExpression_v3.1_DualIndex__RevE.pdf) (see page 18) we can see that for every ~1000 cells recovered, about 0.8% are estimated to be doublets. So we can predict that ~4% of our library samples will be doublets (0.04 x 5000).
 
