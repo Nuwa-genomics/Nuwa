@@ -789,37 +789,51 @@ class Preprocess:
             scrublet_submit = subcol1.form_submit_button(label="Filter", use_container_width=True)
 
             if scrublet_submit:
-                with st.spinner("Running scrublet"):
-                    if batch_key == 'None':
-                        batch_key = None
-                    sc.external.pp.scrublet(self.adata, sim_doublet_ratio=sim_doublet_ratio, 
-                        expected_doublet_rate=expected_doublet_rate, stdev_doublet_rate=stdev_doublet_rate, batch_key=batch_key, random_state=42)
-                    # plot PCA to see doublets
-                    sc.external.pl.scrublet_score_distribution(self.adata)
-                    sc.pp.pca(self.adata)
-                    sc.pp.neighbors(self.adata)
-                    sc.tl.umap(self.adata)
-                    pca, umap, distplot, simulated_doublets = st.tabs(['PCA', 'UMAP', 'Distplot', 'Simulated doublets'])
-                    with pca:
-                        df = pd.DataFrame({'PCA 1': self.adata.obsm['X_pca'][:,0], 'PCA 2': self.adata.obsm['X_pca'][:,1], 'Predicted doublet': self.adata.obs.predicted_doublet})
-                        st.scatter_chart(df, x='PCA 1', y='PCA 2', color='Predicted doublet', size=10)
-                    with umap:
-                        df = pd.DataFrame({'UMAP 1': self.adata.obsm['X_umap'][:,0], 'UMAP 2': self.adata.obsm['X_umap'][:,1], 'Predicted doublet': self.adata.obs.predicted_doublet})
-                        st.scatter_chart(df, x='UMAP 1', y='UMAP 2', color='Predicted doublet', size=10)
-                    with distplot:
-                        fig = ff.create_distplot([self.adata.obs.doublet_score.values], group_labels=['doublet_score'], 
-                            bin_size=0.02, show_rug=False, show_curve=False, colors=["#31abe8"])
-                        fig.update_layout(yaxis_type="log") 
-                        fig.add_vline(x=self.adata.uns['scrublet']['threshold'], line_color="red")
-                        fig.update_layout(xaxis_title="Doublet score", yaxis_title="Probability density", title="Observed transcriptomes")
-                        st.plotly_chart(fig, use_container_width=True)
-                    with simulated_doublets:
-                        st.write("To implement")
-                    #write to script state
-                    st.session_state["script_state"].add_script(f"#Detect doublets with scrublet\nadata_scrublet = sc.external.pp.scrublet(adata, sim_doublet_ratio={sim_doublet_ratio}, expected_doublet_rate={expected_doublet_rate})")
-                    #make adata
-                    self.save_adata()
-                    st.toast("Run scrublet", icon="✅")
+                try:
+                    with st.spinner("Running scrublet"):
+                        if batch_key == 'None':
+                            batch_key = None
+                        sc.external.pp.scrublet(self.adata, sim_doublet_ratio=sim_doublet_ratio, 
+                            expected_doublet_rate=expected_doublet_rate, stdev_doublet_rate=stdev_doublet_rate, batch_key=batch_key, random_state=42)
+                        # plot PCA to see doublets
+                        sc.external.pl.scrublet_score_distribution(self.adata)
+                        sc.pp.pca(self.adata)
+                        sc.pp.neighbors(self.adata)
+                        sc.tl.umap(self.adata)
+                        pca, umap, distplot, simulated_doublets = st.tabs(['PCA', 'UMAP', 'Distplot', 'Simulated doublets'])
+                        with pca:
+                            df = pd.DataFrame({'PCA 1': self.adata.obsm['X_pca'][:,0], 'PCA 2': self.adata.obsm['X_pca'][:,1], 'Predicted doublet': self.adata.obs.predicted_doublet})
+                            st.scatter_chart(df, x='PCA 1', y='PCA 2', color='Predicted doublet', size=10)
+                        with umap:
+                            df = pd.DataFrame({'UMAP 1': self.adata.obsm['X_umap'][:,0], 'UMAP 2': self.adata.obsm['X_umap'][:,1], 'Predicted doublet': self.adata.obs.predicted_doublet})
+                            st.scatter_chart(df, x='UMAP 1', y='UMAP 2', color='Predicted doublet', size=10)
+                        with distplot:
+                            if batch_key:
+                                for i, batch in enumerate(self.adata.obs[batch_key].unique()):
+                                    line_colors = ['#31abe8', '#8ee065', '#eda621', '#f071bf', '#9071f0', '#71e3f0', '#2f39ed', '#ed2f7b']
+                                    fig = ff.create_distplot([self.adata.obs.doublet_score[self.adata.obs[batch_key] == batch]], group_labels=['doublet_score'], colors=[line_colors[i % len(line_colors)]], 
+                                        bin_size=0.02, show_rug=False, show_curve=False)
+                                    fig.update_layout(yaxis_type="log") 
+                                    fig.add_vline(x=self.adata.uns['scrublet']["batches"][batch]['threshold'], line_color="red")
+                                    fig.update_layout(xaxis_title="Doublet score", yaxis_title="Probability density", title=f"Observed transcriptomes for batch {batch}")
+                                    st.plotly_chart(fig, use_container_width=True)
+                            else:
+                                fig = ff.create_distplot([self.adata.obs.doublet_score.values], group_labels=['doublet_score'], 
+                                    bin_size=0.02, show_rug=False, show_curve=False, colors=["#31abe8"])
+                                fig.update_layout(yaxis_type="log") 
+                                fig.add_vline(x=self.adata.uns['scrublet']['threshold'], line_color="red")
+                                fig.update_layout(xaxis_title="Doublet score", yaxis_title="Probability density", title="Observed transcriptomes")
+                                st.plotly_chart(fig, use_container_width=True)
+                        with simulated_doublets:
+                            st.write("To implement")
+                        #write to script state
+                            
+                        #make adata
+                        self.save_adata()
+                        st.toast("Run scrublet", icon="✅")
+                
+                except Exception as e:
+                    st.toast(e, icon="❌")
 
 
     def run_doubletdetection(self):
