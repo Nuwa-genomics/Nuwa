@@ -1,3 +1,4 @@
+from anndata import AnnData
 import streamlit as st
 import scanpy as sc
 import pickle
@@ -67,7 +68,7 @@ class Preprocess:
         Gene expression matrix. 
     """
 
-    def __init__(self, adata):
+    def __init__(self, adata: AnnData):
         self.adata = adata
         self.conn: Session = SessionLocal()
         st.title("Preprocess")
@@ -786,7 +787,7 @@ class Preprocess:
             stdev_doublet_rate = col3.number_input(label="stdev_doublet_rate", value=0.02, key="ni_stdev_doublet_rate")
             batch_key = st.selectbox(label="Batch key", key="sb_scrublet_batch_key", options=np.append('None', self.adata.obs_keys()))
             subcol1, _, _ = st.columns(3)
-            scrublet_submit = subcol1.form_submit_button(label="Filter", use_container_width=True)
+            scrublet_submit = subcol1.form_submit_button(label="Run", use_container_width=True)
 
             if scrublet_submit:
                 try:
@@ -800,13 +801,40 @@ class Preprocess:
                         sc.pp.pca(self.adata)
                         sc.pp.neighbors(self.adata)
                         sc.tl.umap(self.adata)
-                        pca, umap, distplot, simulated_doublets = st.tabs(['PCA', 'UMAP', 'Distplot', 'Simulated doublets'])
-                        with pca:
-                            df = pd.DataFrame({'PCA 1': self.adata.obsm['X_pca'][:,0], 'PCA 2': self.adata.obsm['X_pca'][:,1], 'Predicted doublet': self.adata.obs.predicted_doublet})
-                            st.scatter_chart(df, x='PCA 1', y='PCA 2', color='Predicted doublet', size=10)
+                        stats, umap, distplot, simulated_doublets = st.tabs(['Stats', 'UMAP', 'Distplot', 'Simulated doublets'])
+                        with stats:
+                            num_of_doublets = self.adata.obs.predicted_doublet.sum()
+                            predicted_doublets = '{:.2%}'.format(num_of_doublets / self.adata.n_obs)
+                            st.write(f"Number of predicted doublets: {num_of_doublets}")
+                            st.write(f"Percentage of predicted doublets: {predicted_doublets}")
+                            if batch_key:
+                                self.adata.obs[batch_key] = self.adata.obs[batch_key].astype('category')
+                                batches = self.adata.obs[batch_key].cat.categories
+                                stats_df = pd.DataFrame(columns=['batch', 'mean_doublet_score', 'doublet_rate'])
+                                stats_df['batch'] = np.array(batches)
+                                for batch in batches:
+                                    stats_df['mean_doublet_score'].loc[stats_df.batch == batch] = self.adata.obs.doublet_score[self.adata.obs[batch_key] == batch].mean()
+                                    stats_df['doublet_rate'].loc[stats_df.batch == batch] = \
+                                        self.adata.obs.predicted_doublet[self.adata.obs[batch_key] == batch].sum() / self.adata[self.adata.obs[batch_key] == batch].n_obs
+                                # add % sign
+                                stats_df['doublet_rate'] = stats_df['doublet_rate'].map('{:.2%}'.format)
+                                st.dataframe(stats_df, hide_index=True, use_container_width=True,
+                                    column_config={
+                                        "mean_doublet_score": st.column_config.NumberColumn(
+                                            "Mean doublet score",
+                                            help="Mean doublet score relative to each batch",
+                                        ),
+                                        "doublet_rate": st.column_config.TextColumn(
+                                            "Doublet rate",
+                                            help="Percentage of doublets relative to each batch",
+                                        ),
+                                    }
+                                )
+
+
                         with umap:
-                            df = pd.DataFrame({'UMAP 1': self.adata.obsm['X_umap'][:,0], 'UMAP 2': self.adata.obsm['X_umap'][:,1], 'Predicted doublet': self.adata.obs.predicted_doublet})
-                            st.scatter_chart(df, x='UMAP 1', y='UMAP 2', color='Predicted doublet', size=10)
+                            df = pd.DataFrame({'UMAP 1': self.adata.obsm['X_umap'][:,0], 'UMAP 2': self.adata.obsm['X_umap'][:,1], 'Doublet score': self.adata.obs.doublet_score})
+                            st.scatter_chart(df, x='UMAP 1', y='UMAP 2', color='Doublet score', size=10)
                         with distplot:
                             if batch_key:
                                 for i, batch in enumerate(self.adata.obs[batch_key].unique()):
