@@ -161,19 +161,19 @@ Our data isn't usually in the optimal for passing directly into our training mod
 
 ### Normalization
 
+Normalization can refer to a multitude of different transformations in machine learning. Generally it places data in a range of values, for example 0 and 1. Scanpy's normalize_total function transforms data so they add to a target sum. For example, if the target sum was 1, each cell's gene counts would add up to 1. We'll use 1e4 as our target sum, 0.05 as our max fraction and log transform the data.
+
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/normalize.png'>
 
 ### Scaling data
 
 Scaling feature columns typically reduces the range of values for each observation (cell) between 0/-1 and 1, however this is not always the case. We can select a max value to clip gene counts over a certain amount. Let's set max value to 10 and enable zero center. Our features (genes) will now have a zero mean while retaining the same distribution across our cell types. We can summarize our changes in the notation:
 
-$` x = x~i~ - x~mu~ \over σ `$
+$ x = x~i~ - x~mu~ \over σ $
 
 ```note
 We also are clipping our data so placing an upper limit on gene expression. This will help in limiting the effect of outliers in our dataset.
 ```
-
-
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/scaling.png'>
 
