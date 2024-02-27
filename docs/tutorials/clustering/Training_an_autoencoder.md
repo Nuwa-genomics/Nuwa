@@ -28,6 +28,8 @@ Below shows a simplified version of an autoencoder, notice how the encoder and d
 
 <img alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/autoencoder.png'>
 
+*Not shown: weights and activation functions*
+
 **Layers**
 -----------
 - **X**: Input layer, each neuron will receive as input the gene expression values in each cell's transcriptome. 
