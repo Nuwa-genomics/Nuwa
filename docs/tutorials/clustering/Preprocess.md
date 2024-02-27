@@ -173,7 +173,7 @@ Scaling feature columns typically reduces the range of values for each observati
 We can summarize our changes to each column vector x as follows:
 
 $$
- x = x_i - μ \over σ
+ \left x = \right x_i - μ \over σ
 $$
 
 We also are clipping our data so placing an upper limit on gene expression. This will help in limiting the effect of outliers in our dataset.
