@@ -40,7 +40,7 @@ docker-compose -f cpu.docker-compose.yml up -d --build
 **The web app can now be accessed at http://localhost**
 
 ```tip
-By default the web server serves on port 80. This can be changed in the .env file if this conflicts with any existing service.
+By default the web server runs on port 80. This can be changed in the .env file if this conflicts with any existing service.
 ```
 
 ## 3. Stopping containers

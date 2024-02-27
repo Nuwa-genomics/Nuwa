@@ -8,7 +8,7 @@ We will now preprocess our raw data which will reduce noise from non-biological 
 
 ## Exploratory data analysis
 
-In order to better understand our data, we will perform the EDA part of our analysis. This will involve using statistical methods including visualizations to provide a summary of different aspects or characteristics.
+In order to better understand our data, we will perform the EDA part of our analysis. This will involve using statistical methods including visualizations to provide a summary of different aspects or characteristics of the data.
 
 ### Highest expressed genes
 
@@ -90,7 +90,7 @@ An important part of preprocessing is assessing the quality of our dataset. This
 
 ### Annotating mitochondrial genes
 
-A popular and simple method of predicting low quality cells is by looking at the percentage of mitochondrial genes in each cell. A high proportion of mitochondrial genes are indicative of low quality cells (Islam et al. 2014; Ilicic et al. 2016). If cytoplasmic RNA is lost due to perforated cells, this leads to an artificial relative increase in mitochondrial trascripts. Therefore, we will first annotate whether the genes are mitochondrial (denoted by the 'MT-' prefix in gene names) which we can display as scatter or violin plots. 
+A popular and simple method of predicting low quality cells is by looking at the percentage of mitochondrial genes in each cell. A high proportion of mitochondrial genes are indicative of low quality cells (Islam et al. 2014; Ilicic et al. 2016). If cytoplasmic RNA is lost due to perforated cells, this leads to an artificial relative increase in mitochondrial transcripts. Therefore, we will first annotate whether the genes are mitochondrial (denoted by the 'MT-' prefix in gene names) which we can display as scatter or violin plots. 
 
 ```warning
 Feature names must be in the correct format for detecting mitochondrial/ribosomal/haemoglobin genes (with the MT-, RB- and HB- prefixes respectively). If gene names are in the ensembl format (e.g. ENSG00000139618) you can convert to gene symbols using the gene format toggle on the sidebar.
@@ -147,7 +147,7 @@ We can compare our doublet rates and mean scores across each batches. Note that 
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/scrublet_stats.png'>
 
-We can look at a UMAP plot with the doublet scores as embeddings. You will usually see cells with high scores around the edges or between clusters. This is the issue discussed before where we can mistake the doublets for distinct cell populations of not careful. 
+We can look at a UMAP plot with the doublet scores as embeddings. You will usually see cells with high scores around the edges or between clusters. This is the issue discussed before where we can mistake the doublets for distinct cell populations if not careful. 
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/scrublet_umap.png'>
 
@@ -176,7 +176,7 @@ $$
  \lim_{x\to 10} x = \frac{x_i - μ}{σ} 
 $$
 
-We also are clipping our data so placing an upper limit on gene expression. This will help in limiting the effect of outliers in our dataset.
+We are clipping our data by placing an upper limit on gene expression. This will help in limiting the effect of outliers in our dataset.
 ```
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/scaling.png'>
