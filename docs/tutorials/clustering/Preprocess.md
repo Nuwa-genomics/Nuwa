@@ -167,7 +167,7 @@ Normalization can refer to a multitude of different transformations in machine l
 
 ### Scaling data
 
-Scaling feature columns typically reduces the range of values for each observation (cell) between 0/-1 and 1, however this is not always the case. We can select a max value to clip gene counts over a certain amount. Let's set max value to 10 and enable zero center. Our features (genes) will now have a zero mean while retaining the same distribution across our cell types. We can summarize our changes in the notation:
+Scaling feature columns typically reduces the range of values for each observation (cell) between 0/-1 and 1, however this is not always the case. We can select a max value to clip gene counts over a certain amount. Let's set max value to 10 and enable zero center. Our features (genes) will now have a zero mean while retaining the same distribution across our cell types. We can summarize our changes to each column vector x as follows:
 
 $$
  x = [ x_i - μ \over σ ]
