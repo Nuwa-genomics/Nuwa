@@ -157,7 +157,7 @@ We can also look at the distplot for each batch with their respective doublet sc
 
 ## Data transformations
 
-Our data isn't usually in the optimal for passing directly into our training models, we must transform it into values which reflect mean and variance. This helps ensure than one feature does not dominate another, for example in the case of an outlier. With scaling and normalization techniques we can place data in a similar range without losing the underlying distribution of the data.
+Our data isn't usually in the optimal format for passing directly into our training models, we must transform it into values which reflect mean and variance. This helps ensure than one feature does not dominate another, for example in the case of an outlier. With scaling and normalization techniques we can place data in a similar range without losing the underlying distribution of the data.
 
 ### Normalization
 
@@ -170,7 +170,7 @@ Normalization can refer to a multitude of different transformations in machine l
 Scaling feature columns typically reduces the range of values for each observation (cell) between 0/-1 and 1, however this is not always the case. We can select a max value to clip gene counts over a certain amount. Let's set max value to 10 and enable zero center. Our features (genes) will now have a zero mean while retaining the same distribution across our cell types. We can summarize our changes to each column vector x as follows:
 
 $$
- \left x = \right [ x_i - μ \over σ ]
+ x\left = [ x_i - μ \over σ ]\right
 $$
 
 ```note
