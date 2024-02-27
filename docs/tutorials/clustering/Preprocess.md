@@ -157,11 +157,19 @@ We can also look at the distplot for each batch with their respective doublet sc
 
 ## Data transformations
 
+Our data isn't usually in the optimal for passing directly into our training models, we must transform it into values which reflect mean and variance. This helps ensure than one feature does not dominate another, for example in the case of an outlier. With scaling and normalization techniques we can place data in a similar range without losing the underlying distribution of the data.
+
 ### Normalization
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/normalize.png'>
 
 ### Scaling data
+
+Scaling data 
+
+$x = x~i~ - x~mu~ \over σ$
+
+<img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/scaling.png'>
 
 ### Regressing out data
 
