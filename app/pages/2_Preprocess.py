@@ -72,6 +72,9 @@ class Preprocess:
         self.adata = adata
         self.conn: Session = SessionLocal()
         st.title("Preprocess")
+
+        if "preprocess_plots" not in st.session_state:
+            st.session_state["preprocess_plots"] = dict(pca=None)
     
         
     def save_adata(self):
@@ -492,6 +495,7 @@ class Preprocess:
                         are by default annotated and placed in the 'mt' variable.")
             
             self.adata.var['mt'] = self.adata.var_names.str.startswith(('MT-', 'mt-'))
+
             sc.pp.calculate_qc_metrics(self.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
                 
             st.text(f"Found {self.adata.var.mt.sum()} mitochondrial genes")
@@ -527,8 +531,9 @@ class Preprocess:
                     )
 
                     fig.update_traces(meanline_visible=True)
-                    fig.update_layout(violingap=0, violinmode='group', xaxis_title="pct_counts_mt", yaxis_title="value") #add legend title
+                    fig.update_layout(violingap=0, violinmode='group', xaxis_title="pct_counts_mt", yaxis_title="value") # add legend title
                     mito_container_violin.plotly_chart(fig, use_container_width=True)
+                    
 
 
             plot_charts()
@@ -579,7 +584,7 @@ class Preprocess:
 
                 self.adata.var['ribo'] = self.adata.var_names.isin(ribo_genes[0].values)
                 sc.pp.calculate_qc_metrics(self.adata, qc_vars=['ribo'], percent_top=None, log1p=False, inplace=True)
-                
+
                 st.text(f"Found {self.adata.var['ribo'].sum()} ribosomal genes")
 
                 subcol_input1, subcol_input2 = st.columns(2)
@@ -1244,9 +1249,8 @@ class Preprocess:
             def run_pca(adata):
                 with st.spinner(text="Running PCA"):
                     sc.pp.pca(adata, random_state=42)
-                    st.session_state['pp_df_pca'] = pd.DataFrame({'pca1': adata.obsm['X_pca'][:,0], 'pca2': adata.obsm['X_pca'][:,1], 'color': adata.obs[f'{st.session_state.sb_pca_color_pp}']})  
-                    pca_empty.empty()
-                    pca_empty.scatter_chart(data=st.session_state['pp_df_pca'], x='pca1', y='pca2', color='color', size=18)
+                    pp_pca_df = pd.DataFrame({'pca1': adata.obsm['X_pca'][:,0], 'pca2': adata.obsm['X_pca'][:,1], 'color': adata.obs[f'{st.session_state.sb_pca_color_pp}']})  
+                    st.session_state["preprocess_plots"]["pca"] = dict(df=pp_pca_df)
                 
                
             index = 0      
@@ -1258,12 +1262,18 @@ class Preprocess:
             pca_pp_btn = subcol1.form_submit_button("Apply", use_container_width=True)
             pca_empty = st.empty()
             
-            run_pca(self.adata)
+            if st.session_state["preprocess_plots"]["pca"] == None:
+                run_pca(self.adata)
+
+            pca_empty.empty()
+            pca_empty.scatter_chart(data=st.session_state["preprocess_plots"]["pca"]['df'], x='pca1', y='pca2', color='color', size=18)
             
             if pca_pp_btn:
                 # add script
                 PCA.add_script(Language.ALL_SUPPORTED, color=pca_color)
                 run_pca(self.adata)
+                pca_empty.empty()
+                pca_empty.scatter_chart(data=st.session_state["preprocess_plots"]["pca"]['df'], x='pca1', y='pca2', color='color', size=18)
                 
     
     def measure_gene_counts(self):
