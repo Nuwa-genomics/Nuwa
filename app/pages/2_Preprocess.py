@@ -1594,8 +1594,7 @@ try:
         preprocess.pca()
         preprocess.regress_out()
         
-        
-        
+          
     preprocess.cell_cycle_scoring()
         
 
