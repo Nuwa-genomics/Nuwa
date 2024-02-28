@@ -286,8 +286,7 @@ class Dashboard:
                                             active_adata: AdataModel = AdataModel(work_id=adata.work_id, adata=anndata, filename=adata.filename, created=adata.created, adata_name=adata.adata_name, notes = adata.notes, id=adata.id)
                                             st.session_state["adata_state"] = AdataState(active=active_adata, insert_into_db=False)
                                         os.environ['WORKDIR'] = workspace.data_dir #set wd
-                                        with open(os.path.join(os.getenv('TMP_DIR'), 'session_state.pkl'), 'wb') as pkl_file: 
-                                            pickle.dump(st.session_state, pkl_file)
+                                        
                                         with st.sidebar:
                                             st.subheader(f"{workspace.workspace_name}")
                                             st.markdown(f"""<p style='font-size: 16px; color: rgba(255, 255, 255, 1)'>{workspace.description}<p>""", unsafe_allow_html=True)

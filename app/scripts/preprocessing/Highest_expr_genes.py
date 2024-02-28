@@ -1,25 +1,31 @@
 from models.ScriptModel import Language
 import streamlit as st
 from state.ScriptState import ScriptState
+from scripts.Script import Script
 
-class Highest_expr_genes:
+class Highest_expr_genes(Script):
     """
     Exports an R or python script for plotting highest expressed genes.
     """
 
-    @staticmethod
-    def add_script(language: Language | str, n_top_genes: int = 20, object: str = None):
+    def __init__(self, language: Language | str, n_top_genes: int = 20, object: str = None):
+        super().__init__()
+        if isinstance(language, Language):
+            self.language = language
+        
+        self.n_top_genes = n_top_genes
+        self.object = object
 
-        script_state: ScriptState = st.session_state.script_state
+    def add_script(self):
 
-        if language == Language.R or language == Language.R.value or language == Language.ALL_SUPPORTED:
-            if object == None:
-                object = "pbmc.data"
+        if self.language == Language.R or self.language == Language.R.value or self.language == Language.ALL_SUPPORTED:
+            if self.object == None:
+                self.object = "pbmc.data"
             script = f""" \
             \n# This uses the scater library \
             \nplotHighestExprs( \
-                \n\t{object}, \
-                \n\tn = {n_top_genes}, \
+                \n\t{self.object}, \
+                \n\tn = {self.n_top_genes}, \
                 \n\tcolour_cells_by = NULL, \
                 \n\tdrop_features = NULL, \
                 \n\texprs_values = "counts", \
@@ -29,18 +35,18 @@ class Highest_expr_genes:
                 \n\tswap_rownames = NULL \
             \n)
             """
-            script_state.add_script(script, language=Language.R)
+            self.script_state.add_script(script, language=Language.R)
 
-        if language == Language.python or language == Language.python.value or language == Language.ALL_SUPPORTED:
-            if object == None:
-                object = "adata"
+        if self.language == Language.python or self.language == Language.python.value or self.language == Language.ALL_SUPPORTED:
+            if self.object == None:
+                self.object = "adata"
             script = f"""
                 \n# Plot highest expr genes \
-                \nsc.pl.highest_expr_genes({object}, n_top={n_top_genes})
+                \nsc.pl.highest_expr_genes({self.object}, n_top={self.n_top_genes})
             """
-            script_state.add_script(script, language=Language.python)
+            self.script_state.add_script(script, language=Language.python)
 
-        if not isinstance(language, Language):
+        if not isinstance(self.language, Language):
             print("Error: Unknown language, not adding to script state")
             return
 

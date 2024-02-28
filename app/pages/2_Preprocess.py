@@ -33,6 +33,7 @@ import plotly.figure_factory as ff
 import re
 import plotly.graph_objects as go
 from models.ScriptModel import Language
+from state.StateManager import StateManager
 
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
@@ -75,6 +76,8 @@ class Preprocess:
 
         if "preprocess_plots" not in st.session_state:
             st.session_state["preprocess_plots"] = dict(pca=None)
+
+        self.state_manager = StateManager()
     
         
     def save_adata(self):
@@ -111,8 +114,12 @@ class Preprocess:
                     fig = highest_expr_genes_box_plot(self.adata, n_top=n_top_genes)
                     st.plotly_chart(fig)
 
-                    # write to script state
-                    Highest_expr_genes.add_script(n_top_genes=n_top_genes, language=Language.ALL_SUPPORTED)
+                    # save session
+                    self.state_manager \
+                        .add_adata(self.adata) \
+                        .add_script(Highest_expr_genes(n_top_genes=n_top_genes, language=Language.ALL_SUPPORTED)) \
+                        .save_session()
+                        
 
                         
                         

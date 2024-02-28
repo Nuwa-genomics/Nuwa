@@ -7,7 +7,6 @@ class Annotate_mito:
     Exports an R or python script for annotating mitochondrial genes.
     """
 
-    @staticmethod
     def add_script(language: Language | str, object: str = None):
 
         script_state: ScriptState = st.session_state.script_state
@@ -45,7 +44,6 @@ class Filter_mito:
     Exports an R or python script for filtering out mitochondrial genes.
     """
 
-    @staticmethod
     def add_script(language: Language | str, mito_pct: int, object: str = None):
 
         script_state: ScriptState = st.session_state.script_state

@@ -10,6 +10,7 @@ from database.database import SessionLocal
 from sqlalchemy.orm import Session
 from database.schemas import schemas
 from state.AdataState import AdataState
+from state.StateManager import StateManager
 from state.ScriptState import ScriptState
 from utils.session_cache import load_data_from_cache, cache_data_to_session
 import loompy as lmp
@@ -91,12 +92,15 @@ class Upload:
                     upload_path = os.path.join(workspace_model.data_dir, "uploads")
                     download_path = os.path.join(workspace_model.data_dir, "downloads")
                     adata_path = os.path.join(workspace_model.data_dir, "adata")
+                    tmp_path = os.path.join(workspace_model.data_dir, "tmp")
                     if not os.path.exists(upload_path):
                         os.mkdir(upload_path)
                     if not os.path.exists(download_path):
                         os.mkdir(download_path)
                     if not os.path.exists(adata_path):
                         os.mkdir(adata_path)
+                    if not os.path.exists(tmp_path):
+                        os.mkdir(tmp_path)
                         
                     
 
@@ -125,7 +129,7 @@ class Upload:
         except KeyError as ke:
             print("KeyError: ", ke)
             if(st.session_state == {}):
-                load_data_from_cache()
+                StateManager.load_session()
             else:
                 st.error("Couldn't find workspace in session, have you selected one?")
             
@@ -321,8 +325,6 @@ class Upload:
                 
                 
             self.show_sidebar_preview(f)
-            
-            cache_data_to_session()
             
 
         except ValidationError as e:
