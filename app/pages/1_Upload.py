@@ -82,56 +82,49 @@ class Upload:
         if not uploaded_f:
             st.text("No File uploaded 🧬")
             
-        try:
-            workspace_model: WorkspaceModel = st.session_state["current_workspace"]
 
-            if uploaded_f is not None:
+        workspace_model: WorkspaceModel = st.session_state["current_workspace"]
 
-                with st.spinner(text="Loading Data"):
-                    #create workspace dirs
-                    upload_path = os.path.join(workspace_model.data_dir, "uploads")
-                    download_path = os.path.join(workspace_model.data_dir, "downloads")
-                    adata_path = os.path.join(workspace_model.data_dir, "adata")
-                    tmp_path = os.path.join(workspace_model.data_dir, "tmp")
-                    if not os.path.exists(upload_path):
-                        os.mkdir(upload_path)
-                    if not os.path.exists(download_path):
-                        os.mkdir(download_path)
-                    if not os.path.exists(adata_path):
-                        os.mkdir(adata_path)
-                    if not os.path.exists(tmp_path):
-                        os.mkdir(tmp_path)
+        if uploaded_f is not None:
+
+            with st.spinner(text="Loading Data"):
+                #create workspace dirs
+                upload_path = os.path.join(workspace_model.data_dir, "uploads")
+                download_path = os.path.join(workspace_model.data_dir, "downloads")
+                adata_path = os.path.join(workspace_model.data_dir, "adata")
+                tmp_path = os.path.join(workspace_model.data_dir, "tmp")
+                if not os.path.exists(upload_path):
+                    os.mkdir(upload_path)
+                if not os.path.exists(download_path):
+                    os.mkdir(download_path)
+                if not os.path.exists(adata_path):
+                    os.mkdir(adata_path)
+                if not os.path.exists(tmp_path):
+                    os.mkdir(tmp_path)
                         
                     
 
-                    for f in uploaded_f:
-                        bytes_data = f.read()
-                        #add to uploads dir
-                        path = upload_path + f.name
-                        with open(path, 'wb') as file:
-                            file.write(bytes_data)
+                for f in uploaded_f:
+                    bytes_data = f.read()
+                    # add to uploads dir
+                    path = upload_path + f.name
+                    with open(path, 'wb') as file:
+                        file.write(bytes_data)
 
-                        file_type = f.name.split(".")[-1]
+                    file_type = f.name.split(".")[-1]
 
-                        if file_type == "mtx":
-                            adata = sc.read_10x_mtx(upload_path, var_names='gene_symbols', cache=True)
-                            self.adata = adata
-                            self.show_anndata(adata, f)
-                        if file_type == "h5ad":
-                            adata = sc.read_h5ad(f)
-                            self.adata = adata
-                            self.show_anndata(adata, f)
-                        if file_type == "loom":
-                            adata = sc.read_loom(path)
-                            self.adata = adata
-                            self.show_anndata(adata, f)
-
-        except KeyError as ke:
-            print("KeyError: ", ke)
-            if(st.session_state == {}):
-                StateManager.load_session()
-            else:
-                st.error("Couldn't find workspace in session, have you selected one?")
+                    if file_type == "mtx":
+                        adata = sc.read_10x_mtx(upload_path, var_names='gene_symbols', cache=True)
+                        self.adata = adata
+                        self.show_anndata(adata, f)
+                    if file_type == "h5ad":
+                        adata = sc.read_h5ad(f)
+                        self.adata = adata
+                        self.show_anndata(adata, f)
+                    if file_type == "loom":
+                        adata = sc.read_loom(path)
+                        self.adata = adata
+                        self.show_anndata(adata, f)
             
         
 
@@ -288,7 +281,7 @@ class Upload:
 
 
     def show_anndata(self, adata, f = None, filename = ""):
-        try:
+
             new_dataset = False #this could be original dataset, test to see if it's different from adata state
             
             if 'adata_state' in st.session_state:
@@ -327,9 +320,6 @@ class Upload:
             self.show_sidebar_preview(f)
             
 
-        except ValidationError as e:
-            st.error(e)
-
         
     def show_sidebar_preview(self, file):
         
@@ -360,9 +350,16 @@ class Upload:
             else:
                 st.text("No var to show")
                 
-            
-        
-upload_page = Upload()
 
+try:          
+        
+    upload_page = Upload()
+
+except Exception as e:
+    if(st.session_state == {}):
+        StateManager().load_session()
+        st.rerun()
+    else:
+        st.toast(e, icon="❌")
 
 

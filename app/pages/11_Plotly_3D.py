@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import plotly.express as px
 import scanpy as sc
+from state.StateManager import StateManager
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -131,5 +132,8 @@ try:
     
 
 except Exception as e:
-    print("Error: ", e)
-    st.error(e)
+    if(st.session_state == {}):
+        StateManager().load_session()
+        st.rerun()
+    else:
+        st.toast(e, icon="❌")

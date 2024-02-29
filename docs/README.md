@@ -9,7 +9,7 @@
 A bioinformatics web tool built with scanpy for genomics data processing and analysis.
 
 ```warning
-Currently in beta version, **not** recommended for use in research or commercial use. 
+Currently in beta version, **not** recommended for use in research or commercial use.
 ```
 
 ## What it does?

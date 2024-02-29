@@ -9,12 +9,11 @@ class Highest_expr_genes(Script):
     """
 
     def __init__(self, language: Language | str, n_top_genes: int = 20, object: str = None):
-        super().__init__()
-        if isinstance(language, Language):
-            self.language = language
+        super().__init__(language=language)
         
         self.n_top_genes = n_top_genes
         self.object = object
+
 
     def add_script(self):
 
@@ -45,8 +44,4 @@ class Highest_expr_genes(Script):
                 \nsc.pl.highest_expr_genes({self.object}, n_top={self.n_top_genes})
             """
             self.script_state.add_script(script, language=Language.python)
-
-        if not isinstance(self.language, Language):
-            print("Error: Unknown language, not adding to script state")
-            return
 

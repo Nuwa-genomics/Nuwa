@@ -15,7 +15,7 @@ A bioinformatics web tool built with streamlit and scanpy for genomics data proc
 Deep neural networks have many potential use cases for genomic analyses including quality control, dimensionality reduction or even spatial transcriptomics. Nuwa aims to integrate several deep learning models in a visual, easy to use interface with other filtering and data analysis familiar to scanpy users. 
 
 >[!WARNING] 
->Project is still in its infancy, **not** recommended for use in research or commercial use.
+>Project is still in its infancy, **not** recommended for use in research or commercial use. Still missing support for exporting some python and R scripts.  
 
 ## Getting Started
 

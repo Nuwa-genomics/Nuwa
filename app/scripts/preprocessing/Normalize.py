@@ -2,38 +2,41 @@ from models.ScriptModel import Language
 import streamlit as st
 from state.ScriptState import ScriptState
 import numpy as np
+from scripts.Script import Script
 
-class Normalize:
+class Normalize(Script):
     """
     Exports a python or R script for normalizing counts.
     """
 
-    @staticmethod
-    def add_script(language: Language | str, scale_factor: float, object: str = None, log_norm = True):
+    def __init__(self, language: Language | str, scale_factor: float, object: str = None, log_norm = True):
+        super().__init__(language=language)
+        
+        self.scale_factor = scale_factor
+        self.log_norm = log_norm
+        self.object = object
 
-        script_state: ScriptState = st.session_state.script_state
 
-        if language == Language.R or language == Language.R.value or language == Language.ALL_SUPPORTED:
-            if object == None:
-                object = "pbmc"
+    def add_script(self):
+
+        if self.language == Language.R or self.language == Language.R.value or self.language == Language.ALL_SUPPORTED:
+            if self.object == None:
+                self.object = "pbmc"
             script = f""" \
             \n# Normalize counts \
-            \n{object} <- NormalizeData({object}, normalization.method = 'LogNormalize', scale.factor = {scale_factor}) \
+            \n{self.object} <- NormalizeData({self.object}, normalization.method = 'LogNormalize', scale.factor = {self.scale_factor}) \
             """
-            script_state.add_script(script, language=Language.R)
+            self.script_state.add_script(script, language=Language.R)
 
-        if language == Language.python or language == Language.python.value or language == Language.ALL_SUPPORTED:
-            if object == None:
-                object = "adata"
+        if self.language == Language.python or self.language == Language.python.value or self.language == Language.ALL_SUPPORTED:
+            if self.object == None:
+                self.object = "adata"
             script = f""" \
             \n# Normalize counts \
-            \n log_norm = {log_norm} \
-            \nsc.pp.normalize_total({object}, target_sum={scale_factor}) \
+            \n log_norm = {self.log_norm} \
+            \nsc.pp.normalize_total({self.object}, target_sum={self.scale_factor}) \
             \nif log_norm: \
-            \n\tsc.pp.log1p({object}) \
+            \n\tsc.pp.log1p({self.object}) \
             """
-            script_state.add_script(script, language=Language.python)
+            self.script_state.add_script(script, language=Language.python)
 
-        if not isinstance(language, Language):
-            print("Error: Unknown language, not adding to script state")
-            return

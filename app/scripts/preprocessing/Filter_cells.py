@@ -1,37 +1,38 @@
 from models.ScriptModel import Language
 import streamlit as st
 from state.ScriptState import ScriptState
+from scripts.Script import Script
 
-class Filter_cells:
+class Filter_cells(Script):
     """
     Exports an R or python script for filtering cell counts.
     """
 
-    @staticmethod
-    def add_script(language: Language | str, min_genes: int, object: str = None):
+    def __init__(self, language: Language | str, min_genes: int, object: str = None):
+        super().__init__(language=language)
+        
+        self.min_genes = min_genes
+        self.object = object
 
-        script_state: ScriptState = st.session_state.script_state
+    def add_script(self):
 
-        if language == Language.R or language == Language.R.value or language == Language.ALL_SUPPORTED:
-            if object == None:
-                object = "pbmc.data"
+        if self.language == Language.R or self.language == Language.R.value or self.language == Language.ALL_SUPPORTED:
+            if self.object == None:
+                self.object = "pbmc.data"
             script = f""" \
             \n# Load/reload Seurat object with min genes/cells parameters \
-            \npbmc <- CreateSeuratObject(counts = {object}, project = "pbmc3k", min.features = {min_genes})
+            \npbmc <- CreateSeuratObject(counts = {self.object}, project = "pbmc3k", min.features = {self.min_genes})
             """
-            script_state.add_script(script, language=Language.R)
+            self.script_state.add_script(script, language=Language.R)
 
-        if language == Language.python or language == Language.python.value or language == Language.ALL_SUPPORTED:
-            if object == None:
-                object = "adata"
+        if self.language == Language.python or self.language == Language.python.value or self.language == Language.ALL_SUPPORTED:
+            if self.object == None:
+                self.object = "adata"
             script = f"""
                 \n# Filter cells \
-                \nsc.pp.filter_cells(self.{object}, min_genes={min_genes})
+                \nsc.pp.filter_cells({self.object}, min_genes={self.min_genes})
             """
-            script_state.add_script(script, language=Language.python)
+            self.script_state.add_script(script, language=Language.python)
 
-        if not isinstance(language, Language):
-            print("Error: Unknown language, not adding to script state")
-            return
 
         

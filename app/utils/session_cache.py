@@ -2,6 +2,7 @@ import hashlib
 import pickle
 import os
 import streamlit as st
+from database.schemas import schemas
 from database.database import SessionLocal
 
 def cache_data_to_session():
@@ -10,7 +11,7 @@ def cache_data_to_session():
         state = {}
         for key in st.session_state:
             #streamlit form and button can't be set using session state, so remove them here
-            if not (key.__contains__("btn") or key.__contains__("toggle") or key.__contains__("form")):
+            if not (key.__contains__("btn") or key.__contains__("toggle") or key.__contains__("FormSubmitter")):
                 state[key] = st.session_state[key]
     
         state['adata_state'].conn = None
@@ -22,6 +23,12 @@ def cache_data_to_session():
         hash.update(encoded)
         state_hash = hash.hexdigest()
 
+        # write cache file to db
+        conn = SessionLocal()
+        conn.query(schemas.Workspaces) \
+            .filter(schemas.Workspaces.id == st.session_state.current_workspace.id) \
+            .update({'cache_file': state_hash})
+
         # Write to file
         dbfile = open(os.path.join(os.getenv('WORKDIR'), 'tmp', state_hash), 'wb')
         pickle.dump(state, dbfile)
@@ -29,15 +36,20 @@ def cache_data_to_session():
         st.session_state["adata_state"].conn = SessionLocal()
         st.session_state["script_state"].conn = SessionLocal()
         dbfile.close()
+
+        # commit cache file to db
+        conn.commit()
+        
     except Exception as e:
         st.toast(e, icon="❌")
 
 def load_data_from_cache(state_file):
     try:
-        dbfile = open(os.path.join(os.getenv('TMP_DIR'), state_file), 'rb')    
+        dbfile = open(os.path.join(os.getenv('WORKDIR'), 'tmp', state_file), 'rb')    
         session = pickle.load(dbfile)
         for key in session:
-            st.session_state[key] = session[key] # load in keys to session state
+            if not (key.__contains__("FormSubmitter") or key.__contains__("file_uploader")):
+                st.session_state[key] = session[key] # load in keys to session state
         dbfile.close()
 
         adata_state = st.session_state.adata_state

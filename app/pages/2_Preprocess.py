@@ -20,7 +20,7 @@ from scripts.preprocessing.Filter_cells import Filter_cells
 from scripts.preprocessing.Filter_genes import Filter_genes
 from scripts.preprocessing.PCA import PCA
 from scripts.preprocessing.Normalize import Normalize
-from scripts.preprocessing.Annotate_mito import Annotate_mito, Filter_mito
+from scripts.preprocessing.Annotate_mito import Filter_mito
 from scripts.preprocessing.Scale import Scale
 
 from database.schemas import schemas
@@ -69,8 +69,8 @@ class Preprocess:
         Gene expression matrix. 
     """
 
-    def __init__(self, adata: AnnData):
-        self.adata = adata
+    def __init__(self):
+
         self.conn: Session = SessionLocal()
         st.title("Preprocess")
 
@@ -78,11 +78,7 @@ class Preprocess:
             st.session_state["preprocess_plots"] = dict(pca=None)
 
         self.state_manager = StateManager()
-    
-        
-    def save_adata(self):
-        sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'adata', st.session_state.adata_state.current.adata_name), adata=self.adata)
-        st.session_state.adata_state.current.adata = self.adata
+
          
 
     def filter_highest_expr_genes(self):
@@ -110,15 +106,19 @@ class Preprocess:
             submit_btn = subcol1.form_submit_button(label="Filter", use_container_width=True)
 
             if submit_btn:
-                with st.spinner(text="Calculating highest expressed genes"):
-                    fig = highest_expr_genes_box_plot(self.adata, n_top=n_top_genes)
-                    st.plotly_chart(fig)
+                try:
+                    with st.spinner(text="Calculating highest expressed genes"):
+                        fig = highest_expr_genes_box_plot(st.session_state.adata_state.current.adata, n_top=n_top_genes)
+                        st.plotly_chart(fig)
 
-                    # save session
-                    self.state_manager \
-                        .add_adata(self.adata) \
-                        .add_script(Highest_expr_genes(n_top_genes=n_top_genes, language=Language.ALL_SUPPORTED)) \
-                        .save_session()
+                        # save session
+                        self.state_manager \
+                            .add_adata(st.session_state.adata_state.current.adata) \
+                            .add_script(Highest_expr_genes(n_top_genes=n_top_genes, language=Language.ALL_SUPPORTED)) \
+                            .save_session()
+                
+                except Exception as e:
+                    st.toast(e, icon="❌")
                         
 
                         
@@ -149,19 +149,18 @@ class Preprocess:
         """
         with st.form(key="remove_genes_form"):
             st.subheader("Remove genes")
-            remove_genes = st.multiselect(label="Genes", options=self.adata.var_names)
+            remove_genes = st.multiselect(label="Genes", options=st.session_state.adata_state.current.adata.var_names)
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
             if submit_btn:
                 with st.spinner(text="Removing genes"):
                     for gene in remove_genes:
-                        remove_genes = self.adata.var_names.str.startswith(gene)
+                        remove_genes = st.session_state.adata_state.current.adata.var_names.str.startswith(gene)
                         remove = np.array(remove_genes)
                         keep = np.invert(remove)
-                        self.adata = self.adata[:,keep]
-                        self.save_adata()
-                    #write to script state
-                    st.session_state["script_state"].add_script(f"#remove selected genes\nfor gene in {remove_genes}:\n\tremove_genes = adata.var_names.str.startswith(gene)\nremove = np.array(remove_genes)\nkeep = np.invert(remove)\nadata = adata[:,keep]", language=Language.python.value)
+                        st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata[:,keep]
+
+                    # TODO: write to script state
 
 
     def filter_highly_variable_genes(self):
@@ -211,28 +210,28 @@ class Preprocess:
 
             def run_highly_variable(flavour, min_mean=None, max_mean=None, min_disp=None, max_disp=None, n_top_genes=None, span=None):
                 with st.spinner(text="Calculating highly variable genes"):
-                    sc.pp.normalize_total(self.adata, target_sum=1e4); 
-                    sc.pp.log1p(self.adata)     
+                    sc.pp.normalize_total(st.session_state.adata_state.current.adata, target_sum=1e4); 
+                    sc.pp.log1p(st.session_state.adata_state.current.adata)     
                     sc.pp.highly_variable_genes(
-                        self.adata, flavor=flavour, n_top_genes=n_top_genes, min_mean=min_mean, 
+                        st.session_state.adata_state.current.adata, flavor=flavour, n_top_genes=n_top_genes, min_mean=min_mean, 
                         max_mean=max_mean, min_disp=min_disp, max_disp=max_disp, span=span
                     )
 
-                    # write to script state
-                    # python
-                    Highly_variable_genes.add_script(language=Language.ALL_SUPPORTED, min_mean=min_mean, max_mean=max_mean, min_disp=min_disp, n_top_genes=n_top_genes, span=span)
-
                     if remove:
-                        self.adata = self.adata[:, self.adata.var.highly_variable]
+                        st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata[:, st.session_state.adata_state.current.adata.var.highly_variable]
                         
-                    #make adata
-                    self.save_adata()
+                    # write to script state
+                    self.state_manager \
+                    .add_adata(st.session_state.adata_state.current.adata) \
+                    .add_script(Highly_variable_genes(language=Language.ALL_SUPPORTED, min_mean=min_mean, max_mean=max_mean, min_disp=min_disp, n_top_genes=n_top_genes, span=span)) \
+                    .save_session()
+
                     #plot data
                     dispersions_tab, dispersions_norm_tab = st.tabs(['Raw', 'normalized'])
                     with dispersions_tab:
-                        dispersions_tab.scatter_chart(self.adata.var, x='means', y='dispersions', color='highly_variable', size=10)
+                        dispersions_tab.scatter_chart(st.session_state.adata_state.current.adata.var, x='means', y='dispersions', color='highly_variable', size=10)
                     with dispersions_norm_tab:
-                        dispersions_norm_tab.scatter_chart(self.adata.var, x='means', y='dispersions_norm', color='highly_variable', size=10)
+                        dispersions_norm_tab.scatter_chart(st.session_state.adata_state.current.adata.var, x='means', y='dispersions_norm', color='highly_variable', size=10)
 
 
 
@@ -257,6 +256,7 @@ class Preprocess:
 
         except Exception as e:
             st.toast(f"Failed to normalize data: {e}", icon="❌")
+
 
     def normalize_counts(self):
         """
@@ -301,13 +301,16 @@ class Preprocess:
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
             if submit_btn:
-                sc.pp.normalize_total(self.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr, max_fraction=max_fraction)
+                sc.pp.normalize_total(st.session_state.adata_state.current.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr, max_fraction=max_fraction)
                 if log_transform_total:
-                    sc.pp.log1p(self.adata)
-                #write to script state
-                Normalize.add_script(language=Language.ALL_SUPPORTED, scale_factor=target_sum, log_norm=log_transform_total)
-                #make adata
-                self.save_adata()
+                    sc.pp.log1p(st.session_state.adata_state.current.adata)
+
+                # write to script state
+                self.state_manager \
+                    .add_adata(st.session_state.adata_state.current.adata) \
+                    .add_script(Normalize(language=Language.ALL_SUPPORTED, scale_factor=target_sum, log_norm=log_transform_total)) \
+                    .save_session()
+
                 st.toast("Normalized data", icon='✅')
 
     def filter_cells(self):
@@ -337,12 +340,14 @@ class Preprocess:
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
             if submit_btn:
-                sc.pp.filter_cells(self.adata, min_genes=min_genes)
-                #write to script state
-                Filter_cells.add_script(language=Language.ALL_SUPPORTED, min_genes=min_genes)
-                
+                sc.pp.filter_cells(st.session_state.adata_state.current.adata, min_genes=min_genes)
+
                 #make adata
-                self.save_adata()
+                self.state_manager \
+                    .add_adata(st.session_state.adata_state.current.adata) \
+                    .add_script(Filter_cells(language=Language.ALL_SUPPORTED, min_genes=min_genes)) \
+                    .save_session()
+                                
                 st.toast("Filtered cells", icon='✅')
 
 
@@ -372,12 +377,13 @@ class Preprocess:
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if submit_btn:
-                sc.pp.filter_genes(self.adata, min_cells=min_cells)
-                #write to script state
-                Filter_genes.add_script(language=Language.ALL_SUPPORTED, min_cells=min_cells)
+                sc.pp.filter_genes(st.session_state.adata_state.current.adata, min_cells=min_cells)
+                
+                self.state_manager \
+                    .add_adata(st.session_state.adata_state.current.adata) \
+                    .add_script(Filter_genes(language=Language.ALL_SUPPORTED, min_cells=min_cells)) \
+                    .save_session()
 
-                #make adata
-                self.save_adata()
                 st.toast("Filtered genes", icon='✅')
 
 
@@ -414,11 +420,11 @@ class Preprocess:
         import scanpy as sc
 
         # Seurat recipe
-        sc.pp.recipe_seurat(self.adata, log=True) 
+        sc.pp.recipe_seurat(st.session_state.adata_state.current.adata, log=True) 
         # Weinreb17 recipe
-        sc.pp.recipe_weinreb17(self.adata, log=True, mean_threshold=0.01, cv_threshold=2, n_pcs=50)
+        sc.pp.recipe_weinreb17(st.session_state.adata_state.current.adata, log=True, mean_threshold=0.01, cv_threshold=2, n_pcs=50)
         # Zheng17 recipe
-        sc.pp.recipe_zheng17(self.adata, log=True, n_top_genes=1000)
+        sc.pp.recipe_zheng17(st.session_state.adata_state.current.adata, log=True, n_top_genes=1000)
         """
         st.subheader("Preprocess Recipes")
         seurat_tab, weinreb17_tab, zheng17_tab = st.tabs(['Seurat', 'Weinreb17', 'Zheng17'])
@@ -430,9 +436,9 @@ class Preprocess:
                 submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True)
                 
                 if submit_btn:
-                    sc.pp.recipe_seurat(self.adata, log=log) 
-                    st.session_state["script_state"].add_script("#Apply preprocess recipe\nsc.pp.recipe_seurat(adata)")
-                    self.save_adata()
+                    sc.pp.recipe_seurat(st.session_state.adata_state.current.adata, log=log) 
+                  
+                    # TODO: add to script state
                     st.toast(f"Applied recipe: Seurat", icon='✅')
         
         with weinreb17_tab:
@@ -446,22 +452,22 @@ class Preprocess:
                 subcol1, _, _ = st.columns(3)
                 submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True)
                 if submit_btn:
-                    sc.pp.recipe_weinreb17(self.adata, log=log, mean_threshold=mean_threshold, cv_threshold=cv_threshold, n_pcs=n_pcs)
-                    st.session_state["script_state"].add_script("#Apply preprocess recipe\nsc.pp.recipe_weinreb17(adata)")
-                    self.save_adata()
+                    sc.pp.recipe_weinreb17(st.session_state.adata_state.current.adata, log=log, mean_threshold=mean_threshold, cv_threshold=cv_threshold, n_pcs=n_pcs)
+                    
+                    # TODO: add to script state
                     st.toast(f"Applied recipe: Weinreb17", icon='✅')
 
         with zheng17_tab:
             with st.form(key="form_zheng17"):
                 st.write("Parameters")
-                n_top_genes = st.number_input(label="n_top_genes", key="ni_zheng17_n_genes", min_value=1, max_value=self.adata.n_vars, value=1000 if self.adata.n_vars >= 1000 else self.adata.n_vars)
+                n_top_genes = st.number_input(label="n_top_genes", key="ni_zheng17_n_genes", min_value=1, max_value=st.session_state.adata_state.current.adata.n_vars, value=1000 if st.session_state.adata_state.current.adata.n_vars >= 1000 else st.session_state.adata_state.current.adata.n_vars)
                 log = st.checkbox(label="Log", value=False)
                 subcol1, _, _ = st.columns(3)
                 submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True)
                 if submit_btn:
-                    sc.pp.recipe_zheng17(self.adata, log=log, n_top_genes=n_top_genes)
-                    st.session_state["script_state"].add_script("#Apply preprocess recipe\nsc.pp.recipe_zheng17(adata)")
-                    self.save_adata()
+                    sc.pp.recipe_zheng17(st.session_state.adata_state.current.adata, log=log, n_top_genes=n_top_genes)
+                    
+                    # TODO: add to script state
                     st.toast(f"Applied recipe: Zheng17", icon='✅')
 
 
@@ -501,11 +507,11 @@ class Preprocess:
             st.subheader("Mitochondrial Genes", help="Filter mitochrondrial gene counts. All mitochrondrial genes \
                         are by default annotated and placed in the 'mt' variable.")
             
-            self.adata.var['mt'] = self.adata.var_names.str.startswith(('MT-', 'mt-'))
+            st.session_state.adata_state.current.adata.var['mt'] = st.session_state.adata_state.current.adata.var_names.str.startswith(('MT-', 'mt-'))
 
-            sc.pp.calculate_qc_metrics(self.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
+            sc.pp.calculate_qc_metrics(st.session_state.adata_state.current.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
                 
-            st.text(f"Found {self.adata.var.mt.sum()} mitochondrial genes")
+            st.text(f"Found {st.session_state.adata_state.current.adata.var.mt.sum()} mitochondrial genes")
 
             subcol_input1, subcol_input2 = st.columns(2)
             options = np.append('None', st.session_state.adata_state.current.adata.obs_keys())
@@ -521,10 +527,10 @@ class Preprocess:
                 if color == 'None':
                     color=None
                 if color != None:
-                        color = self.adata.obs[color]
+                        color = st.session_state.adata_state.current.adata.obs[color]
 
                 with scatter_chart:
-                    df_scatter = pd.DataFrame({'total_counts': self.adata.obs.total_counts, 'pct_counts_mt': self.adata.obs.pct_counts_mt, 'color': color})
+                    df_scatter = pd.DataFrame({'total_counts': st.session_state.adata_state.current.adata.obs.total_counts, 'pct_counts_mt': st.session_state.adata_state.current.adata.obs.pct_counts_mt, 'color': color})
                     mito_container_scatter.scatter_chart(df_scatter, x='total_counts', y='pct_counts_mt', color='color', size=10)
 
                 with violin_chart:
@@ -533,7 +539,7 @@ class Preprocess:
                     fig = go.Figure()
 
                     fig.add_trace(go.Violin(x=color, 
-                        y=self.adata.obs.pct_counts_mt,
+                        y=st.session_state.adata_state.current.adata.obs.pct_counts_mt,
                         jitter=0.1, line_color='blue')
                     )
 
@@ -547,15 +553,18 @@ class Preprocess:
 
             subcol1, _, _ = st.columns(3)
             mito_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
-            Annotate_mito.add_script(language=Language.ALL_SUPPORTED)
 
             if mito_annot_submit_btn:
                 plot_charts(color_key_mito)
-                self.adata = self.adata[self.adata.obs.pct_counts_mt < ni_pct_counts_mt, :]
-                #write to script state
-                Filter_mito.add_script(language=Language.ALL_SUPPORTED, mito_pct=ni_pct_counts_mt)
-                #make adata
-                self.save_adata()
+                st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata[st.session_state.adata_state.current.adata.obs.pct_counts_mt < ni_pct_counts_mt, :]
+
+                # save session
+                self.state_manager \
+                    .add_adata(st.session_state.adata_state.current.adata) \
+                    .add_script(Filter_mito(language=Language.ALL_SUPPORTED, mito_pct=ni_pct_counts_mt)) \
+                    .save_session()
+                
+
                 st.toast("Filtered mitochondrial genes", icon="✅")
 
             
@@ -589,10 +598,10 @@ class Preprocess:
                 ribo_url = "http://software.broadinstitute.org/gsea/msigdb/download_geneset.jsp?geneSetName=KEGG_RIBOSOME&fileType=txt"
                 ribo_genes = pd.read_table(ribo_url, skiprows=2, header=None)
 
-                self.adata.var['ribo'] = self.adata.var_names.isin(ribo_genes[0].values)
-                sc.pp.calculate_qc_metrics(self.adata, qc_vars=['ribo'], percent_top=None, log1p=False, inplace=True)
+                st.session_state.adata_state.current.adata.var['ribo'] = st.session_state.adata_state.current.adata.var_names.isin(ribo_genes[0].values)
+                sc.pp.calculate_qc_metrics(st.session_state.adata_state.current.adata, qc_vars=['ribo'], percent_top=None, log1p=False, inplace=True)
 
-                st.text(f"Found {self.adata.var['ribo'].sum()} ribosomal genes")
+                st.text(f"Found {st.session_state.adata_state.current.adata.var['ribo'].sum()} ribosomal genes")
 
                 subcol_input1, subcol_input2 = st.columns(2)
                 options = np.append('None', st.session_state.adata_state.current.adata.obs_keys())
@@ -608,10 +617,10 @@ class Preprocess:
                 if color == 'None':
                     color=None
                 if color != None:
-                        color = self.adata.obs[color]
+                        color = st.session_state.adata_state.current.adata.obs[color]
 
                 with scatter_chart:
-                    df_scatter = pd.DataFrame({'total_counts': self.adata.obs.total_counts, 'pct_counts_ribo': self.adata.obs.pct_counts_ribo, 'color': color})
+                    df_scatter = pd.DataFrame({'total_counts': st.session_state.adata_state.current.adata.obs.total_counts, 'pct_counts_ribo': st.session_state.adata_state.current.adata.obs.pct_counts_ribo, 'color': color})
                     ribo_container_scatter.scatter_chart(df_scatter, x='total_counts', y='pct_counts_ribo', color='color', size=10)
 
                 with violin_chart:
@@ -620,7 +629,7 @@ class Preprocess:
                     fig = go.Figure()
 
                     fig.add_trace(go.Violin(x=color, 
-                        y=self.adata.obs.pct_counts_ribo,
+                        y=st.session_state.adata_state.current.adata.obs.pct_counts_ribo,
                         jitter=0.1, line_color='blue')
                     )
 
@@ -636,7 +645,7 @@ class Preprocess:
 
             if ribo_annot_submit_btn:
                 plot_charts(color_key_ribo)
-                self.adata = self.adata[self.adata.obs.pct_counts_ribo < ni_pct_counts_ribo, :]
+                st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata[st.session_state.adata_state.current.adata.obs.pct_counts_ribo < ni_pct_counts_ribo, :]
                 #add to script adata
                 st.session_state["script_state"].add_script("#Filter ribosomal genes")
                 st.session_state["script_state"].add_script("sc.pl.scatter(adata, x='total_counts', y='pct_counts_ribo')")
@@ -644,7 +653,8 @@ class Preprocess:
                 st.session_state["script_state"].add_script("sc.pp.calculate_qc_metrics(adata, qc_vars=['ribo'], percent_top=None, log1p=False, inplace=True)")
                 st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_ribo < {ni_pct_counts_ribo}, :]")
                 #make adata
-                self.save_adata()
+                
+                # TODO: add to script state
                 st.toast("Filtered ribosomal genes", icon="✅")
                 
                 
@@ -676,11 +686,11 @@ class Preprocess:
                         are by default annotated and placed in the 'hb' variable.")
             
             # hemoglobin genes.
-            self.adata.var['hb'] = self.adata.var_names.str.contains(("^HB[^(P)]"))
+            st.session_state.adata_state.current.adata.var['hb'] = st.session_state.adata_state.current.adata.var_names.str.contains(("^HB[^(P)]"))
             
-            sc.pp.calculate_qc_metrics(self.adata, qc_vars=['hb'], percent_top=None, log1p=False, inplace=True)
+            sc.pp.calculate_qc_metrics(st.session_state.adata_state.current.adata, qc_vars=['hb'], percent_top=None, log1p=False, inplace=True)
             
-            st.text(f"Found {self.adata.var.hb.sum()} haemoglobin genes")
+            st.text(f"Found {st.session_state.adata_state.current.adata.var.hb.sum()} haemoglobin genes")
 
             subcol_input1, subcol_input2 = st.columns(2)
             options = np.append('None', st.session_state.adata_state.current.adata.obs_keys())
@@ -696,10 +706,10 @@ class Preprocess:
                 if color == 'None':
                     color=None
                 if color != None:
-                        color = self.adata.obs[color]
+                        color = st.session_state.adata_state.current.adata.obs[color]
 
                 with scatter_chart:
-                    df_scatter = pd.DataFrame({'total_counts': self.adata.obs.total_counts, 'pct_counts_hb': self.adata.obs.pct_counts_hb, 'color': color})
+                    df_scatter = pd.DataFrame({'total_counts': st.session_state.adata_state.current.adata.obs.total_counts, 'pct_counts_hb': st.session_state.adata_state.current.adata.obs.pct_counts_hb, 'color': color})
                     hb_container_scatter.scatter_chart(df_scatter, x='total_counts', y='pct_counts_hb', color='color', size=10)
 
                 with violin_chart:
@@ -708,7 +718,7 @@ class Preprocess:
                     fig = go.Figure()
 
                     fig.add_trace(go.Violin(x=color, 
-                        y=self.adata.obs.pct_counts_hb,
+                        y=st.session_state.adata_state.current.adata.obs.pct_counts_hb,
                         jitter=0.1, line_color='blue')
                     )
 
@@ -724,7 +734,7 @@ class Preprocess:
 
             if hb_annot_submit_btn:
                 plot_charts(color_key_hb)
-                self.adata = self.adata[self.adata.obs.pct_counts_hb < ni_pct_counts_hb, :]
+                st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata[st.session_state.adata_state.current.adata.obs.pct_counts_hb < ni_pct_counts_hb, :]
                 #add to script adata
                 st.session_state["script_state"].add_script("#Filter haemoglobin genes")
                 st.session_state["script_state"].add_script("sc.pl.scatter(adata, x='total_counts', y='pct_counts_hb')")
@@ -732,7 +742,8 @@ class Preprocess:
                 st.session_state["script_state"].add_script("sc.pp.calculate_qc_metrics(adata, qc_vars=['hb'], percent_top=None, log1p=False, inplace=True)")
                 st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_hb < {ni_pct_counts_hb}, :]")
                 #make adata
-                self.save_adata()
+                
+                # TODO: add to script state
                 st.toast("Filtered haemoglobin genes", icon="✅")
 
 
@@ -797,7 +808,7 @@ class Preprocess:
             sim_doublet_ratio = col1.number_input(label="Sim doublet ratio", value=2.00, key="ni_sim_doublet_ratio")
             expected_doublet_rate = col2.number_input(label="Exp doublet rate", value=0.05, key="ni_expected_doublet_rate")
             stdev_doublet_rate = col3.number_input(label="stdev_doublet_rate", value=0.02, key="ni_stdev_doublet_rate")
-            batch_key = st.selectbox(label="Batch key", key="sb_scrublet_batch_key", options=np.append('None', self.adata.obs_keys()))
+            batch_key = st.selectbox(label="Batch key", key="sb_scrublet_batch_key", options=np.append('None', st.session_state.adata_state.current.adata.obs_keys()))
             subcol1, _, _ = st.columns(3)
             scrublet_submit = subcol1.form_submit_button(label="Run", use_container_width=True)
 
@@ -806,28 +817,28 @@ class Preprocess:
                     with st.spinner("Running scrublet"):
                         if batch_key == 'None':
                             batch_key = None
-                        sc.external.pp.scrublet(self.adata, sim_doublet_ratio=sim_doublet_ratio, 
+                        sc.external.pp.scrublet(st.session_state.adata_state.current.adata, sim_doublet_ratio=sim_doublet_ratio, 
                             expected_doublet_rate=expected_doublet_rate, stdev_doublet_rate=stdev_doublet_rate, batch_key=batch_key, random_state=42)
                         # plot PCA to see doublets
-                        sc.external.pl.scrublet_score_distribution(self.adata)
-                        sc.pp.pca(self.adata)
-                        sc.pp.neighbors(self.adata)
-                        sc.tl.umap(self.adata)
+                        sc.external.pl.scrublet_score_distribution(st.session_state.adata_state.current.adata)
+                        sc.pp.pca(st.session_state.adata_state.current.adata)
+                        sc.pp.neighbors(st.session_state.adata_state.current.adata)
+                        sc.tl.umap(st.session_state.adata_state.current.adata)
                         stats, umap, distplot, simulated_doublets = st.tabs(['Stats', 'UMAP', 'Distplot', 'Simulated doublets'])
                         with stats:
-                            num_of_doublets = self.adata.obs.predicted_doublet.sum()
-                            predicted_doublets = '{:.2%}'.format(num_of_doublets / self.adata.n_obs)
+                            num_of_doublets = st.session_state.adata_state.current.adata.obs.predicted_doublet.sum()
+                            predicted_doublets = '{:.2%}'.format(num_of_doublets / st.session_state.adata_state.current.adata.n_obs)
                             st.write(f"Number of predicted doublets: {num_of_doublets}")
                             st.write(f"Percentage of predicted doublets: {predicted_doublets}")
                             if batch_key:
-                                self.adata.obs[batch_key] = self.adata.obs[batch_key].astype('category')
-                                batches = self.adata.obs[batch_key].cat.categories
+                                st.session_state.adata_state.current.adata.obs[batch_key] = st.session_state.adata_state.current.adata.obs[batch_key].astype('category')
+                                batches = st.session_state.adata_state.current.adata.obs[batch_key].cat.categories
                                 stats_df = pd.DataFrame(columns=['batch', 'mean_doublet_score', 'doublet_rate'])
                                 stats_df['batch'] = np.array(batches)
                                 for batch in batches:
-                                    stats_df['mean_doublet_score'].loc[stats_df.batch == batch] = self.adata.obs.doublet_score[self.adata.obs[batch_key] == batch].mean()
+                                    stats_df['mean_doublet_score'].loc[stats_df.batch == batch] = st.session_state.adata_state.current.adata.obs.doublet_score[st.session_state.adata_state.current.adata.obs[batch_key] == batch].mean()
                                     stats_df['doublet_rate'].loc[stats_df.batch == batch] = \
-                                        self.adata.obs.predicted_doublet[self.adata.obs[batch_key] == batch].sum() / self.adata[self.adata.obs[batch_key] == batch].n_obs
+                                        st.session_state.adata_state.current.adata.obs.predicted_doublet[st.session_state.adata_state.current.adata.obs[batch_key] == batch].sum() / st.session_state.adata_state.current.adata[st.session_state.adata_state.current.adata.obs[batch_key] == batch].n_obs
                                 # add % sign
                                 stats_df['doublet_rate'] = stats_df['doublet_rate'].map('{:.2%}'.format)
                                 st.dataframe(stats_df, hide_index=True, use_container_width=True,
@@ -845,31 +856,29 @@ class Preprocess:
 
 
                         with umap:
-                            df = pd.DataFrame({'UMAP 1': self.adata.obsm['X_umap'][:,0], 'UMAP 2': self.adata.obsm['X_umap'][:,1], 'Doublet score': self.adata.obs.doublet_score})
+                            df = pd.DataFrame({'UMAP 1': st.session_state.adata_state.current.adata.obsm['X_umap'][:,0], 'UMAP 2': st.session_state.adata_state.current.adata.obsm['X_umap'][:,1], 'Doublet score': st.session_state.adata_state.current.adata.obs.doublet_score})
                             st.scatter_chart(df, x='UMAP 1', y='UMAP 2', color='Doublet score', size=10)
                         with distplot:
                             if batch_key:
-                                for i, batch in enumerate(self.adata.obs[batch_key].unique()):
+                                for i, batch in enumerate(st.session_state.adata_state.current.adata.obs[batch_key].unique()):
                                     line_colors = ['#31abe8', '#8ee065', '#eda621', '#f071bf', '#9071f0', '#71e3f0', '#2f39ed', '#ed2f7b']
-                                    fig = ff.create_distplot([self.adata.obs.doublet_score[self.adata.obs[batch_key] == batch]], group_labels=['doublet_score'], colors=[line_colors[i % len(line_colors)]], 
+                                    fig = ff.create_distplot([st.session_state.adata_state.current.adata.obs.doublet_score[st.session_state.adata_state.current.adata.obs[batch_key] == batch]], group_labels=['doublet_score'], colors=[line_colors[i % len(line_colors)]], 
                                         bin_size=0.02, show_rug=False, show_curve=False)
                                     fig.update_layout(yaxis_type="log") 
-                                    fig.add_vline(x=self.adata.uns['scrublet']["batches"][batch]['threshold'], line_color="red")
+                                    fig.add_vline(x=st.session_state.adata_state.current.adata.uns['scrublet']["batches"][batch]['threshold'], line_color="red")
                                     fig.update_layout(xaxis_title="Doublet score", yaxis_title="Probability density", title=f"Observed transcriptomes for batch {batch}")
                                     st.plotly_chart(fig, use_container_width=True)
                             else:
-                                fig = ff.create_distplot([self.adata.obs.doublet_score.values], group_labels=['doublet_score'], 
+                                fig = ff.create_distplot([st.session_state.adata_state.current.adata.obs.doublet_score.values], group_labels=['doublet_score'], 
                                     bin_size=0.02, show_rug=False, show_curve=False, colors=["#31abe8"])
                                 fig.update_layout(yaxis_type="log") 
-                                fig.add_vline(x=self.adata.uns['scrublet']['threshold'], line_color="red")
+                                fig.add_vline(x=st.session_state.adata_state.current.adata.uns['scrublet']['threshold'], line_color="red")
                                 fig.update_layout(xaxis_title="Doublet score", yaxis_title="Probability density", title="Observed transcriptomes")
                                 st.plotly_chart(fig, use_container_width=True)
                         with simulated_doublets:
                             st.write("To implement")
-                        #write to script state
-                            
-                        #make adata
-                        self.save_adata()
+                        
+                        # TODO: save to script state
                         st.toast("Run scrublet", icon="✅")
                 
                 except Exception as e:
@@ -960,13 +969,13 @@ class Preprocess:
             submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
             
 
-            if "doublet_doubletdetection" in self.adata.obs:
+            if "doublet_doubletdetection" in st.session_state.adata_state.current.adata.obs:
                 pca, umap, threshold  = st.tabs(['PCA', 'UMAP', 'Threshold'])
                 with pca:
-                    df = pd.DataFrame({'PCA 1': self.adata.obsm['X_pca'][:,0], 'PCA 2': self.adata.obsm['X_pca'][:,1], 'Predicted doublet': self.adata.obs.doublet_doubletdetection})
+                    df = pd.DataFrame({'PCA 1': st.session_state.adata_state.current.adata.obsm['X_pca'][:,0], 'PCA 2': st.session_state.adata_state.current.adata.obsm['X_pca'][:,1], 'Predicted doublet': st.session_state.adata_state.current.adata.obs.doublet_doubletdetection})
                     st.scatter_chart(df, x='PCA 1', y='PCA 2', color='Predicted doublet', size=10)
                 with umap:
-                    df = pd.DataFrame({'UMAP 1': self.adata.obsm['X_umap'][:,0], 'UMAP 2': self.adata.obsm['X_umap'][:,1], 'Predicted doublet': self.adata.obs.doublet_doubletdetection})
+                    df = pd.DataFrame({'UMAP 1': st.session_state.adata_state.current.adata.obsm['X_umap'][:,0], 'UMAP 2': st.session_state.adata_state.current.adata.obsm['X_umap'][:,1], 'Predicted doublet': st.session_state.adata_state.current.adata.obs.doublet_doubletdetection})
                     st.scatter_chart(df, x='UMAP 1', y='UMAP 2', color='Predicted doublet', size=10)
                 with threshold:
                     fig_heatmap = plot_doubletdetection_threshold_heatmap(clf=st.session_state.doubletdetection_clf, height=400)
@@ -984,25 +993,25 @@ class Preprocess:
                         n_jobs=-1,
                     )
                     st.session_state["doubletdetection_clf"] = clf
-                    doublets = clf.fit(self.adata.X).predict(p_thresh=1e-16, voter_thresh=voter_thresh)
+                    doublets = clf.fit(st.session_state.adata_state.current.adata.X).predict(p_thresh=1e-16, voter_thresh=voter_thresh)
                     doublet_score = clf.doublet_score()
 
-                    self.adata.obs["doublet_doubletdetection"] = doublets
-                    self.adata.obs["doublet_score_doubletdetection"] = doublet_score
+                    st.session_state.adata_state.current.adata.obs["doublet_doubletdetection"] = doublets
+                    st.session_state.adata_state.current.adata.obs["doublet_score_doubletdetection"] = doublet_score
 
-                    sc.pp.normalize_total(self.adata)
-                    sc.pp.log1p(self.adata)
-                    sc.pp.highly_variable_genes(self.adata)
-                    sc.tl.pca(self.adata)
-                    sc.pp.neighbors(self.adata)
-                    sc.tl.umap(self.adata)
+                    sc.pp.normalize_total(st.session_state.adata_state.current.adata)
+                    sc.pp.log1p(st.session_state.adata_state.current.adata)
+                    sc.pp.highly_variable_genes(st.session_state.adata_state.current.adata)
+                    sc.tl.pca(st.session_state.adata_state.current.adata)
+                    sc.pp.neighbors(st.session_state.adata_state.current.adata)
+                    sc.tl.umap(st.session_state.adata_state.current.adata)
 
                     pca, umap, threshold  = st.tabs(['PCA', 'UMAP', 'Threshold'])
                     with pca:
-                        df = pd.DataFrame({'PCA 1': self.adata.obsm['X_pca'][:,0], 'PCA 2': self.adata.obsm['X_pca'][:,1], 'Predicted doublet': self.adata.obs.doublet_doubletdetection})
+                        df = pd.DataFrame({'PCA 1': st.session_state.adata_state.current.adata.obsm['X_pca'][:,0], 'PCA 2': st.session_state.adata_state.current.adata.obsm['X_pca'][:,1], 'Predicted doublet': st.session_state.adata_state.current.adata.obs.doublet_doubletdetection})
                         st.scatter_chart(df, x='PCA 1', y='PCA 2', color='Predicted doublet', size=10)
                     with umap:
-                        df = pd.DataFrame({'UMAP 1': self.adata.obsm['X_umap'][:,0], 'UMAP 2': self.adata.obsm['X_umap'][:,1], 'Predicted doublet': self.adata.obs.doublet_doubletdetection})
+                        df = pd.DataFrame({'UMAP 1': st.session_state.adata_state.current.adata.obsm['X_umap'][:,0], 'UMAP 2': st.session_state.adata_state.current.adata.obsm['X_umap'][:,1], 'Predicted doublet': st.session_state.adata_state.current.adata.obs.doublet_doubletdetection})
                         st.scatter_chart(df, x='UMAP 1', y='UMAP 2', color='Predicted doublet', size=10)
                     with threshold:
                         fig_heatmap = plot_doubletdetection_threshold_heatmap(clf=st.session_state.doubletdetection_clf, height=400)
@@ -1034,16 +1043,18 @@ class Preprocess:
         """
         with st.form(key="regress_out_form"):
             st.subheader("Regress out", help="Uses linear regression to remove unwanted sources of variation.")
-            regress_keys = st.multiselect(label="Keys", options=self.adata.obs_keys(), key="ms_regress_out_keys")
+            regress_keys = st.multiselect(label="Keys", options=st.session_state.adata_state.current.adata.obs_keys(), key="ms_regress_out_keys")
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if submit_btn:
                 if st.session_state.ms_regress_out_keys:
-                    sc.pp.regress_out(self.adata, keys=regress_keys)
-                    #write to script state
+                    sc.pp.regress_out(st.session_state.adata_state.current.adata, keys=regress_keys)
+                   
                     st.session_state["script_state"].add_script(f"#Regress out\nsc.pp.regress_out(adata, keys={st.session_state.ms_regress_out_keys})")
                     st.toast("Successfully regressed out data", icon="✅")
-                    self.save_adata()
+                    
+                    # TODO: add to script state
+
                 else:
                     st.toast("No option selected, not regressing data.", icon="ℹ️")
             
@@ -1078,10 +1089,13 @@ class Preprocess:
             btn_scale_data_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if btn_scale_data_btn:
                 if st.session_state.ni_scale_data_max_value:
-                    sc.pp.scale(self.adata, zero_center=zero_center, max_value=max_value)
-                    #write to script state
-                    Scale.add_script(language=Language.ALL_SUPPORTED, max_value=max_value, zero_center=zero_center)
-                    self.save_adata()
+                    sc.pp.scale(st.session_state.adata_state.current.adata, zero_center=zero_center, max_value=max_value)
+                    
+                    self.state_manager \
+                        .add_adata(st.session_state.adata_state.current.adata) \
+                        .add_script(Scale(language=Language.ALL_SUPPORTED, max_value=max_value, zero_center=zero_center)) \
+                        .save_session()
+                    
                     st.toast("Successfully scaled data", icon="✅")
                 else:
                     st.toast("Max value cannot be blank", icon="❌")
@@ -1119,10 +1133,8 @@ class Preprocess:
                 subcol1, _, _ = st.columns(3)
                 btn_downsample_counts_per_cell = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_downsample_counts_per_cell:
-                    sc.pp.downsample_counts(self.adata, counts_per_cell=counts_per_cell, random_state=42)
-                    #write to script state
-                    st.session_state["script_state"].add_script(f"#Downsample dataset\nsc.pp.downsample_counts(adata, counts_per_cell={counts_per_cell})")
-                    self.save_adata()
+                    sc.pp.downsample_counts(st.session_state.adata_state.current.adata, counts_per_cell=counts_per_cell, random_state=42)
+                    # TODO: add to script state
                     st.toast("Successfully downsampled data per cell", icon="✅")
         with total_counts:
             with st.form(key="downsample_form_total_counts"):
@@ -1130,10 +1142,9 @@ class Preprocess:
                 subcol1, _, _ = st.columns(3)
                 btn_downsample_total_counts = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_downsample_total_counts:
-                    sc.pp.downsample_counts(self.adata, total_counts=total_counts, random_state=42)
-                    #write to script state
-                    st.session_state["script_state"].add_script(f"#Downsample dataset\nsc.pp.downsample_counts(adata, total_counts={total_counts})")
-                    self.save_adata()
+                    sc.pp.downsample_counts(st.session_state.adata_state.current.adata, total_counts=total_counts, random_state=42)
+                  
+                    # TODO: add to script state
                     st.toast("Successfully downsampled data by total counts", icon="✅")
 
             
@@ -1170,10 +1181,9 @@ class Preprocess:
                 subcol1, _, _ = st.columns(3)
                 btn_subsample_n_obs = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_subsample_n_obs:
-                    sc.pp.subsample(self.adata, n_obs=st.session_state.ni_n_obs, random_state=42)
-                    #write to script session
-                    st.session_state["script_state"].add_script(f"#Subsample dataset\nsc.pp.subsample(adata, n_obs={st.session_state.ni_n_obs}, fraction={st.session_state.ni_subsample_fraction})")
-                    self.save_adata()
+                    sc.pp.subsample(st.session_state.adata_state.current.adata, n_obs=st.session_state.ni_n_obs, random_state=42)
+
+                    # TODO: add to script state
                     st.toast("Successfully subsampled data", icon="✅")
         with fraction:
             with st.form(key="subsample_form_fraction"):
@@ -1181,10 +1191,9 @@ class Preprocess:
                 subcol1, _, _ = st.columns(3)
                 btn_subsample_fraction = subcol1.form_submit_button(label="Apply", use_container_width=True)
                 if btn_subsample_fraction:
-                    sc.pp.subsample(self.adata, fraction=st.session_state.ni_subsample_fraction, random_state=42)
-                    #write to script session
-                    st.session_state["script_state"].add_script(f"#Subsample dataset\nsc.pp.subsample(adata, n_obs={st.session_state.ni_n_obs}, fraction={st.session_state.ni_subsample_fraction})")
-                    self.save_adata()
+                    sc.pp.subsample(st.session_state.adata_state.current.adata, fraction=st.session_state.ni_subsample_fraction, random_state=42)
+
+                    # TODO: add to script state
                     st.toast("Successfully subsampled data", icon="✅")
                     
     def batch_effect_removal(self):
@@ -1214,19 +1223,18 @@ class Preprocess:
         with st.form(key="batch_effect_removal_form"):
             st.subheader("Batch effect correction", help="Uses Combat to correct non-biological differences caused by batch effect.")
             index = 0
-            for i, obs in enumerate(self.adata.obs_keys()):
+            for i, obs in enumerate(st.session_state.adata_state.current.adata.obs_keys()):
                 if obs.lower().replace("_", "").__contains__("batch"):
                     index = i
-            key = st.selectbox(label="Key", options=self.adata.obs_keys(), key="sb_batch_effect_key", index=index)
-            covariates = st.multiselect(placeholder="Optional", label="Covariates", options=self.adata.obs_keys())
+            key = st.selectbox(label="Key", options=st.session_state.adata_state.current.adata.obs_keys(), key="sb_batch_effect_key", index=index)
+            covariates = st.multiselect(placeholder="Optional", label="Covariates", options=st.session_state.adata_state.current.adata.obs_keys())
             subcol1, _, _ = st.columns(3)
             btn_batch_effect_removal = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if btn_batch_effect_removal:
                 with st.spinner(text="Running Combat batch effect correction"):
-                    sc.pp.combat(self.adata, key=key, covariates=covariates, inplace=True)
-                    #write to script state
+                    sc.pp.combat(st.session_state.adata_state.current.adata, key=key, covariates=covariates, inplace=True)
                     
-                self.save_adata()
+                # TODO: add to script state
                 st.toast("Batch corrected data", icon='✅')
                 
                 
@@ -1261,24 +1269,28 @@ class Preprocess:
                 
                
             index = 0      
-            for i, item in enumerate(self.adata.obs_keys()):
+            for i, item in enumerate(st.session_state.adata_state.current.adata.obs_keys()):
                   if item.lower().replace("_", "").__contains__("batch"): #give precedence to batch if present since it is relevant to preprocessing
                       index = i           
-            pca_color = st.selectbox(label="Color", options=self.adata.obs_keys(), key="sb_pca_color_pp", index=index)
+            pca_color = st.selectbox(label="Color", options=st.session_state.adata_state.current.adata.obs_keys(), key="sb_pca_color_pp", index=index)
             subcol1, _, _ = st.columns(3)
             pca_pp_btn = subcol1.form_submit_button("Apply", use_container_width=True)
             pca_empty = st.empty()
             
             if st.session_state["preprocess_plots"]["pca"] == None:
-                run_pca(self.adata)
+                run_pca(st.session_state.adata_state.current.adata)
 
             pca_empty.empty()
             pca_empty.scatter_chart(data=st.session_state["preprocess_plots"]["pca"]['df'], x='pca1', y='pca2', color='color', size=18)
             
             if pca_pp_btn:
-                # add script
-                PCA.add_script(Language.ALL_SUPPORTED, color=pca_color)
-                run_pca(self.adata)
+                run_pca(st.session_state.adata_state.current.adata)
+
+                self.state_manager \
+                    .add_adata(st.session_state.adata_state.current.adata) \
+                    .add_script(PCA(language=Language.ALL_SUPPORTED, color=pca_color)) \
+                    .save_session()
+                
                 pca_empty.empty()
                 pca_empty.scatter_chart(data=st.session_state["preprocess_plots"]["pca"]['df'], x='pca1', y='pca2', color='color', size=18)
                 
@@ -1327,36 +1339,36 @@ class Preprocess:
         with single_dataset:
             with st.form(key="measure_gene_counts_single_dataset"):
                 st.subheader("Collective counts across dataset")
-                options = self.adata.var_names
+                options = st.session_state.adata_state.current.adata.var_names
                 genes = st.multiselect(label="Gene (e.g. XIST for detecting sex)", options=options)
                 subcol_btn1, _, _ = st.columns(3)
                 submit_btn = subcol_btn1.form_submit_button(label="Run", use_container_width=True)
                 if submit_btn:
                     with st.spinner(text="Locating genes"):
-                        df_whole_ds = pd.DataFrame({'genes': genes, 'counts': [self.adata.to_df()[gene].sum() for gene in genes]})
+                        df_whole_ds = pd.DataFrame({'genes': genes, 'counts': [st.session_state.adata_state.current.adata.to_df()[gene].sum() for gene in genes]})
                         st.bar_chart(df_whole_ds, x='genes', y='counts', color='genes')
                         #write to script state
                         st.session_state["script_state"].add_script("#Measure gene counts in single dataset")
-                        # st.session_state["script_state"].add_script(f"df_whole_ds = pd.DataFrame({{'genes': {genes}, 'counts': {[self.adata.to_df()[gene].sum() for gene in genes]}}})")
+                        # st.session_state["script_state"].add_script(f"df_whole_ds = pd.DataFrame({{'genes': {genes}, 'counts': {[st.session_state.adata_state.current.adata.to_df()[gene].sum() for gene in genes]}}})")
                         # st.session_state["script_state"].add_script(f"arr = np.array(['{st.session_state.adata_state.current.adata_name}'])")
                         # st.session_state["script_state"].add_script(f"df = pd.DataFrame('{gene} count': adata.obs['gene-counts'], 'Dataset': np.repeat(arr, adata.n_obs))")
         with subsample:
             with st.form(key="measure_gene_counts_multiple_datasets"):
                 st.subheader("Subsample counts in dataset")
-                gene_options = self.adata.var_names
-                batch_key_measure_gene_counts = st.selectbox(label="Obs key", options=self.adata.obs_keys(), key="sb_sex_pred_batch_key")
+                gene_options = st.session_state.adata_state.current.adata.var_names
+                batch_key_measure_gene_counts = st.selectbox(label="Obs key", options=st.session_state.adata_state.current.adata.obs_keys(), key="sb_sex_pred_batch_key")
                 gene = st.selectbox(label="Gene (e.g. XIST for detecting sex)", options=gene_options)
                 subcol_btn1, _, _ = st.columns(3)
                 submit_btn = subcol_btn1.form_submit_button(label="Run", use_container_width=True)
                 if submit_btn:
                     with st.spinner(text="Locating genes"):
-                        df_subsample = pd.DataFrame({f'{gene} count': self.adata.to_df()[gene], f"{batch_key_measure_gene_counts}": self.adata.obs[f"{batch_key_measure_gene_counts}"]})
+                        df_subsample = pd.DataFrame({f'{gene} count': st.session_state.adata_state.current.adata.to_df()[gene], f"{batch_key_measure_gene_counts}": st.session_state.adata_state.current.adata.obs[f"{batch_key_measure_gene_counts}"]})
                         st.bar_chart(data=df_subsample, x=f"{batch_key_measure_gene_counts}", y=f'{gene} count', color=f"{batch_key_measure_gene_counts}")
                         #write to script state
                         st.session_state["script_state"].add_script("#Measure gene counts across datasets")
                         st.session_state["script_state"].add_script(f"gene = {gene}")
                         st.session_state["script_state"].add_script(f" batch_key_measure_gene_counts = {batch_key_measure_gene_counts}")
-                        st.session_state["script_state"].add_script(f"df_subsample = pd.DataFrame({{f'{{gene}} count': self.adata.to_df()[gene], f'{{batch_key_measure_gene_counts}}': self.adata.obs[f'{{batch_key_measure_gene_counts}}']}})")
+                        st.session_state["script_state"].add_script(f"df_subsample = pd.DataFrame({{f'{{gene}} count': st.session_state.adata_state.current.adata.to_df()[gene], f'{{batch_key_measure_gene_counts}}': st.session_state.adata_state.current.adata.obs[f'{{batch_key_measure_gene_counts}}']}})")
                   
     def cell_cycle_scoring(self):
         """
@@ -1467,7 +1479,7 @@ class Preprocess:
                 phase_column = form_col2.selectbox(label="Phase column", options=df.columns, help="Specify which column contains the phase (e.g. s phase)", key="sb_phase_col_cell_cycle")
                 
                 form_col3.write("Plot")
-                group_by = form_col3.selectbox(label="Group by", options=np.append('None', self.adata.obs_keys()), key="sb_group_cell_cycle")
+                group_by = form_col3.selectbox(label="Group by", options=np.append('None', st.session_state.adata_state.current.adata.obs_keys()), key="sb_group_cell_cycle")
                 plot_col1, plot_col2 = form_col3.columns(2)
                 bandwidth = plot_col1.number_input(label="Bandwidth", min_value=0.1, max_value=1.0, value=0.4, step=0.1)
                 jitter = plot_col2.number_input(label="Jitter", min_value=0.1, max_value=1.0, value=0.4, step=0.1)
@@ -1490,14 +1502,14 @@ class Preprocess:
                     s_genes = df[s_genes].iloc[:, gene_column_index].values
                     g2m_genes = df[g2m_genes].iloc[:, gene_column_index].values
 
-                    #cell_cycle_genes = [x for x in cell_cycle_genes if x in self.adata.var_names]
-                    self.adata.raw = self.adata
-                    sc.pp.normalize_per_cell(self.adata, counts_per_cell_after=1e4)
-                    sc.pp.log1p(self.adata)
-                    sc.pp.scale(self.adata)
+                    #cell_cycle_genes = [x for x in cell_cycle_genes if x in st.session_state.adata_state.current.adata.var_names]
+                    st.session_state.adata_state.current.adata.raw = st.session_state.adata_state.current.adata
+                    sc.pp.normalize_per_cell(st.session_state.adata_state.current.adata, counts_per_cell_after=1e4)
+                    sc.pp.log1p(st.session_state.adata_state.current.adata)
+                    sc.pp.scale(st.session_state.adata_state.current.adata)
                     if group_by == 'None':
                         group_by = None
-                    sc.tl.score_genes_cell_cycle(self.adata, s_genes=s_genes, g2m_genes=g2m_genes)
+                    sc.tl.score_genes_cell_cycle(st.session_state.adata_state.current.adata, s_genes=s_genes, g2m_genes=g2m_genes)
 
 
                     violin_tab, scores_tab, pca_tab = st.tabs(['Violin plot', 'Scores', 'PCA'])
@@ -1505,19 +1517,19 @@ class Preprocess:
                     with violin_tab:
 
                         #using matplotlib
-                        #cell_cycle_ax = sc.pl.violin(self.adata, ['S_score', 'G2M_score'], jitter=0.4, groupby = group_by, rotation=45)
+                        #cell_cycle_ax = sc.pl.violin(st.session_state.adata_state.current.adata, ['S_score', 'G2M_score'], jitter=0.4, groupby = group_by, rotation=45)
                         #cell_cycle_container.pyplot(cell_cycle_ax)
 
                         fig = go.Figure()
 
-                        s_score_df = pd.DataFrame({'phase': np.repeat('S_score', len(self.adata.obs['S_score'])), 'score': self.adata.obs['S_score']})
-                        g2m_score_df = pd.DataFrame({'phase': np.repeat('G2M_score', len(self.adata.obs['G2M_score'])), 'score': self.adata.obs['G2M_score']})
+                        s_score_df = pd.DataFrame({'phase': np.repeat('S_score', len(st.session_state.adata_state.current.adata.obs['S_score'])), 'score': st.session_state.adata_state.current.adata.obs['S_score']})
+                        g2m_score_df = pd.DataFrame({'phase': np.repeat('G2M_score', len(st.session_state.adata_state.current.adata.obs['G2M_score'])), 'score': st.session_state.adata_state.current.adata.obs['G2M_score']})
 
                         violin_df = pd.concat([s_score_df, g2m_score_df])
 
                         if group_by != None:
 
-                            violin_df["group"] = self.adata.obs[group_by]
+                            violin_df["group"] = st.session_state.adata_state.current.adata.obs[group_by]
 
                             fig.add_trace(go.Violin(x=violin_df['group'][violin_df['phase'] == 'S_score'], 
                                 y=violin_df['score'][violin_df['phase'] == 'S_score'],
@@ -1558,14 +1570,15 @@ class Preprocess:
 
 
                     with scores_tab:
-                        df_pca = pd.DataFrame({ 'G2M_score': self.adata.obs['G2M_score'], 'S_score': self.adata.obs['S_score'], 'Phase': self.adata.obs.phase }) 
+                        df_pca = pd.DataFrame({ 'G2M_score': st.session_state.adata_state.current.adata.obs['G2M_score'], 'S_score': st.session_state.adata_state.current.adata.obs['S_score'], 'Phase': st.session_state.adata_state.current.adata.obs.phase }) 
                         st.scatter_chart(df_pca, x='G2M_score', y='S_score', color='Phase', size=12, height=600) 
 
 
                     with pca_tab:
 
-                        df_pca = pd.DataFrame({ 'PCA1': self.adata.obsm['X_pca'][:,0], 'PCA2': self.adata.obsm['X_pca'][:,1], 'Phase': self.adata.obs.phase }) 
+                        df_pca = pd.DataFrame({ 'PCA1': st.session_state.adata_state.current.adata.obsm['X_pca'][:,0], 'PCA2': st.session_state.adata_state.current.adata.obsm['X_pca'][:,1], 'Phase': st.session_state.adata_state.current.adata.obs.phase }) 
                         st.scatter_chart(df_pca, x='PCA1', y='PCA2', color='Phase', size=12, height=600) 
+
 
 
 try:
@@ -1573,7 +1586,7 @@ try:
     
     sidebar.show()
     
-    preprocess = Preprocess(st.session_state.adata_state.current.adata.copy())
+    preprocess = Preprocess()
 
     col1, col2, col3 = st.columns(3, gap="medium")
 
@@ -1612,5 +1625,10 @@ try:
 
 
 except Exception as e:
-    print('Error: ', e)
-    st.error(e)
+    if(st.session_state == {}):
+        StateManager().load_session()
+        st.rerun()
+    else:
+        st.toast(e, icon="❌")
+
+    

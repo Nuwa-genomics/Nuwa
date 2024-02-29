@@ -6,9 +6,11 @@ from models.WorkspaceModel import WorkspaceModel
 from scripts.Script import Script
 from utils.session_cache import cache_data_to_session, load_data_from_cache
 import scanpy as sc
+from database.schemas import schemas
 import os
 import streamlit as st
 from anndata import AnnData
+from database.database import SessionLocal
 
 class StateManager:
     """
@@ -27,8 +29,21 @@ class StateManager:
             self.add_adata = adata
         return self
 
-    def load_session():
-        raise NotImplementedError
+    def load_session(self):
+
+        # fetch cache file from db
+        if "current_workspace" in st.session_state:
+            current_workspace_id = st.session_state.current_workspace.id
+        else:
+            current_workspace_id = os.getenv('CURRENT_WORKSPACE_ID')
+
+        conn = SessionLocal()
+        cache_file = conn.query(schemas.Workspaces) \
+            .filter(schemas.Workspaces.id == current_workspace_id) \
+            .first() \
+            .cache_file
+        
+        load_data_from_cache(cache_file)
     
 
     def save_session(self):
@@ -39,11 +54,14 @@ class StateManager:
         """ 
         # write adata h5ad object to file
         if hasattr(self, 'adata'):
+
             sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'adata', st.session_state.adata_state.current.adata_name), adata=self.adata)
+            st.session_state.adata_state.current.adata = self.adata
         
         # add script if present
         if hasattr(self, 'script'):
             self.script.add_script()
+
 
         # cache data to pickle file
         cache_data_to_session()

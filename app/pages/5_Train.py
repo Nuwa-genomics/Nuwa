@@ -10,6 +10,7 @@ from models.AdataModel import AdataModel
 from components.sidebar import *
 from state.AdataState import AdataState
 import os
+from state.StateManager import StateManager
 
 st.set_page_config(page_title='Nuwa', page_icon='🧬', layout="centered")
 
@@ -128,15 +129,12 @@ try:
     train.train()
 
     
-  
-
-except KeyError as ke:
-    print("KeyError: ", ke)
-    st.error("Couldn't find adata object in session, have you uploaded one?")
-    
 except Exception as e:
-    print("Error: ")
-    st.error(e)
+    if(st.session_state == {}):
+        StateManager().load_session()
+        st.rerun()
+    else:
+        st.toast(e, icon="❌")
 
 
 

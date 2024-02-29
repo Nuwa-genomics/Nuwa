@@ -15,6 +15,7 @@ import torch
 from components.sidebar import *
 from models.AdataModel import AdataModel
 from state.AdataState import AdataState
+from state.StateManager import StateManager
 
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
@@ -344,9 +345,9 @@ try:
     sidebar.delete_experiment_btn()
     sidebar.show_version()
     
-except KeyError as ke:
-    print("KeyError: ", ke)
-    st.error("Couldn't find adata object in session, have you uploaded one?")
 except Exception as e:
-    print("Error: ", e)
-    st.error(e)
+    if(st.session_state == {}):
+        StateManager().load_session()
+        st.rerun()
+    else:
+        st.toast(e, icon="❌")
