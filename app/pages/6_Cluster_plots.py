@@ -23,6 +23,7 @@ from database.schemas import schemas
 from state.AdataState import AdataState
 from database.database import SessionLocal
 import os
+from state.StateManager import StateManager
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -534,6 +535,9 @@ try:
     sidebar.show_version()
 
 
-except KeyError as ke:
-    print("KeyError: ", ke)
-    st.error(ke)
+except Exception as e:
+    if(st.session_state == {}):
+        StateManager().load_session()
+        st.rerun()
+    else:
+        st.toast(e, icon="❌")

@@ -10,6 +10,7 @@ from models.AdataModel import AdataModel
 from components.sidebar import *
 import os
 from utils.paga import *
+from state.StateManager import StateManager
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -411,9 +412,13 @@ try:
     sidebar.delete_experiment_btn()
     sidebar.show_version()
 
-except KeyError as ke:
-    print("KeyError: ", ke)
-    st.error(ke)
+
+except Exception as e:
+    if(st.session_state == {}):
+        StateManager().load_session()
+        st.rerun()
+    else:
+        st.toast(e, icon="❌")
 
 
 

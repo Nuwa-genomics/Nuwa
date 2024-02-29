@@ -12,6 +12,7 @@ class Workspaces(Base):
     data_dir = Column(String, nullable=False, unique=True)
     created = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
     description = Column(String, nullable=True)
+    cache_file = Column(String, nullable=True)
 
 class Adata(Base):
     __tablename__ = "adata"

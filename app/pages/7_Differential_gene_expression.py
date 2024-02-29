@@ -11,6 +11,7 @@ from matplotlib_venn import venn3
 import altair as alt
 import plotly.graph_objects as go
 from utils.plotting import plot_top_ranked_genes
+from state.StateManager import StateManager
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -563,9 +564,9 @@ try:
     sidebar.delete_experiment_btn()
     sidebar.show_version()
     
-except KeyError as ke:
-    print("KeyError: ", ke)
-    st.error("Couldn't find adata object in session, have you uploaded one?")
 except Exception as e:
-    print("Error: ", e)
-    st.error(e)
+    if(st.session_state == {}):
+        StateManager().load_session()
+        st.rerun()
+    else:
+        st.toast(e, icon="❌")

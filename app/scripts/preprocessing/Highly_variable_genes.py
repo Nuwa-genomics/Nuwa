@@ -2,46 +2,60 @@ from models.ScriptModel import Language
 import streamlit as st
 from state.ScriptState import ScriptState
 import numpy as np
+from scripts.Script import Script
 
-class Highly_variable_genes:
+class Highly_variable_genes(Script):
     """
     Exports a python or R script for computing highly variable genes.
     """
 
-    @staticmethod
-    def add_script(language: Language | str, min_mean: float, max_mean: float, min_disp: float = 0.5, max_disp=np.Inf, n_top_genes: int = 2000, span=0.3, object: str = None):
+    def __init__(self, language: Language | str, 
+        min_mean: float, 
+        max_mean: float, 
+        min_disp: float = 0.5, 
+        max_disp=np.Inf, 
+        n_top_genes: int = 2000, 
+        span=0.3, 
+        object: str = None):
 
-        script_state: ScriptState = st.session_state.script_state
+        super().__init__(language=language)
+        
+        self.min_mean = min_mean
+        self.max_mean = max_mean
+        self.min_disp = min_disp
+        self.max_disp = max_disp
+        self.n_top_genes = n_top_genes
+        self.span = span
+        self.object = object
 
-        if language == Language.R or language == Language.R.value or language == Language.ALL_SUPPORTED:
-            if object == None:
-                object = "pbmc.data"
+
+    def add_script(self):
+
+        if self.language == Language.R or self.language == Language.R.value or self.language == Language.ALL_SUPPORTED:
+            if self.object == None:
+                self.object = "pbmc.data"
             script = f""" \
             \n#Compute highly variable genes. This uses the FindVariableFeatures method in seurat \
             \n#If you have been using bioconductor's sce object you will need to reload it in as a seurat object. \
-            \n{object} <- Read10X(data.dir = 'path_to_mtx_files') \
-            \n{object} <- CreateSeuratObject(counts = {object}, project = 'pbmc3k') \
+            \n{self.object} <- Read10X(data.dir = 'path_to_mtx_files') \
+            \n{self.object} <- CreateSeuratObject(counts = {self.object}, project = 'pbmc3k') \
             \n#Log normalize \
-            \n{object} <- NormalizeData({object}, normalization.method = 'LogNormalize', scale.factor = 10000) \
-            \n{object} <- FindVariableFeatures({object}, selection.method = 'dispersion', nfeatures = {n_top_genes}, mean.cutoff = c({min_mean}, {max_mean}), dispersion.cutoff = c({min_disp}, {max_disp}), loess.span={span}) \
+            \n{self.object} <- NormalizeData({self.object}, normalization.method = 'LogNormalize', scale.factor = 10000) \
+            \n{self.object} <- FindVariableFeatures({self.object}, selection.method = 'dispersion', nfeatures = {self.n_top_genes}, mean.cutoff = c({self.min_mean}, {self.max_mean}), dispersion.cutoff = c({self.min_disp}, {self.max_disp}), loess.span={self.span}) \
             \n# create plot \
-            \nplot_highly_variable <- VariableFeaturePlot({object}) \
+            \nplot_highly_variable <- VariableFeaturePlot({self.object}) \
             \nplot_highly_variable
             """
-            script_state.add_script(script, language=Language.R)
+            self.script_state.add_script(script, language=Language.R)
 
-        if language == Language.python or language == Language.python.value or language == Language.ALL_SUPPORTED:
-            if object == None:
-                object = "adata"
+        if self.language == Language.python or self.language == Language.python.value or self.language == Language.ALL_SUPPORTED:
+            if self.object == None:
+                self.object = "adata"
             script = f""" \
             \n#Filter highly variable genes \
-            \nsc.pp.normalize_total({object}, target_sum=1e4) \
-            \nsc.pp.log1p({object}) \
-            \nsc.pp.highly_variable_genes({object}, min_mean={min_mean}, max_mean={max_mean}, min_disp={min_disp}, max_disp={max_disp}, n_top_genes={n_top_genes}, span={span}) \
-            \nsc.pl.highly_variable_genes({object})
+            \nsc.pp.normalize_total({self.object}, target_sum=1e4) \
+            \nsc.pp.log1p({self.object}) \
+            \nsc.pp.highly_variable_genes({self.object}, min_mean={self.min_mean}, max_mean={self.max_mean}, min_disp={self.min_disp}, max_disp={self.max_disp}, n_top_genes={self.n_top_genes}, span={self.span}) \
+            \nsc.pl.highly_variable_genes({self.object})
             """
-            script_state.add_script(script, language=Language.python)
-
-        if not isinstance(language, Language):
-            print("Error: Unknown language, not adding to script state")
-            return
+            self.script_state.add_script(script, language=Language.python)

@@ -27,7 +27,7 @@ class AdataState:
             current: schemas.Adata = db_adatas.first()
             self.current = AdataModel(work_id=current.work_id, adata_name=current.adata_name, created=current.created, notes=current.notes, id=current.id, filename=current.filename)
 
-        #add original adata to object
+        # add original adata to object
         self.current.adata = active.adata
         #set current to newly created adata
         self.current_index = self.get_index_of_current()

@@ -12,6 +12,7 @@ from utils.plotting import plot_ripley, plot_co_occurrence, plot_centrality_scor
 from models.AdataModel import AdataModel
 from components.sidebar import *
 from state.AdataState import AdataState
+from state.StateManager import StateManager
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
 
@@ -456,6 +457,10 @@ try:
     sidebar.delete_experiment_btn()
     sidebar.show_version()
 
-except KeyError as ke:
-    st.error("KeyError: ", ke)
+except Exception as e:
+    if(st.session_state == {}):
+        StateManager().load_session()
+        st.rerun()
+    else:
+        st.toast(e, icon="❌")
 

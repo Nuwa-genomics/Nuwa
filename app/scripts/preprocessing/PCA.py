@@ -2,38 +2,39 @@ from models.ScriptModel import Language
 import streamlit as st
 from state.ScriptState import ScriptState
 import numpy as np
+from scripts.Script import Script
 
-class PCA:
+class PCA(Script):
     """
     Exports a python or R script for computing pca.
     """
 
-    @staticmethod
-    def add_script(language: Language | str, object: str = None, color: str = None):
+    def __init__(self, language: Language | str, color: str = None, object: str = None):
+        super().__init__(language=language)
+        
+        self.color = color
+        self.object = object
 
-        script_state: ScriptState = st.session_state.script_state
 
-        if language == Language.R or language == Language.R.value or language == Language.ALL_SUPPORTED:
-            if object == None:
-                object = "pbmc"
+    def add_script(self):
+
+        if self.language == Language.R or self.language == Language.R.value or self.language == Language.ALL_SUPPORTED:
+            if self.object == None:
+                self.object = "pbmc"
             script = f""" \
             \n#Compute pca \
-            \npbmc <- RunPCA({object}, features = VariableFeatures(object = {object})) \
-            \nVizDimLoadings({object}, dims = 1:2, reduction = "pca") \
-            \nDimPlot({object}, reduction = "pca") + NoLegend() \
+            \npbmc <- RunPCA({self.object}, features = VariableFeatures(object = {self.object})) \
+            \nVizDimLoadings({self.object}, dims = 1:2, reduction = "pca") \
+            \nDimPlot({self.object}, reduction = "pca") + NoLegend() \
             """
-            script_state.add_script(script, language=Language.R)
+            self.script_state.add_script(script, language=Language.R)
 
-        if language == Language.python or language == Language.python.value or language == Language.ALL_SUPPORTED:
-            if object == None:
-                object = "adata"
+        if self.language == Language.python or self.language == Language.python.value or self.language == Language.ALL_SUPPORTED:
+            if self.object == None:
+                self.object = "adata"
             script = f""" \
             \n# Compute PCA \
-            \nsc.pp.pca({object}, svd_solver="arpack", random_state=42)
-            \nsc.pl.pca({object}, color={color})
+            \nsc.pp.pca({self.object}, svd_solver="arpack", random_state=42)
+            \nsc.pl.pca({self.object}, color={self.color})
             """
-            script_state.add_script(script, language=Language.python)
-
-        if not isinstance(language, Language):
-            print("Error: Unknown language, not adding to script state")
-            return
+            self.script_state.add_script(script, language=Language.python)
