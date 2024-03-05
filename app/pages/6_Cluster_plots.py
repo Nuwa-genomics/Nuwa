@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 
 from ml.citeseq.dataset import TabularDataset
@@ -9,7 +8,6 @@ from ml.solo_scvi.solo_model import solo_model
 from ml.DeepST.deepst.main import *
 import plotly.express as px
 from ml.solo_scvi.utils import *
-
 import pandas as pd
 
 import scanpy as sc
@@ -18,9 +16,7 @@ import umap.umap_ as umap
 from utils.plotting import get_color_embeddings_from_key
 
 from components.sidebar import *
-from models.AdataModel import AdataModel
 from database.schemas import schemas
-from state.AdataState import AdataState
 from database.database import SessionLocal
 import os
 from state.StateManager import StateManager
@@ -52,13 +48,11 @@ class Cluster_plots:
     -----
     .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/cluster_plots_page.png
     """
-    def __init__(self, adata):
+    def __init__(self):
 
         st.title("Cluster plots")
 
         self.col1, self.col2, self.col3 = st.columns(3)
-
-        self.adata = adata
 
         self.conn: SessionLocal = SessionLocal()
 
@@ -69,19 +63,6 @@ class Cluster_plots:
             st.session_state["cluster_plots"] = dict(pca=None, tsne=None, autoencoder=None, umap=None, variance_ratio=None)
 
 
-    def save_adata(self, name):
-        try:
-            new_adata = schemas.Adata(
-                work_id=int(st.session_state.current_workspace.id),
-                adata_name=f"{name}",
-                filename=os.path.join(os.getenv('WORKDIR'), "adata", f"{name}.h5ad"),
-                notes=st.session_state.adata_state.current.notes
-            )
-            self.conn.add(new_adata)
-            self.conn.commit()
-            self.conn.refresh(new_adata)
-        except Exception as e:
-            print(e)
 
     def _autoencoder_cluster_plot(self, colors):
 
@@ -90,10 +71,10 @@ class Cluster_plots:
             device = st.session_state["device"]
             
             if st.session_state["cluster_plots"]["autoencoder"] == None:
-                sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
-                sc.tl.leiden(self.adata)
+                sc.pp.neighbors(st.session_state.adata_state.current.adata, n_neighbors=10, n_pcs=40)
+                sc.tl.leiden(st.session_state.adata_state.current.adata)
 
-            rna_df_original = self.adata.to_df()
+            rna_df_original = st.session_state.adata_state.current.adata.to_df()
             rna_df = rna_df_original.reset_index(drop=True)
 
             test_ds = TabularDataset(rna_df.to_numpy(dtype=np.float32))
@@ -101,7 +82,7 @@ class Cluster_plots:
 
             encodings = get_encodings(trained_model, test_dl, device)
             encodings = encodings.cpu().numpy()
-            metadata_df = self.adata.obs
+            metadata_df = st.session_state.adata_state.current.adata.obs
             cell_ids = rna_df_original.index.values
             plot_df = metadata_df.loc[metadata_df.index.isin(cell_ids)]
             embedding2d = umap.UMAP(random_state=0).fit_transform(encodings)
@@ -149,7 +130,7 @@ class Cluster_plots:
                         with st.form(key="citeseq_form"):
                             st.subheader("Autoencoder Clusters")
                             
-                            options = np.append(self.adata.obs_keys(), self.adata.var_names)
+                            options = np.append(st.session_state.adata_state.current.adata.obs_keys(), st.session_state.adata_state.current.adata.var_names)
                             colors = st.multiselect(label="Colour", options=options, default='leiden')
 
                             if "losses" in st.session_state:
@@ -174,7 +155,7 @@ class Cluster_plots:
                             
                             with st.spinner("Loading Solo doublet predictions"):
                                 
-                                df_solo = pd.DataFrame({'UMAP1': self.adata.obsm['X_umap'][:,0], 'UMAP2': self.adata.obsm['X_umap'][:,1]})
+                                df_solo = pd.DataFrame({'UMAP1': st.session_state.adata_state.current.adata.obsm['X_umap'][:,0], 'UMAP2': st.session_state.adata_state.current.adata.obsm['X_umap'][:,1]})
                             
                                 st.session_state["cluster_plots"]["autoencoder"] = dict(df=df_solo, x="UMAP1", y="UMAP2", color_keys=['prediction'], size=self.MARKER_SIZE)
                                 
@@ -189,8 +170,7 @@ class Cluster_plots:
                                 submit_btn = subcol1.form_submit_button(label="Filter doublets", use_container_width=True)
                                 
                                 if submit_btn:
-                                    self.adata = self.adata[self.adata.obs.prediction == 'singlet']
-                                    self.save_adata(name="adata_solo")
+                                    st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata[st.session_state.adata_state.current.adata.obs.prediction == 'singlet']
                                     st.toast("Removed doublet predictions", icon='✅')
 
 
@@ -202,11 +182,11 @@ class Cluster_plots:
 
 
     def _do_pca(self, zero_center = True):
-        sc.tl.pca(self.adata, zero_center=zero_center, svd_solver='arpack', random_state=42)
+        sc.tl.pca(st.session_state.adata_state.current.adata, zero_center=zero_center, svd_solver='arpack', random_state=42)
         use_raw = True
-        if self.adata.raw:
-            for var in self.adata.var_names:
-                if not (self.adata.raw.var_names.__contains__(var)):
+        if st.session_state.adata_state.current.adata.raw:
+            for var in st.session_state.adata_state.current.adata.var_names:
+                if not (st.session_state.adata_state.current.adata.raw.var_names.__contains__(var)):
                     use_raw = False
                     st.info("Gene ID format has been changed, setting 'use_raw' to false.")
                     # TODO: decide how to handle use_raw for streamlit plots
@@ -239,10 +219,10 @@ class Cluster_plots:
 
                 with st.form(key="pca_cluster_form"):
                     st.subheader("PCA")
-                    pca_colors = st.multiselect(label="Color", options=np.append(self.adata.obs_keys(), self.adata.var_names), default=(self.adata.var_names[0]), key="ms_pca_gene", max_selections=24)
+                    pca_colors = st.multiselect(label="Color", options=np.append(st.session_state.adata_state.current.adata.obs_keys(), st.session_state.adata_state.current.adata.var_names), default=(st.session_state.adata_state.current.adata.var_names[0]), key="ms_pca_gene", max_selections=24)
 
                     zero_center = st.toggle(label="zero center", value=True)
-                    df_pca = pd.DataFrame({'PCA1': self.adata.obsm['X_pca'][:,0], 'PCA2': self.adata.obsm['X_pca'][:,1]})  
+                    df_pca = pd.DataFrame({'PCA1': st.session_state.adata_state.current.adata.obsm['X_pca'][:,0], 'PCA2': st.session_state.adata_state.current.adata.obsm['X_pca'][:,1]})  
                     st.session_state["cluster_plots"]["pca"] = dict(df=df_pca, color_keys=np.array([pca_colors]).flatten(), x="PCA1", y="PCA2", size=self.MARKER_SIZE)
 
                     subcol1, _, _ = st.columns(3)
@@ -250,7 +230,7 @@ class Cluster_plots:
                     if submit_btn:
                         with st.spinner("Computing PCA coordinates"):
                             self._do_pca(zero_center=zero_center)
-                            df_pca = pd.DataFrame({'PCA1': self.adata.obsm['X_pca'][:,0], 'PCA2': self.adata.obsm['X_pca'][:,1]})  
+                            df_pca = pd.DataFrame({'PCA1': st.session_state.adata_state.current.adata.obsm['X_pca'][:,0], 'PCA2': st.session_state.adata_state.current.adata.obsm['X_pca'][:,1]})  
                             st.session_state["cluster_plots"]["pca"] = dict(df=df_pca, color_keys=np.array([pca_colors]).flatten(), x="PCA1", y="PCA2", size=self.MARKER_SIZE)
                             st.toast("Recomputed PCA", icon="✅")
 
@@ -324,9 +304,9 @@ class Cluster_plots:
                 st.error(e)
 
     def _do_tSNE(self, perplexity):
-        sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
-        sc.tl.leiden(self.adata) 
-        sc.tl.tsne(self.adata, perplexity=perplexity)  
+        sc.pp.neighbors(st.session_state.adata_state.current.adata, n_neighbors=10, n_pcs=40)
+        sc.tl.leiden(st.session_state.adata_state.current.adata) 
+        sc.tl.tsne(st.session_state.adata_state.current.adata, perplexity=perplexity)  
 
 
     def tsne_graph(self):
@@ -363,11 +343,11 @@ class Cluster_plots:
 
                     st.subheader("tSNE")
                     
-                    options = np.append(self.adata.obs_keys(), self.adata.var_names)
+                    options = np.append(st.session_state.adata_state.current.adata.obs_keys(), st.session_state.adata_state.current.adata.var_names)
                     tsne_colors = st.multiselect(label="Colour", options=options, default='leiden')
                     perplexity = st.number_input(label="Perplexity", min_value=1, value=30)
 
-                    df_tsne = pd.DataFrame({'tSNE1': self.adata.obsm['X_tsne'][:,0], 'tSNE2': self.adata.obsm['X_tsne'][:,1]})  
+                    df_tsne = pd.DataFrame({'tSNE1': st.session_state.adata_state.current.adata.obsm['X_tsne'][:,0], 'tSNE2': st.session_state.adata_state.current.adata.obsm['X_tsne'][:,1]})  
                     st.session_state["cluster_plots"]["tsne"] = dict(df=df_tsne, color_keys=np.array([tsne_colors]).flatten(), x="tSNE1", y="tSNE2", size=self.MARKER_SIZE)
 
                     subcol1, _, _ = st.columns(3)
@@ -377,7 +357,7 @@ class Cluster_plots:
                         with st.spinner("Computing tSNE coordinates"):
                             # Perplexity may have changed in form so recompute tSNE before plotting
                             self._do_tsne(perplexity=perplexity)
-                            df_tsne = pd.DataFrame({'tSNE1': self.adata.obsm['X_tsne'][:,0], 'tSNE2': self.adata.obsm['X_tsne'][:,1]})  
+                            df_tsne = pd.DataFrame({'tSNE1': st.session_state.adata_state.current.adata.obsm['X_tsne'][:,0], 'tSNE2': st.session_state.adata_state.current.adata.obsm['X_tsne'][:,1]})  
                             st.session_state["cluster_plots"]["tsne"] = dict(df=df_tsne, color_keys=np.array([tsne_colors]).flatten(), x="tSNE1", y="tSNE2", size=self.MARKER_SIZE)
                         
             except Exception as e:
@@ -386,11 +366,11 @@ class Cluster_plots:
 
     def _do_umap(self, resolution = 1, n_neighbors = 10, n_pcs = 40):
         #TODO: the use_raw may need to be set to false if gene symbols change
-        sc.pp.neighbors(self.adata, n_neighbors=n_neighbors, n_pcs=n_pcs, random_state=42)
-        sc.tl.leiden(self.adata, random_state=42, resolution=resolution) 
-        sc.tl.paga(self.adata)
-        sc.pl.paga(self.adata, plot=False)
-        sc.tl.umap(self.adata, init_pos='paga')
+        sc.pp.neighbors(st.session_state.adata_state.current.adata, n_neighbors=n_neighbors, n_pcs=n_pcs, random_state=42)
+        sc.tl.leiden(st.session_state.adata_state.current.adata, random_state=42, resolution=resolution) 
+        sc.tl.paga(st.session_state.adata_state.current.adata)
+        sc.pl.paga(st.session_state.adata_state.current.adata, plot=False)
+        sc.tl.umap(st.session_state.adata_state.current.adata, init_pos='paga')
 
 
     def neighbourhood_graph(self):
@@ -425,7 +405,7 @@ class Cluster_plots:
                 with st.form(key="nhood_graph_form"):
                     st.subheader("Neighbourhood graph")
                     
-                    options = np.append(self.adata.obs_keys(), self.adata.var_names)
+                    options = np.append(st.session_state.adata_state.current.adata.obs_keys(), st.session_state.adata_state.current.adata.var_names)
                     umap_colors = st.multiselect(label='Gene', options=options, default="leiden") 
                     col1, col2, col3 = st.columns(3)
 
@@ -433,7 +413,7 @@ class Cluster_plots:
                     n_neighbors = col2.number_input(label="n_neighbors", value=10, step=1, min_value=1, format="%i")
                     n_pcs = col3.number_input(label="n_pcs", value=40, step=1, min_value=1, format="%i")
 
-                    df_umap = pd.DataFrame({'UMAP1': self.adata.obsm['X_umap'][:,0], 'UMAP2': self.adata.obsm['X_umap'][:,1]})  
+                    df_umap = pd.DataFrame({'UMAP1': st.session_state.adata_state.current.adata.obsm['X_umap'][:,0], 'UMAP2': st.session_state.adata_state.current.adata.obsm['X_umap'][:,1]})  
                     st.session_state["cluster_plots"]["umap"] = dict(df=df_umap, color_keys=np.array([umap_colors]).flatten(), x="UMAP1", y="UMAP2", size=self.MARKER_SIZE)
                         
                     subcol1, _, _ = st.columns(3)
@@ -443,7 +423,7 @@ class Cluster_plots:
                     if submit_btn:
                         with st.spinner("Computing UMAP coordinates"):
                             self._do_umap(resolution=resolution, n_pcs=n_pcs, n_neighbors=n_neighbors)
-                            df_umap = pd.DataFrame({'UMAP1': self.adata.obsm['X_umap'][:,0], 'UMAP2': self.adata.obsm['X_umap'][:,1]})  
+                            df_umap = pd.DataFrame({'UMAP1': st.session_state.adata_state.current.adata.obsm['X_umap'][:,0], 'UMAP2': st.session_state.adata_state.current.adata.obsm['X_umap'][:,1]})  
                             st.session_state["cluster_plots"]["umap"] = dict(df=df_umap, color_keys=np.array([umap_colors]).flatten(), x="UMAP1", y="UMAP2", size=self.MARKER_SIZE)
 
             except Exception as e:
@@ -492,7 +472,7 @@ class Cluster_plots:
     def _plot_charts(self, params):
         color_keys = params["color_keys"]
         for color in color_keys:
-            color_embed = get_color_embeddings_from_key(key=color, adata=self.adata)
+            color_embed = get_color_embeddings_from_key(key=color, adata=st.session_state.adata_state.current.adata)
             st.markdown(f"""<p style='text-align: center; size: 16px; font-weight: bold;'>{color}</p>""", unsafe_allow_html=True)
             df = params["df"]
             df["color"] = color_embed

@@ -20,7 +20,7 @@ An autoencoder is a type of generative neural network. Generative in this contex
 Our ultimate goal training an autoencoder is to define a loss function (the difference between x and x') then find a local minimum of that function by backprogation. We can broadly define the loss function as:
 
 $$
-L = | y - ŷ |
+L = \frac{1}{2}\sum_{i=1}^n (y_i - z(ŷ_i))^2
 $$
 ```
 
