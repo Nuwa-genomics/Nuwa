@@ -22,6 +22,12 @@ Our ultimate goal training an autoencoder is to define a loss function (the diff
 $$
 L = \frac{1}{2}\sum_{i=1}^n (y_i - z(ŷ_i))^2
 $$
+
+
+*Where:*
+*ŷ = output from autoencoder (generated values)*
+*y = input (actual values)*
+*z() = activation function*
 ```
 
 Below shows a simplified version of an autoencoder, notice how the encoder and decoder are mirror images of each other:
