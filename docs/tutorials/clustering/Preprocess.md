@@ -33,7 +33,7 @@ Let's remove malat now:
 
 ### Sample sex
 
-If the sex of the donors is unknown, mislabeled, or we wish to verify the sex from the supplementary materials, we can do this by measuring genes found contained in the sex chromosomes. In this example, we measure the levels of the Xist gene across samples (select the subsample tab). Xist is a non-coding RNA found exclusively in female somatic cells (although can also be found in male germline cells) so will work well for our blood samples. It should be noted that while the coding sequence for Xist is on the X chromosome (so is present in both males and females), the RNA transcript is not produced in males and therefore won't appear in our dataset. We can see very clearly the sex of each sample:
+If the sex of the donors is unknown, mislabeled, or we wish to verify the sex from the supplementary materials, we can do this by measuring genes found contained in the sex chromosomes. In this example, we measure the levels of the XIST gene across samples (select the subsample tab). XIST is a non-coding RNA involved in X-inactivation found exclusively in female somatic cells (although can also be found in male germline cells) so will work well for our blood samples. It should be noted that while the coding sequence for XIST is on the X chromosome (so the DNA sequence is present in both males and females), the RNA transcript is not produced in males and therefore won't appear in our dataset. We can see very clearly the sex of each sample:
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/xist_counts.png'>
 
@@ -157,7 +157,7 @@ We can also look at the distplot for each batch with their respective doublet sc
 
 ## Data transformations
 
-Our data isn't usually in the optimal format for passing directly into our training models, we must transform it into values which reflect mean and variance. This helps ensure than one feature does not dominate another, for example in the case of an outlier. With scaling and normalization techniques we can place data in a similar range without losing the underlying distribution of the data. Some of the tools we've used already normalized the data under the hood. However we'll give a brief description of scaling and normalization techniques and perform again with known parameters.
+Our data isn't usually in the optimal format for passing directly into our training models, we must transform it into values which reflect mean and variance. This helps ensure than one feature does not dominate another, for example in the case of an outlier. With scaling and normalization techniques we can place data in a similar range without losing the underlying distribution of the data. Transformations such as feature scaling for example also improve a model's performance. Some of the tools we've used already normalized the data under the hood. However we'll give a brief description of scaling and normalization techniques and perform again with known parameters.
 
 ### Normalization
 
@@ -173,10 +173,10 @@ Scaling feature columns typically reduces the range of values for each observati
 We can summarize our changes to each column vector x as follows:
 
 $$
- \lim_{x\to 10} x = \frac{x_i - μ}{σ} 
+ \lim_{x\to 10} x' = \frac{x_i - μ}{σ} 
 $$
 
-We are clipping our data by placing an upper limit on gene expression. This will help in limiting the effect of outliers in our dataset.
+We are clipping our data by placing an upper limit on gene expression. This will help in limiting the effect of outliers in our dataset. Scaling to unit variance will also yield better performance for our deep learning optimizer in the gradient descent algorithm.
 ```
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/scaling.png'>
