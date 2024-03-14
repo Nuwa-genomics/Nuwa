@@ -5,5 +5,4 @@ channels:
   - nodefaults
 dependencies:
   - salmon
-  - scanpy
   - rpy2

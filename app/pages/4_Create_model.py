@@ -1,6 +1,7 @@
 import os
 os.chdir('/app')
 
+from anndata import AnnData
 import streamlit as st
 from ml.citeseq.model import CiteAutoencoder
 from ml.citeseq.dataset import TabularDataset
@@ -11,11 +12,13 @@ import pickle
 import scvi
 from ml.solo_scvi.solo_model import *
 from ml.DeepST.deepst.main import *
+from ml.linear_vae.linear_vae import *
 import torch
 from components.sidebar import *
 from models.AdataModel import AdataModel
 from state.AdataState import AdataState
 from state.StateManager import StateManager
+from enum import Enum
 
 
 st.set_page_config(layout="wide", page_title='Nuwa', page_icon='🧬')
@@ -29,7 +32,38 @@ with open('css/common.css') as f:
     st.markdown(common_style, unsafe_allow_html=True)
 
 
-class Create_CiteSeq_model:
+class NNModels(Enum):
+    CITESEQ = "Citeseq (dimensionality reduction)"
+    SOLO = "Solo (doublet removal)"
+    LDVAE = "LDVAE (dimensionality reduction)"
+
+class Devices(Enum):
+    CPU = "CPU"
+    CUDA = "Cuda (GPU)"
+
+
+class CreateModel:
+
+    def __init__(self, adata: AnnData):
+        self.adata = adata
+        self.device = "cuda" if st.session_state["create_model:sb_device"] == Devices.CUDA.value else "cpu"
+        st.session_state["device"] = self.device
+
+    def draw_page(self):
+        pass
+
+    def init_model(self):
+        pass
+
+    def build_model(self):
+        pass
+
+    def summary(self):
+        st.subheader("Model summary")
+        st.json(st.session_state.model_obj, expanded=False)
+
+
+class Create_CiteSeq_model(CreateModel):
     """
     Train a deep autoencoder model for dimensionality reduction on gene expression data. This is an alternative to other DR algorithms such as tSNE. Original Github repo can be found [here](https://github.com/naity/citeseq_autoencoder)
     
@@ -38,15 +72,10 @@ class Create_CiteSeq_model:
     .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/create_model_citeseq_page.png
     """
     def __init__(self, adata):
-        self.adata = adata
+        super(self.__class__, self).__init__(adata)
         
 
     def draw_page(self):
-        col1, _, _, _ = st.columns(4)
-
-        with col1:
-            st.selectbox(label="Device", options=(self.device_options), on_change=self.set_device, key="sb_select_device_citeseq")
-
         col1, col2 = st.columns(2, gap="large")
 
         with col1:
@@ -55,24 +84,6 @@ class Create_CiteSeq_model:
         with col2:
             self.set_autoencoder()
         
-    def init_device(self):
-        #init devices if not already exists
-        if torch.cuda.is_available():
-            self.device_options = ["Cuda (GPU)", "CPU"]
-        else:
-            self.device_options = ["CPU"]
-        
-        if not 'sb_select_device_citeseq' in st.session_state:
-            self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        else:
-            self.device = "cpu" if st.session_state.sb_select_device_citeseq == "CPU" else "cuda"
-
-        st.session_state.device = self.device
-
-    def set_device(self):
-        
-        self.device = "cpu" if st.session_state["sb_select_device_citeseq"] == "CPU" else "cuda"
-        st.session_state["device"] = self.device
 
     def init_model(self):
         """
@@ -172,8 +183,9 @@ class Create_CiteSeq_model:
         st.subheader("Train/test split")
         st.slider(label=f"Train data %", min_value=1, max_value=99, value=90, key="citeseq_train_test_split", on_change=self.create_datasets)
 
-    def build_model(self, df):
+    def build_model(self):
 
+        df = self.adata.to_df()
         n_features = df.shape[1]
 
         model = CiteAutoencoder(
@@ -196,7 +208,9 @@ class Create_CiteSeq_model:
         st.session_state.model_obj["model"] = model
         st.session_state.model_obj["n_features"] = n_features
 
-class Create_Solo_model:
+        self.create_datasets(test_size=st.session_state.model_obj["test_split"])
+
+class Create_Solo_model(CreateModel):
     """
     Create a Solo model for doublet detection and removal. A package in [scvi tools](https://docs.scvi-tools.org/en/stable/user_guide/models/solo.html)
 
@@ -205,15 +219,9 @@ class Create_Solo_model:
     .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/create_model_solo_page.png
     """
     def __init__(self, adata):
-        self.adata = adata
+        super(self.__class__, self).__init__(adata)
 
     def draw_page(self):
-
-        col1, _, _, _ = st.columns(4)
-
-        with col1:
-            st.selectbox(label="Device", options=(self.device_options), on_change=self.set_device, key="sb_select_device_solo")
-
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("Model parameters")
@@ -221,24 +229,7 @@ class Create_Solo_model:
             st.number_input(label="Learning rate", min_value=1e-4, max_value=10.0, value=1e-3, format='%.4f', key="ni_solo_lr", on_change=self.change_hyperparams)
             st.subheader("Train size")
             st.slider(label=f"Train data %", min_value=1, max_value=99, value=90, key="input_train_size_solo_vae", on_change=self.change_hyperparams)
-
-    def init_device(self):
-        #init devices if not already exists
-        if torch.cuda.is_available():
-            self.device_options = ["Cuda (GPU)", "CPU"]
-        else:
-            self.device_options = ["CPU"]
-        
-        if not 'sb_select_device_solo' in st.session_state:
-            self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        else:
-            self.device = "cpu" if st.session_state.sb_select_device_solo == "CPU" else "cuda"
-
-        st.session_state.device = self.device
-
-    def set_device(self):
-        self.device = "cpu" if st.session_state["sb_select_device_solo"] == "CPU" else "cuda"
-        st.session_state["device"] = self.device
+            
 
     def init_model(self):
         """
@@ -285,45 +276,55 @@ class Create_Solo_model:
     def change_hyperparams(self):
         self.init_model()
         self.build_model()
+
+
+class Create_linear_vae(CreateModel):
+    """Create a Solo model for doublet detection and removal. A package in [scvi tools](https://docs.scvi-tools.org/en/1.0.2/tutorials/notebooks/linear_decoder.html)"""
+
+    def __init__(self, adata):
+        super(self.__class__, self).__init__(adata)
+
+    def draw_page(self):
+        col1, col2, _, _ = st.columns(4)
+        col1.number_input(label="max_epochs", value=250, step=1, min_value=1, format="%i", key="ni:create_model:ldvae:max_epochs")
+        col2.number_input(label="lr", value=5e-3, step=1e-3, format='%.4f', key="ni:create_model:ldvae:lr")
+
+    def init_model(self):
+        self.model_dict = {
+            "model": None,
+            "n_epochs": st.session_state["ni:create_model:ldvae:max_epochs"],
+            "lr": st.session_state["ni:create_model:ldvae:lr"],
+            "device": self.device
+        }
+
+        st.session_state['model_obj'] = self.model_dict
+
+    def build_model(self):
+        max_epochs = st.session_state["ni:create_model:ldvae:max_epochs"]
+        lr = st.session_state["ni:create_model:ldvae:lr"]
+        model = LDVAE(adata=self.adata, max_epochs=max_epochs, lr=lr, use_gpu=(self.device == "cuda"))
+        st.session_state.model_obj["model"] = model
         
 
-def create_citeseq(adata):
-    create_model = Create_CiteSeq_model(adata)
+def create_model(adata):
+    if st.session_state["create_model:sb_model"] == NNModels.CITESEQ.value:
+        model = Create_CiteSeq_model(adata)
+    elif st.session_state["create_model:sb_model"] == NNModels.SOLO.value:
+        model = Create_Solo_model(adata)
+    elif st.session_state["create_model:sb_model"] == NNModels.LDVAE.value:
+        model = Create_linear_vae(adata)
 
-    create_model.init_device()
+    model.draw_page()
 
-    create_model.draw_page()
+    model.init_model()
 
-    create_model.init_model()
+    model.build_model()
 
-    create_model.build_model(adata.to_df())
-
-    create_model.create_datasets(test_size=st.session_state.model_obj["test_split"])
-
-    st.subheader("Model summary")
-    st.json(st.session_state.model_obj, expanded=False)
-
-def create_solo(adata):
-    create_model = Create_Solo_model(adata)
-
-    create_model.init_device()
-
-    create_model.draw_page()
-
-    create_model.init_model()
-
-    create_model.build_model()
-
-    st.subheader("Model summary")
-    st.json(st.session_state.model_obj, expanded=False)
+    model.summary()
 
 
-def change_model():
-    adata = st.session_state.adata_state.current.adata
-    if st.session_state.sb_model_selection == 'Citeseq (dimensionality reduction)':
-        create_citeseq(adata)
-    elif st.session_state.sb_model_selection == 'Solo (doublet removal)':
-        create_solo(adata)
+def create_ldvae(adata):
+    raise Exception
 
 
 try:
@@ -332,13 +333,15 @@ try:
 
     st.title("Create Model")
 
-    col1, _, _, _ = st.columns(4)
-    col1.selectbox(label="model", options=([
-        "Citeseq (dimensionality reduction)", 
-        "Solo (doublet removal)"
-        ]), key='sb_model_selection')
+    col1, col2, _, _ = st.columns(4)
+    col1.selectbox(label="model", options=([NNModels.CITESEQ.value, NNModels.SOLO.value, NNModels.LDVAE.value]), key='create_model:sb_model')
+    col2.selectbox(label="Device", options=([Devices.CUDA.value, Devices.CPU.value] if torch.cuda.is_available() else [Devices.CPU.value]), key="create_model:sb_device")
 
-    change_model()
+    st.divider()
+
+    adata = st.session_state.adata_state.current.adata.copy()
+
+    create_model(adata)
 
     sidebar.show_preview()
     sidebar.export_script()
