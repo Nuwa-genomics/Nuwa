@@ -8,7 +8,7 @@ on:
 
 jobs:
   run_tests:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
     - uses: actions/checkout@v2
     - name: Update docs
@@ -16,5 +16,6 @@ jobs:
         pip install docstring-parser==0.15
         python docs/generate_docs.py
     - name: Run tests
-      run: docker-compose -f tests.docker-compose.yml up --build --abort-on-container-exit
-    
+      run: |
+        docker system prune --force
+        docker-compose -f tests.docker-compose.yml up --build --abort-on-container-exit

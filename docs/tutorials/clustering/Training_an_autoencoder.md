@@ -16,21 +16,19 @@ An autoencoder is a type of generative neural network. Generative in this contex
 - When we've reached a satisfactory value for our loss function, or reached the end of our training epochs, we can finally extract the latent dimension in the neural network. In the diagram below we have 3 neurons which would represent the x, y and z axis. In practice this could be much larger, for example 100 neurons, so further dimensionality reduction would be required. 
 
 ```note
-### Loss function in autoencoders
-Our ultimate goal training an autoencoder is to define a loss function (the difference between X and ŷ) then find a local minimum of that function by backprogation. We can broadly define the loss function as:
+### Loss function
+Our ultimate goal training an autoencoder is to define a loss function (the difference between X and ŷ) then find a global minimum of that function by backprogation. We can broadly define the loss function as:
 
 $$
-L(X) = \frac{1}{2}\sum_{i=1}^n (X_i - z(ŷ_i))^2
+L(X) = \frac{1}{2}\sum_{i=1}^n (X_i - ŷ_i)^2
 $$
 
 
 *Where:*
 
 *ŷ = output from autoencoder (generated values)*
-#
-*X = input (actual values)*
 
-*z() = activation function*
+*X = input (actual values)*
 ```
 
 Below shows a simplified version of an autoencoder, notice how the encoder and decoder are mirror images of each other:
@@ -60,13 +58,17 @@ In the create model page, we will use the [Citeseq model](https://github.com/nai
 Nuwa automatically selects a GPU device if it finds one and you are running the Cuda docker image. 
 ```
 
+```tip
+It is recommended to scale and normalize your dataset for more optimal results. 
+```
+
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/create_model_page.png'>
 
 Next, we can go to the training page. If you are training on cuda device you'll notice a significant reduction in training time. If not, the animation will be different to the one below and will take longer to train.
 
 ```note
 ### Learning rate
-The learning rate acts as a scalar applied to the gradient function when adjusting model parameters. A higher learning rate can reduce training time by increasing jumps during gradient descent. When the learning rate is too low, the training time will take too long to converge. However when the learning rate is too high, the convergence will be unstable and miss the minima.
+The learning rate acts as a scalar applied to the gradient function when adjusting model parameters. A higher learning rate can reduce training time by increasing jumps during gradient descent. When the learning rate is too low, the training time will take too long to converge. However when the learning rate is too high, the convergence will be unstable and overshoot the minimum.
 ```
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/train_page.png'>

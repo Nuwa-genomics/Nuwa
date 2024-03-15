@@ -5,6 +5,7 @@ from ml.citeseq.dataset import TabularDataset
 from ml.citeseq.train import get_encodings
 from ml.citeseq.model import CiteAutoencoder
 from ml.solo_scvi.solo_model import solo_model
+from ml.linear_vae.linear_vae import LDVAE
 from ml.DeepST.deepst.main import *
 import plotly.express as px
 from ml.solo_scvi.utils import *
@@ -48,7 +49,7 @@ class Cluster_plots:
     -----
     .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/cluster_plots_page.png
     """
-    def __init__(self):
+    def __init__(self, adata):
 
         st.title("Cluster plots")
 
@@ -156,8 +157,9 @@ class Cluster_plots:
                             with st.spinner("Loading Solo doublet predictions"):
                                 
                                 df_solo = pd.DataFrame({'UMAP1': st.session_state.adata_state.current.adata.obsm['X_umap'][:,0], 'UMAP2': st.session_state.adata_state.current.adata.obsm['X_umap'][:,1]})
-                            
-                                st.session_state["cluster_plots"]["autoencoder"] = dict(df=df_solo, x="UMAP1", y="UMAP2", color_keys=['prediction'], size=self.MARKER_SIZE)
+
+                                st.session_state.adata_state.current.adata.obs['solo_prediction'] = trained_model.adata.obs['solo_prediction']
+                                st.session_state["cluster_plots"]["autoencoder"] = dict(df=df_solo, x="UMAP1", y="UMAP2", color_keys=['solo_prediction'], size=self.MARKER_SIZE)
                                 
                                 solo_df, vae_df = get_solo_model_history(solo=trained_model.solo, vae=trained_model.vae)
                                 solo, vae = st.tabs(['Solo', 'Vae'])
@@ -170,8 +172,35 @@ class Cluster_plots:
                                 submit_btn = subcol1.form_submit_button(label="Filter doublets", use_container_width=True)
                                 
                                 if submit_btn:
-                                    st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata[st.session_state.adata_state.current.adata.obs.prediction == 'singlet']
+                                    st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata[st.session_state.adata_state.current.adata.obs.solo_prediction == 'singlet']
                                     st.toast("Removed doublet predictions", icon='✅')
+
+                    elif(isinstance(trained_model, LDVAE)):
+                        with st.form(key="ldvae_form"):
+                            st.subheader("Loss convergence")
+
+                            with st.spinner("Loading loss convergence"):
+
+                                train_elbo = trained_model.model.history["elbo_train"][1:]
+                                test_elbo = trained_model.model.history["elbo_validation"]
+
+                                combined_epoch = train_elbo.join(test_elbo, on='epoch')
+                                combined_epoch = combined_epoch.bfill()
+                            
+                                st.line_chart(combined_epoch, use_container_width=True, height=410, color=['#52f27d', '#f25272']) # val epochs only present in some columns
+
+                                
+                                df_ldvae = trained_model.get_embedding()
+                                st.session_state.adata_state.current.adata.obs[trained_model.SCVI_CLUSTERS_KEY] = trained_model.adata.obs[trained_model.SCVI_CLUSTERS_KEY]
+                                st.session_state["cluster_plots"]["autoencoder"] = dict(df=df_ldvae, x="UMAP1", y="UMAP2", color_keys=[trained_model.SCVI_CLUSTERS_KEY], size=self.MARKER_SIZE)
+                                
+                                subcol1, _, _ = st.columns(3)
+                                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+
+                                if submit_btn:
+                                    raise Exception
+
+
 
 
                     else:
