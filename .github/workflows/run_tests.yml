@@ -19,4 +19,5 @@ jobs:
       run: |
         docker system prune --force
         docker compose -f tests.docker-compose.yml up --build --abort-on-container-exit
-        sudo rm -dr /home/linuxuser/actions-runner/_work/Nuwa/Nuwa
+        sudo rm -dr /home/linuxuser/actions-runner/_work/Nuwa/Nuwa/streamlit-volume
+        sudo rm -dr /home/linuxuser/actions-runner/_work/Nuwa/Nuwa/postgresql
