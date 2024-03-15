@@ -17,5 +17,5 @@ jobs:
         python3 docs/generate_docs.py
     - name: Run tests
       run: |
-        sudo docker system prune --force
-        sudo docker-compose -f tests.docker-compose.yml up --build --abort-on-container-exit
+        docker system prune --force
+        docker-compose -f tests.docker-compose.yml up --build --abort-on-container-exit
