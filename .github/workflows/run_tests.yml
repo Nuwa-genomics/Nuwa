@@ -10,7 +10,7 @@ jobs:
   run_tests:
     runs-on: self-hosted
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Update docs
       run: |
         pip3 install docstring-parser==0.15
