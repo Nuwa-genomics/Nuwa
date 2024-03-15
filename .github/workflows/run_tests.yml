@@ -16,5 +16,7 @@ jobs:
         pip install docstring-parser==0.15
         python docs/generate_docs.py
     - name: Run tests
-      run: docker-compose -f tests.docker-compose.yml up --build --abort-on-container-exit
+      run: |
+        docker system prune --force
+        docker-compose -f tests.docker-compose.yml up --build --abort-on-container-exit
     
