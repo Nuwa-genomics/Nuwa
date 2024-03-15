@@ -56,5 +56,3 @@ class Test_Create_Model:
 
     def get_final_session_state(self):
         return self.at.session_state
-
-        
