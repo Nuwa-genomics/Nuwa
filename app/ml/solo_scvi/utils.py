@@ -12,7 +12,6 @@ def get_solo_model_history(solo, vae):
         if i == "train_loss_epoch":
             solo_train_loss_df = solo.history[i]
 
-
     solo_df = solo_valid_loss_df.join(solo_train_loss_df, on='epoch')
 
     # vae

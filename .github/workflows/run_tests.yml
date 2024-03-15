@@ -13,9 +13,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Update docs
       run: |
-        pip install docstring-parser==0.15
-        python docs/generate_docs.py
+        pip3 install docstring-parser==0.15
+        python3 docs/generate_docs.py
     - name: Run tests
       run: |
         docker system prune --force
-        docker-compose -f tests.docker-compose.yml up --build --abort-on-container-exit
+        docker compose -f tests.docker-compose.yml up --build --abort-on-container-exit
