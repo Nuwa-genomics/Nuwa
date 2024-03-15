@@ -19,4 +19,3 @@ jobs:
       run: |
         docker system prune --force
         docker-compose -f tests.docker-compose.yml up --build --abort-on-container-exit
-    
