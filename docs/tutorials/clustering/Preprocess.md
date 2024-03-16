@@ -4,7 +4,7 @@ sort: 2
 
 # Preprocessing
 
-We will now preprocess our raw data which will reduce noise from non-biological signal as well as filter out low quality cells. Part of the preprocessing stage is also tranforming the data such as log-normalizing or scaling data to a given distribution. This will help give more meaningful results and help remove or reduce the effect of outliers.
+We will now preprocess our raw data which will reduce noise from non-biological signal as well as filter out low quality cells. Part of the preprocessing stage is also transforming the data such as log-normalizing or scaling data to a given distribution. This will help give more meaningful results and help remove or reduce the effect of outliers.
 
 ## Exploratory data analysis
 
@@ -33,7 +33,7 @@ Let's remove malat now:
 
 ### Sample sex
 
-If the sex of the donors is unknown, mislabeled, or we wish to verify the sex from the supplementary materials, we can do this by measuring genes found contained in the sex chromosomes. In this example, we measure the levels of the XIST gene across samples (select the subsample tab). XIST is a non-coding RNA involved in X-inactivation found exclusively in female somatic cells (although can also be found in male germline cells) so will work well for our blood samples. It should be noted that while the coding sequence for XIST is on the X chromosome (so the DNA sequence is present in both males and females), the RNA transcript is not produced in males and therefore won't appear in our dataset. We can see very clearly the sex of each sample:
+If the sex of the donors is unknown, mislabeled, or we wish to verify the sex from the supplementary materials, we can do this by measuring genes found contained on the sex chromosomes. In this example, we measure the levels of the XIST gene across samples (select the subsample tab). XIST is a non-coding RNA involved in X-inactivation found exclusively in female somatic cells (although can also be found in male germline cells) so will work well for our blood samples. It should be noted that while the coding sequence for XIST is on the X chromosome (so the DNA sequence is present in both males and females), the RNA transcript is not produced in males and therefore won't appear in our dataset. We can see very clearly the sex of each sample:
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/xist_counts.png'>
 
@@ -137,6 +137,14 @@ Doublets or multiplets are caused when 2 or more cells take up the same droplet 
 
 *Image from 10x genomics*
 
+```note
+### What is multiplexing?
+
+*[from illumina website]* Sample multiplexing, also known as multiplex sequencing, allows large numbers of libraries to be pooled and sequenced simultaneously during a single run on Illumina instruments. Sample multiplexing is useful when targeting specific genomic regions or working with smaller genomes. Pooling samples exponentially increases the number of samples analyzed in a single run, without drastically increasing cost or time.
+
+With multiplex sequencing, individual "barcode" sequences are added to each DNA fragment during next-generation sequencing (NGS) library preparation so that each read can be identified and sorted before the final data analysis. These barcodes, or index adapters, can follow one of two major indexing strategies depending on your library prep kit and application.
+```
+
 In a typical 10x experiment the proportion of doublets is linearly dependent on the amount of loaded cells. In our covid dataset, we actually have a subsample (the original contained more groups including an influenza group which we removed). The original dataset contained about 5000 cells per sample, which equates to around 9000 cells loaded in. From the specs in the [10x Chromium user guide](https://cdn.10xgenomics.com/image/upload/v1668017706/support-documents/CG000315_ChromiumNextGEMSingleCell3-_GeneExpression_v3.1_DualIndex__RevE.pdf) (see page 18) we can see that for every ~1000 cells recovered, about 0.8% are estimated to be doublets. So we can predict that ~4% of our library samples will be doublets (0.04 x 5000).
 
 Let's run Scrublet to predict doublets and remove them from our dataset. We'll leave most of the default parameters, but use 'sample' as our batch key as this will allow us to see the names of each batch. 
@@ -151,7 +159,7 @@ We can look at a UMAP plot with the doublet scores as embeddings. You will usual
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/scrublet_umap.png'>
 
-We can also look at the distplot for each batch with their respective doublet scores. Notice how the threshold is slighly different from each batch. 
+We can also look at the distplot for each batch with their respective doublet scores. Notice how the threshold is slightly different from each batch. 
 
 <img style='border-radius:10px; box-shadow: 5px 5px 10px rgb(0 0 0 / 0.5);' alt='page screenshot' src='https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/clustering_tutorial/scrublet_distplot.png'>
 
