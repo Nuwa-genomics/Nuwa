@@ -10,7 +10,7 @@ jobs:
   run_tests:
     runs-on: self-hosted
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Update docs
       run: |
         pip3 install docstring-parser==0.15
@@ -19,3 +19,5 @@ jobs:
       run: |
         docker system prune --force
         docker compose -f tests.docker-compose.yml up --build --abort-on-container-exit
+        sudo rm -dr /home/linuxuser/actions-runner/_work/Nuwa/Nuwa/streamlit-volume
+        sudo rm -dr /home/linuxuser/actions-runner/_work/Nuwa/Nuwa/postgresql
