@@ -26,7 +26,7 @@ Obs (observations) include things like cell annotations (e.g. tumour or normal c
 In our case we have 3 obs columns: 
 - Type: Whether the patient has covid or not
 - Sample: Identifier for sample donor
-- Batch: Identifyer for sample batch
+- Batch: Identifier for sample batch
 
 ```note
 ## What are vars?

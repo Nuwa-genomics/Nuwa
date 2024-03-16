@@ -8,16 +8,16 @@ In this section, we'll train a type of neural network called an autoencoder as a
 
 ## What is an autoencoder?
 
-An autoencoder is a type of generative neural network. Generative in this context means it will create an artificial expression profile mimicking our real data. However we are not actually interested in the generated data but rather one of the internal layers called the latent dimension. This can represent our data in a lower dimensionality in a similar way that PCA or UMAP can. Although it should be noted that neural networks can learn non-linear characteristics of our data due to something called activation functions in each layer. Without activation functions, neural netoworks would only have linear transformations stacked on top of the other at each layer and therefore couldn't detect complex non-linearities in our dataset. Detecting non-linearities substantially reduces the reconstruction loss when generating our synthetic cell transcriptome data. To summarize:
+An autoencoder is a type of generative neural network. Generative in this context means it will create an artificial expression profile mimicking our real data. However we are not actually interested in the generated data but rather one of the internal layers called the latent dimension. This can represent our data in a lower dimensionality in a similar way that PCA or UMAP can. Although it should be noted that neural networks can learn non-linear characteristics of our data due to something called activation functions in each layer. Without activation functions, neural networks would only have linear transformations stacked on top of the other at each layer and therefore couldn't detect complex non-linearities in our dataset. Detecting non-linearities substantially reduces the reconstruction loss when generating our synthetic cell transcriptome data. To summarize:
 
-- We pass our data through the neural network. In the first pass our network weights and biases (see below) are initialized over a Gausion distribution
+- We pass our data through the neural network. In the first pass our network weights and biases (see below) are initialized over a Gaussian distribution
 - We calculate a reconstruction loss using a loss function. In our case the loss function is defined as being the difference between the original cell transcriptomes and the predicted cell transcriptomes.
 - We now try to reduce the reconstruction loss by adjusting our weights and biases slightly in a process called backpropogation. This can be done by calculating the partial derivative (a multivariate gradient function - multivariate because we have weight, bias and input params to consider) on each function between layers. This lets us know in which direction to adjust our network parameters.
 - When we've reached a satisfactory value for our loss function, or reached the end of our training epochs, we can finally extract the latent dimension in the neural network. In the diagram below we have 3 neurons which would represent the x, y and z axis. In practice this could be much larger, for example 100 neurons, so further dimensionality reduction would be required. 
 
 ```note
 ### Loss function
-Our ultimate goal training an autoencoder is to define a loss function (the difference between X and ŷ) then find a global minimum of that function by backprogation. We can broadly define the loss function as:
+Our ultimate goal training an autoencoder is to define a loss function (the difference between X and ŷ) then find a global minimum of that function by back propagation. We can broadly define the loss function as:
 
 $$
 L(X) = \frac{1}{2}\sum_{i=1}^n (X_i - ŷ_i)^2
