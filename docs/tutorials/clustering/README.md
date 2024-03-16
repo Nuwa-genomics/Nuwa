@@ -4,7 +4,11 @@ sort: 1
 
 # Clustering
 
-This set of tutorials will be a complete walk-through of preprocessing, clustering and differential expression of a covid dataset using Nuwa. It is based on the set of tutorials by [NBISweden](https://nbisweden.github.io/workshop-scRNAseq/home_contents.html). Only minimal knowledge of single cell analysis is required for this tutorial. 
+This set of tutorials will be a complete walk-through of preprocessing, clustering and differential expression of a covid dataset using Nuwa. It is based on the set of tutorials by [NBISweden](https://nbisweden.github.io/workshop-scRNAseq/home_contents.html).
+
+Requirements:
+
+- A running instance of Nuwa
 
 {% include list.liquid all=true %}
 
