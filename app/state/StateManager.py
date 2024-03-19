@@ -1,3 +1,4 @@
+from typing import List
 from state.AdataState import AdataState
 from state.ScriptState import ScriptState
 from models.AdataModel import AdataModel
@@ -11,11 +12,14 @@ import os
 import streamlit as st
 from anndata import AnnData
 from database.database import SessionLocal
+from models.ErrorMessage import ErrorMessage
 
 class StateManager:
     """
     Makes changes made to the database and filesystems synchronously using data from session state in an atomic way. Also responsible for loading data into session state and initialising files when loading new dataset.
     """
+
+    ########## Factory methods ##########
 
     def add_script(self, script: Script):
         # add script if present
@@ -26,8 +30,10 @@ class StateManager:
 
     def add_adata(self, adata: AnnData):
         if isinstance(adata, AnnData):
-            self.add_adata = adata
+            self.adata = adata
         return self
+    
+    ########## session ##########
 
     def load_session(self):
 
@@ -54,8 +60,7 @@ class StateManager:
         """ 
         # write adata h5ad object to file
         if hasattr(self, 'adata'):
-
-            sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'adata', st.session_state.adata_state.current.adata_name), adata=self.adata)
+            sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'adata', self.adata_state().current.adata_name), adata=self.adata)
             st.session_state.adata_state.current.adata = self.adata
         
         # add script if present
@@ -69,3 +74,31 @@ class StateManager:
 
     def init_session():
         raise NotImplementedError
+    
+    ########## Adata state ##########
+    
+    def get_current_adata(self) -> AnnData:
+        """Return a copy of current adata."""
+        return st.session_state.adata_state.current.adata.copy()
+    
+    def adata_state(self) -> AdataState:
+        """An accessor for the adata state."""
+        return st.session_state.adata_state
+    
+    ########## Script state ##########
+
+    def script_state(self) -> ScriptState:
+        """An accessor for the script state."""
+        return st.session_state.script_state
+    
+    ########## Workspace ##########
+
+    def get_current_workspace(self) -> WorkspaceModel:
+        """Get current workspace."""
+        return st.session_state.current_workspace
+    
+    def workspaces(self) -> List[WorkspaceModel]:
+        """An accessor for workspaces."""
+        return st.session_state.workspaces
+    
+        

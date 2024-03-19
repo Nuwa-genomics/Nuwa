@@ -1,18 +1,12 @@
 from anndata import AnnData
 import streamlit as st
 import scanpy as sc
-import pickle
 import pandas as pd
-import warnings
 import numpy as np
 
 from models.AdataModel import AdataModel
 from utils.plotting import highest_expr_genes_box_plot, plot_doubletdetection_threshold_heatmap
 from components.sidebar import *
-from datetime import datetime
-
-from database.database import SessionLocal
-from sqlalchemy.orm import Session
 
 from scripts.preprocessing.Highest_expr_genes import Highest_expr_genes
 from scripts.preprocessing.Highly_variable_genes import Highly_variable_genes
@@ -23,9 +17,6 @@ from scripts.preprocessing.Normalize import Normalize
 from scripts.preprocessing.Annotate_mito import Filter_mito
 from scripts.preprocessing.Scale import Scale
 
-from database.schemas import schemas
-from state.AdataState import AdataState
-from state.ScriptState import ScriptState
 import doubletdetection
 from time import sleep
 import os
@@ -60,18 +51,10 @@ class Preprocess:
     Notes
     -----
     .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/preprocess_page.png
-    
-    Attributes
-    ----------
-    conn: Session
-        Connection to postgresql database.
-    adata: Anndata
-        Gene expression matrix. 
     """
 
     def __init__(self):
 
-        self.conn: Session = SessionLocal()
         st.title("Preprocess")
 
         if "preprocess_plots" not in st.session_state:
@@ -108,12 +91,14 @@ class Preprocess:
             if submit_btn:
                 try:
                     with st.spinner(text="Calculating highest expressed genes"):
-                        fig = highest_expr_genes_box_plot(st.session_state.adata_state.current.adata, n_top=n_top_genes)
+                        adata = self.state_manager.get_current_adata()
+                        fig = highest_expr_genes_box_plot(adata, n_top=n_top_genes)
+                        st.session_state["highest_expr_box_plot"] = fig
                         st.plotly_chart(fig)
 
                         # save session
                         self.state_manager \
-                            .add_adata(st.session_state.adata_state.current.adata) \
+                            .add_adata(adata) \
                             .add_script(Highest_expr_genes(n_top_genes=n_top_genes, language=Language.ALL_SUPPORTED)) \
                             .save_session()
                 
@@ -208,30 +193,32 @@ class Preprocess:
         """
         try:
 
-            def run_highly_variable(flavour, min_mean=None, max_mean=None, min_disp=None, max_disp=None, n_top_genes=None, span=None):
+            def run_highly_variable(adata: AnnData, flavour="seurat", min_mean=None, max_mean=None, min_disp=None, max_disp=None, n_top_genes=None, span=None):
                 with st.spinner(text="Calculating highly variable genes"):
-                    sc.pp.normalize_total(st.session_state.adata_state.current.adata, target_sum=1e4); 
-                    sc.pp.log1p(st.session_state.adata_state.current.adata)     
+                    # TODO: Figure out when to log normalize or not
+                    # sc.pp.normalize_total(adata, target_sum=1e4); 
+                    # sc.pp.log1p(adata)     
                     sc.pp.highly_variable_genes(
-                        st.session_state.adata_state.current.adata, flavor=flavour, n_top_genes=n_top_genes, min_mean=min_mean, 
+                        adata, flavor=flavour, n_top_genes=n_top_genes, min_mean=min_mean, 
                         max_mean=max_mean, min_disp=min_disp, max_disp=max_disp, span=span
                     )
 
                     if remove:
-                        st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata[:, st.session_state.adata_state.current.adata.var.highly_variable]
+                        adata = adata[:, adata.var.highly_variable]
                         
                     # write to script state
                     self.state_manager \
-                    .add_adata(st.session_state.adata_state.current.adata) \
+                    .add_adata(adata) \
                     .add_script(Highly_variable_genes(language=Language.ALL_SUPPORTED, min_mean=min_mean, max_mean=max_mean, min_disp=min_disp, n_top_genes=n_top_genes, span=span)) \
                     .save_session()
+
 
                     #plot data
                     dispersions_tab, dispersions_norm_tab = st.tabs(['Raw', 'normalized'])
                     with dispersions_tab:
-                        dispersions_tab.scatter_chart(st.session_state.adata_state.current.adata.var, x='means', y='dispersions', color='highly_variable', size=10)
+                        dispersions_tab.scatter_chart(adata.var, x='means', y='dispersions', color='highly_variable', size=10)
                     with dispersions_norm_tab:
-                        dispersions_norm_tab.scatter_chart(st.session_state.adata_state.current.adata.var, x='means', y='dispersions_norm', color='highly_variable', size=10)
+                        dispersions_norm_tab.scatter_chart(adata.var, x='means', y='dispersions_norm', color='highly_variable', size=10)
 
 
 
@@ -240,16 +227,17 @@ class Preprocess:
                 subcol1, subcol2 = st.columns(2)
                 n_top_genes = subcol1.number_input(label="n_top_genes", min_value=1, key="ni:pp:highly_variable:seurat_n_top_genes", step=1, value=2000)
                 loess_span = subcol2.number_input(label="Loess span", value=0.3, step=0.1)
-                mean = st.slider(label="Mean expression", min_value=0.0000, max_value=20.0000, value=(0.0125, 3.0000), format="%.4f")
+                mean = st.slider(label="Mean expression", min_value=0.0000, max_value=20.0000, value=(0.0125, 3.0000), format="%.4f", key="sl:pp:highly_variable:mean")
                 disp = st.slider(label="Dispersion", min_value=0.00, max_value=100.00, value=(0.50, 100.00), format="%.2f")
                 remove = st.toggle(label="Remove non-variable genes", value=False, key="toggle:pp:highly_variable:seurat_remove", help="By default, highly variable genes are only annoted. This option will remove genes without highly variable expression.")
                 subcol1, _, _ = st.columns(3)
                 submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
 
                 if submit_btn:
+                    adata = self.state_manager.get_current_adata()
                     min_mean, max_mean = mean
                     min_disp, max_disp = disp
-                    run_highly_variable(flavour="seurat", n_top_genes=n_top_genes, min_mean=min_mean, max_mean=max_mean, 
+                    run_highly_variable(adata=adata, flavour="seurat", n_top_genes=n_top_genes, min_mean=min_mean, max_mean=max_mean, 
                         min_disp=min_disp, max_disp=max_disp, span=loess_span)
                     
                     st.toast("Filtered highly variable genes", icon="✅")
@@ -334,17 +322,18 @@ class Preprocess:
         """
         with st.form(key="form_filter_cells"):
             st.subheader("Filter Cells", help="Filter cell outliers based on counts and numbers of genes expressed. Only keep cells with at least min_genes genes expressed. This is equivalent to min.features in Seurat.")
-            min_genes = st.number_input(label="min genes for cell", min_value=1, value=None, key="filter_cell_min_genes")
+            min_genes = st.number_input(label="min genes for cell", min_value=1, value=None, key="ni:pp:filter_cells:min_genes")
 
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
 
             if submit_btn:
-                sc.pp.filter_cells(st.session_state.adata_state.current.adata, min_genes=min_genes)
+                adata = self.state_manager.get_current_adata()
+                sc.pp.filter_cells(adata, min_genes=min_genes)
 
                 #make adata
                 self.state_manager \
-                    .add_adata(st.session_state.adata_state.current.adata) \
+                    .add_adata(adata) \
                     .add_script(Filter_cells(language=Language.ALL_SUPPORTED, min_genes=min_genes)) \
                     .save_session()
                                 
@@ -372,15 +361,16 @@ class Preprocess:
         """
         with st.form(key="form_filter_genes"):
             st.subheader("Filter Genes", help="Filter genes based on number of cells or counts. Keep genes that are in at least min_cells cells. Equivalent to min.cells in Seurat.")
-            min_cells = st.number_input(label="min cells for gene", min_value=1, value=None, key="filter_gene_min_cells")
+            min_cells = st.number_input(label="min cells for gene", min_value=1, value=None, key="ni:pp:filter_genes:min_cells")
  
             subcol1, _, _ = st.columns(3)
             submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if submit_btn:
-                sc.pp.filter_genes(st.session_state.adata_state.current.adata, min_cells=min_cells)
+                adata: AnnData = self.state_manager.get_current_adata()
+                sc.pp.filter_genes(adata, min_cells=min_cells)
                 
                 self.state_manager \
-                    .add_adata(st.session_state.adata_state.current.adata) \
+                    .add_adata(adata) \
                     .add_script(Filter_genes(language=Language.ALL_SUPPORTED, min_cells=min_cells)) \
                     .save_session()
 
@@ -460,7 +450,7 @@ class Preprocess:
         with zheng17_tab:
             with st.form(key="form_zheng17"):
                 st.write("Parameters")
-                n_top_genes = st.number_input(label="n_top_genes", key="ni_zheng17_n_genes", min_value=1, max_value=st.session_state.adata_state.current.adata.n_vars, value=1000 if st.session_state.adata_state.current.adata.n_vars >= 1000 else st.session_state.adata_state.current.adata.n_vars)
+                n_top_genes = st.number_input(label="n_top_genes", key="ni_zheng17_n_genes", min_value=1, max_value=self.state_manager.adata_state().current.adata.n_vars, value=1000 if st.session_state.adata_state.current.adata.n_vars >= 1000 else st.session_state.adata_state.current.adata.n_vars)
                 log = st.checkbox(label="Log", value=False)
                 subcol1, _, _ = st.columns(3)
                 submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True)
@@ -516,7 +506,7 @@ class Preprocess:
             subcol_input1, subcol_input2 = st.columns(2)
             options = np.append('None', st.session_state.adata_state.current.adata.obs_keys())
             color_key_mito = subcol_input1.selectbox(label="Color key", options=options)
-            ni_pct_counts_mt = subcol_input2.number_input(label="max pct_counts_mt", key="ni_pct_counts_mt", min_value=0, value=100)
+            ni_pct_counts_mt = subcol_input2.number_input(label="max pct_counts_mt", key="ni:pp:pct_counts_mt", min_value=0, value=100)
 
             scatter_chart, violin_chart = st.tabs(['Scatter', 'Violin'])
             mito_container_scatter = scatter_chart.empty()
@@ -647,11 +637,11 @@ class Preprocess:
                 plot_charts(color_key_ribo)
                 st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata[st.session_state.adata_state.current.adata.obs.pct_counts_ribo < ni_pct_counts_ribo, :]
                 #add to script adata
-                st.session_state["script_state"].add_script("#Filter ribosomal genes")
-                st.session_state["script_state"].add_script("sc.pl.scatter(adata, x='total_counts', y='pct_counts_ribo')")
-                st.session_state["script_state"].add_script("sc.pl.violin(adata, 'pct_counts_ribo')")
-                st.session_state["script_state"].add_script("sc.pp.calculate_qc_metrics(adata, qc_vars=['ribo'], percent_top=None, log1p=False, inplace=True)")
-                st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_ribo < {ni_pct_counts_ribo}, :]")
+                # st.session_state["script_state"].add_script("#Filter ribosomal genes")
+                # st.session_state["script_state"].add_script("sc.pl.scatter(adata, x='total_counts', y='pct_counts_ribo')")
+                # st.session_state["script_state"].add_script("sc.pl.violin(adata, 'pct_counts_ribo')")
+                # st.session_state["script_state"].add_script("sc.pp.calculate_qc_metrics(adata, qc_vars=['ribo'], percent_top=None, log1p=False, inplace=True)")
+                # st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_ribo < {ni_pct_counts_ribo}, :]")
                 #make adata
                 
                 # TODO: add to script state
@@ -736,11 +726,11 @@ class Preprocess:
                 plot_charts(color_key_hb)
                 st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata[st.session_state.adata_state.current.adata.obs.pct_counts_hb < ni_pct_counts_hb, :]
                 #add to script adata
-                st.session_state["script_state"].add_script("#Filter haemoglobin genes")
-                st.session_state["script_state"].add_script("sc.pl.scatter(adata, x='total_counts', y='pct_counts_hb')")
-                st.session_state["script_state"].add_script("sc.pl.violin(adata, 'pct_counts_hb')")
-                st.session_state["script_state"].add_script("sc.pp.calculate_qc_metrics(adata, qc_vars=['hb'], percent_top=None, log1p=False, inplace=True)")
-                st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_hb < {ni_pct_counts_hb}, :]")
+                # st.session_state["script_state"].add_script("#Filter haemoglobin genes")
+                # st.session_state["script_state"].add_script("sc.pl.scatter(adata, x='total_counts', y='pct_counts_hb')")
+                # st.session_state["script_state"].add_script("sc.pl.violin(adata, 'pct_counts_hb')")
+                # st.session_state["script_state"].add_script("sc.pp.calculate_qc_metrics(adata, qc_vars=['hb'], percent_top=None, log1p=False, inplace=True)")
+                # st.session_state["script_state"].add_script(f"adata = adata[adata.obs.pct_counts_hb < {ni_pct_counts_hb}, :]")
                 #make adata
                 
                 # TODO: add to script state
@@ -1050,7 +1040,7 @@ class Preprocess:
                 if st.session_state.ms_regress_out_keys:
                     sc.pp.regress_out(st.session_state.adata_state.current.adata, keys=regress_keys)
                    
-                    st.session_state["script_state"].add_script(f"#Regress out\nsc.pp.regress_out(adata, keys={st.session_state.ms_regress_out_keys})")
+                    # st.session_state["script_state"].add_script(f"#Regress out\nsc.pp.regress_out(adata, keys={st.session_state.ms_regress_out_keys})")
                     st.toast("Successfully regressed out data", icon="✅")
                     
                     # TODO: add to script state
@@ -1084,21 +1074,19 @@ class Preprocess:
         with st.form(key="scale_to_unit_variance_form"):
             st.subheader("Scale to unit variance")
             zero_center = st.toggle(label="Zero center", value=True)
-            max_value = st.number_input(label="Max value", value=10, key="ni_scale_data_max_value")
+            max_value = st.number_input(label="Max value", value=10, key="ni:pp:scale_data:max_value")
             subcol1, _, _ = st.columns(3)
             btn_scale_data_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
             if btn_scale_data_btn:
-                if st.session_state.ni_scale_data_max_value:
-                    sc.pp.scale(st.session_state.adata_state.current.adata, zero_center=zero_center, max_value=max_value)
+                adata = self.state_manager.get_current_adata()
+                sc.pp.scale(adata, zero_center=zero_center, max_value=max_value)
                     
-                    self.state_manager \
-                        .add_adata(st.session_state.adata_state.current.adata) \
-                        .add_script(Scale(language=Language.ALL_SUPPORTED, max_value=max_value, zero_center=zero_center)) \
-                        .save_session()
+                self.state_manager \
+                    .add_adata(adata) \
+                    .add_script(Scale(language=Language.ALL_SUPPORTED, max_value=max_value, zero_center=zero_center)) \
+                    .save_session()
                     
-                    st.toast("Successfully scaled data", icon="✅")
-                else:
-                    st.toast("Max value cannot be blank", icon="❌")
+                st.toast("Successfully scaled data", icon="✅")
             
     
 
@@ -1125,27 +1113,38 @@ class Preprocess:
         sc.pp.downsample_counts(adata, counts_per_cell=1, total_counts=None, random_state=42)
         # counts now equal the total number of observations(cell)
         """
-        st.subheader("Downsample data")
-        counts_per_cell, total_counts = st.tabs(["counts_per_cell", "total_counts"])
-        with counts_per_cell:
-            with st.form(key="downsample_form_counts_per_cell"):
-                counts_per_cell = st.number_input(label="Counts per cell", key="ni_downsample_counts_per_cell", help="Target total counts per cell. If a cell has more than 'counts_per_cell', it will be downsampled to this number. Resulting counts can be specified on a per cell basis by passing an array.Should be an integer or integer ndarray with same length as number of obs.")
-                subcol1, _, _ = st.columns(3)
-                btn_downsample_counts_per_cell = subcol1.form_submit_button(label="Apply", use_container_width=True)
-                if btn_downsample_counts_per_cell:
-                    sc.pp.downsample_counts(st.session_state.adata_state.current.adata, counts_per_cell=counts_per_cell, random_state=42)
-                    # TODO: add to script state
-                    st.toast("Successfully downsampled data per cell", icon="✅")
-        with total_counts:
-            with st.form(key="downsample_form_total_counts"):
-                total_counts = st.number_input(label="Total counts", key="ni_downsample_total_counts", help="Target total counts. If the count matrix has more than total_counts it will be downsampled to have this number.")
-                subcol1, _, _ = st.columns(3)
-                btn_downsample_total_counts = subcol1.form_submit_button(label="Apply", use_container_width=True)
-                if btn_downsample_total_counts:
-                    sc.pp.downsample_counts(st.session_state.adata_state.current.adata, total_counts=total_counts, random_state=42)
-                  
-                    # TODO: add to script state
-                    st.toast("Successfully downsampled data by total counts", icon="✅")
+        try:
+            st.subheader("Downsample data")
+            counts_per_cell, total_counts = st.tabs(["counts_per_cell", "total_counts"])
+            with counts_per_cell:
+                with st.form(key="downsample_form_counts_per_cell"):
+                    counts_per_cell = st.number_input(label="Counts per cell", key="ni:pp:downsample_counts_per_cell", help="Target total counts per cell. If a cell has more than 'counts_per_cell', it will be downsampled to this number. Resulting counts can be specified on a per cell basis by passing an array.Should be an integer or integer ndarray with same length as number of obs.")
+                    subcol1, _, _ = st.columns(3)
+                    btn_downsample_counts_per_cell = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                    if btn_downsample_counts_per_cell:
+                        adata = self.state_manager.get_current_adata()
+                        sc.pp.downsample_counts(adata, counts_per_cell=counts_per_cell, random_state=42)
+                        self.state_manager \
+                            .add_adata(adata) \
+                            .save_session()
+                        # TODO: add to script state
+                        st.toast("Successfully downsampled data per cell", icon="✅")
+            with total_counts:
+                with st.form(key="downsample_form_total_counts"):
+                    total_counts = st.number_input(label="Total counts", key="ni:pp:downsample_total_counts", help="Target total counts. If the count matrix has more than total_counts it will be downsampled to have this number.")
+                    subcol1, _, _ = st.columns(3)
+                    btn_downsample_total_counts = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                    if btn_downsample_total_counts:
+                        adata = self.state_manager.get_current_adata()
+                        sc.pp.downsample_counts(adata, total_counts=total_counts, random_state=42)
+                        self.state_manager \
+                            .add_adata(adata) \
+                            .save_session()
+                        # TODO: add to script state
+                        st.toast("Successfully downsampled data by total counts", icon="✅")
+
+        except Exception as e:
+            st.toast(e, icon="❌")
 
             
     def subsample_data(self):
@@ -1348,7 +1347,7 @@ class Preprocess:
                         df_whole_ds = pd.DataFrame({'genes': genes, 'counts': [st.session_state.adata_state.current.adata.to_df()[gene].sum() for gene in genes]})
                         st.bar_chart(df_whole_ds, x='genes', y='counts', color='genes')
                         #write to script state
-                        st.session_state["script_state"].add_script("#Measure gene counts in single dataset")
+                        # st.session_state["script_state"].add_script("#Measure gene counts in single dataset")
                         # st.session_state["script_state"].add_script(f"df_whole_ds = pd.DataFrame({{'genes': {genes}, 'counts': {[st.session_state.adata_state.current.adata.to_df()[gene].sum() for gene in genes]}}})")
                         # st.session_state["script_state"].add_script(f"arr = np.array(['{st.session_state.adata_state.current.adata_name}'])")
                         # st.session_state["script_state"].add_script(f"df = pd.DataFrame('{gene} count': adata.obs['gene-counts'], 'Dataset': np.repeat(arr, adata.n_obs))")
@@ -1365,10 +1364,10 @@ class Preprocess:
                         df_subsample = pd.DataFrame({f'{gene} count': st.session_state.adata_state.current.adata.to_df()[gene], f"{batch_key_measure_gene_counts}": st.session_state.adata_state.current.adata.obs[f"{batch_key_measure_gene_counts}"]})
                         st.bar_chart(data=df_subsample, x=f"{batch_key_measure_gene_counts}", y=f'{gene} count', color=f"{batch_key_measure_gene_counts}")
                         #write to script state
-                        st.session_state["script_state"].add_script("#Measure gene counts across datasets")
-                        st.session_state["script_state"].add_script(f"gene = {gene}")
-                        st.session_state["script_state"].add_script(f" batch_key_measure_gene_counts = {batch_key_measure_gene_counts}")
-                        st.session_state["script_state"].add_script(f"df_subsample = pd.DataFrame({{f'{{gene}} count': st.session_state.adata_state.current.adata.to_df()[gene], f'{{batch_key_measure_gene_counts}}': st.session_state.adata_state.current.adata.obs[f'{{batch_key_measure_gene_counts}}']}})")
+                        # st.session_state["script_state"].add_script("#Measure gene counts across datasets")
+                        # st.session_state["script_state"].add_script(f"gene = {gene}")
+                        # st.session_state["script_state"].add_script(f" batch_key_measure_gene_counts = {batch_key_measure_gene_counts}")
+                        # st.session_state["script_state"].add_script(f"df_subsample = pd.DataFrame({{f'{{gene}} count': st.session_state.adata_state.current.adata.to_df()[gene], f'{{batch_key_measure_gene_counts}}': st.session_state.adata_state.current.adata.obs[f'{{batch_key_measure_gene_counts}}']}})")
                   
     def cell_cycle_scoring(self):
         """

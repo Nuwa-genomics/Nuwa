@@ -200,10 +200,10 @@ class Trajectory_inference:
 
                             
                             #write to script state
-                            st.session_state["script_state"].add_script("sc.tl.louvain(adata, resolution=1.0)")
-                            st.session_state["script_state"].add_script("sc.tl.paga(adata, groups='louvain')")
-                            st.session_state["script_state"].add_script(f"sc.pl.paga(adata, colors={options}, cmap='viridis', node_size_scale=3)")
-                            st.session_state["script_state"].add_script("plt.show()")
+                            # st.session_state["script_state"].add_script("sc.tl.louvain(adata, resolution=1.0)")
+                            # st.session_state["script_state"].add_script("sc.tl.paga(adata, groups='louvain')")
+                            # st.session_state["script_state"].add_script(f"sc.pl.paga(adata, colors={options}, cmap='viridis', node_size_scale=3)")
+                            # st.session_state["script_state"].add_script("plt.show()")
                         
 
             except Exception as e:
@@ -332,12 +332,12 @@ class Trajectory_inference:
                             
                             #add to script state
                             
-                            st.session_state["script_state"].add_script("adata.uns['iroot'] = np.flatnonzero(adata.obs['louvain']  == st.session_state.sb_root_cell)[0]")
-                            st.session_state["script_state"].add_script("sc.tl.dpt(adata)")
-                            st.session_state["script_state"].add_script("sc.pp.log1p(adata)")
-                            st.session_state["script_state"].add_script("sc.pp.scale(adata)")
-                            st.session_state["script_state"].add_script("sc.pl.draw_graph(adata, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')")
-                            st.session_state["script_state"].add_script("plt.show()")
+                            # st.session_state["script_state"].add_script("adata.uns['iroot'] = np.flatnonzero(adata.obs['louvain']  == st.session_state.sb_root_cell)[0]")
+                            # st.session_state["script_state"].add_script("sc.tl.dpt(adata)")
+                            # st.session_state["script_state"].add_script("sc.pp.log1p(adata)")
+                            # st.session_state["script_state"].add_script("sc.pp.scale(adata)")
+                            # st.session_state["script_state"].add_script("sc.pl.draw_graph(adata, color=['louvain', 'dpt_pseudotime'], legend_loc='on data', cmap='viridis')")
+                            # st.session_state["script_state"].add_script("plt.show()")
 
                             #     sc.tl.dpt(adata_raw, n_branchings=1, n_dcs=10)
                             #     adata_raw.obs.dpt_groups = adata_raw.obs.dpt_groups[:60]

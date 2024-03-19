@@ -2,10 +2,11 @@ import scanpy as sc
 import pandas as pd
 import numpy as np
 from utils.species import *
+from anndata import AnnData
 
 class Gene_info:
     def __init__(self, adata):
-        self.adata = adata
+        self.adata: AnnData = adata
         self.adata_copy = adata.copy()
         self.fail = 0 # no fail status
 

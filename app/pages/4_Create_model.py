@@ -8,15 +8,11 @@ from ml.citeseq.dataset import TabularDataset
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 import numpy as np
-import pickle
-import scvi
 from ml.solo_scvi.solo_model import *
 from ml.DeepST.deepst.main import *
 from ml.linear_vae.linear_vae import *
 import torch
 from components.sidebar import *
-from models.AdataModel import AdataModel
-from state.AdataState import AdataState
 from state.StateManager import StateManager
 from enum import Enum
 
@@ -279,7 +275,12 @@ class Create_Solo_model(CreateModel):
 
 
 class Create_linear_vae(CreateModel):
-    """Create a Solo model for doublet detection and removal. A package in [scvi tools](https://docs.scvi-tools.org/en/1.0.2/tutorials/notebooks/linear_decoder.html)"""
+    """Create a Solo model for doublet detection and removal. A package in [scvi tools](https://docs.scvi-tools.org/en/1.0.2/tutorials/notebooks/linear_decoder.html)
+
+    Notes
+    -----
+    .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/create_model_solo_page.png
+    """
 
     def __init__(self, adata):
         super(self.__class__, self).__init__(adata)
@@ -290,6 +291,28 @@ class Create_linear_vae(CreateModel):
         col2.number_input(label="lr", value=5e-3, step=1e-3, format='%.4f', key="ni:create_model:ldvae:lr")
 
     def init_model(self):
+        """
+        Init Linearly decoded VAE model object with given hyperparameters.
+
+        Parameters
+        ----------
+        device: str
+            Device to run the training on (CPU or Cuda if GPU is available).
+
+        epochs: str
+            Number of epochs to train models for.
+
+        learning_rate: float
+            Adjustable learning rate for improving gradient descent opttimizer.
+
+
+        Notes
+        -----
+        .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/ldvae_model.png
+
+        Example
+        -------
+        """
         self.model_dict = {
             "model": None,
             "n_epochs": st.session_state["ni:create_model:ldvae:max_epochs"],
@@ -321,10 +344,6 @@ def create_model(adata):
     model.build_model()
 
     model.summary()
-
-
-def create_ldvae(adata):
-    raise Exception
 
 
 try:

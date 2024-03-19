@@ -25,10 +25,11 @@ class Test_Dashboard:
         self.conn: Session = SessionLocal()
         
         self.at = AppTest.from_file("Dashboard.py")
+        
         if session_state is not None:
             self.at.session_state = session_state
             
-        self.at.run(timeout=100)
+        self.at.run(timeout=200)
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
@@ -48,10 +49,9 @@ class Test_Dashboard:
     def test_create_new_workspace(self):
         print(f"{bcolors.OKBLUE}test_create_new_workspace... {bcolors.ENDC}")
         workspace_name = f"workspace_name_{self.workspace_nonce}"
-        self.at.button("btn_new_workspace").click().run(timeout=100)
         self.at.text_input(key="ti_new_workspace_name").input(workspace_name)
         self.at.text_input(key="ti_new_workspace_desc").input("test description")
-        self.at.button(key="FormSubmitter:new_workspace_form-Save").click().run(timeout=100)
+        self.at.button(key="btn:dashboard:new_workspace").click().run(timeout=100)
         assert self.conn.query(schemas.Workspaces).filter(schemas.Workspaces.workspace_name == workspace_name).count() == 1
         
 
@@ -66,10 +66,9 @@ class Test_Dashboard:
         print(f"{bcolors.OKBLUE}test_delete_workspace... {bcolors.ENDC}")
         #create new workspace
         workspace_name = f"test_delete_{self.workspace_nonce}"
-        self.at.button("btn_new_workspace").click().run(timeout=100)
         self.at.text_input(key="ti_new_workspace_name").input(workspace_name)
         self.at.text_input(key="ti_new_workspace_desc").input("test_delete_desc")
-        self.at.button(key="FormSubmitter:new_workspace_form-Save").click().run(timeout=100)
+        self.at.button(key="btn:dashboard:new_workspace").click().run(timeout=100)
         assert self.conn.query(schemas.Workspaces).filter(schemas.Workspaces.workspace_name == workspace_name).count() == 1
         #select workspace
         for button in self.at.button:

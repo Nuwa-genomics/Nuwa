@@ -1,24 +1,18 @@
-import hashlib
 import streamlit as st
-import pandas as pd
 from models.WorkspaceModel import WorkspaceModel
 from models.AdataModel import AdataModel
 from state.AdataState import AdataState
 from utils.file_utils import *
-from datetime import datetime
 from database.database import *
 from database.schemas import schemas
 from sqlalchemy.orm import Session
-from pathlib import Path
 import shutil
 import zipfile
 import hashlib as hash
 from hashlib import sha256
-import time
 import os
 import scanpy as sc
 from database.db_export import *
-import pickle
 
 #create databases if not already present
 Base.metadata.create_all(engine)
@@ -49,6 +43,8 @@ class Dashboard:
     """
     def __init__(self):
         self.conn: Session = SessionLocal()
+        if "refresh_page" not in st.session_state:
+            st.session_state["refresh_page"] = False
         if not os.path.exists('/streamlit-volume/exported_workspaces'):
             os.mkdir('/streamlit-volume/exported_workspaces') 
         self.set_workspaces()
@@ -57,6 +53,7 @@ class Dashboard:
     def set_workspaces(self):
         workspaces = self.conn.query(schemas.Workspaces).all()
         st.session_state['workspaces'] = [WorkspaceModel(id=workspace.id, workspace_name=workspace.workspace_name, data_dir=workspace.data_dir, created=workspace.created, description=workspace.description) for workspace in workspaces]
+        
 
 
     def _write_workspace_to_db(self):
@@ -73,12 +70,18 @@ class Dashboard:
                 description = st.session_state.ti_new_workspace_desc,
                 data_dir = path
             )
-            self.conn.add(new_workspace)
-            self.conn.commit()
-            self.conn.refresh(new_workspace)
-            st.toast("Successfully created workspace", icon='✅')
+            exists = self.conn.query(schemas.Workspaces).filter_by(workspace_name=st.session_state.ti_new_workspace_name).first() is not None
+            if not exists:
+                self.conn.add(new_workspace)
+                self.conn.commit()
+                self.conn.refresh(new_workspace)
+                st.toast("Successfully created workspace", icon='✅')
+                return 0
+            else:
+                return -1
+
         except Exception as e:
-            st.error(e)
+            print(e)
             st.toast("Failed to create workspace", icon="❌")
 
 
@@ -114,15 +117,12 @@ class Dashboard:
         .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/new_workspace.png
         """
         with st.sidebar:
-            with st.form(key="new_workspace_form"):
+            with st.container(border=True):
                 st.subheader("Create New Workspace")
                 st.text_input(label="Name", key="ti_new_workspace_name")
                 st.text_input(label="Description", key="ti_new_workspace_desc")
                 col1, _, _ = st.columns(3)
-                save_btn = col1.form_submit_button(label="Save", use_container_width=True)
-                if save_btn:
-                    self._write_workspace_to_db()
-                    self.set_workspaces()
+                col1.button(label="Save", use_container_width=True, on_click=self._write_workspace_to_db, key="btn:dashboard:new_workspace")
 
 
     def import_workspace(self):
@@ -255,18 +255,17 @@ class Dashboard:
             st.toast("Successfully deleted workspace", icon="✅")
         except Exception as e:
             st.toast("Failed to delete workspace", icon="❌")
+            print(e)
                                                 
 
-
+    
     def draw_page(self):
         st.title("Workspaces")
-    
-        subheader_container = st.container()
+
         col1, col2, col3, col4 = st.columns(4, gap="large")
         columns = [col1, col2, col3, col4]
 
-        if len(st.session_state.workspaces) > 0:
-            subheader_container.subheader("Select a workspace")
+        if len(st.session_state["workspaces"]) > 0:
             for i, workspace in enumerate(st.session_state.workspaces): 
                 with columns[i % 4]:
                     button = st.button(label=workspace.workspace_name, key=f"btn_workspace_{workspace.id}")
@@ -312,6 +311,3 @@ class Dashboard:
                         </div>""", unsafe_allow_html=True)
 
 dashboard = Dashboard()
-
-
-

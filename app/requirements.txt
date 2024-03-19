@@ -38,7 +38,7 @@ seaborn==0.12.2
 sqlalchemy==2.0.22
 squidpy==1.4.1
 streamlit_lottie==0.0.5
-streamlit==1.28.0
+streamlit==1.32.1
 torch_geometric==2.4.0
 torch==2.2.1
 torchvision==0.17.1
