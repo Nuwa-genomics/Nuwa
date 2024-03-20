@@ -88,8 +88,6 @@ def highest_expr_genes_box_plot(adata: AnnData, n_top: int, gene_symbols: Option
         counts_top_genes, index=adata.obs_names, columns=columns
     )
 
-    print(counts_top_genes)
-
     fig = go.Figure()
     # Use x instead of y argument for horizontal plot
     for column in reversed(counts_top_genes.columns):

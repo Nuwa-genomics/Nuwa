@@ -1,3 +1,4 @@
+from typing import List
 from scanpy import AnnData
 from sqlalchemy import update
 from database.schemas import schemas
@@ -15,10 +16,11 @@ class ScriptState:
         self.add_imports()
         
         
-    def load_script(self, language = "python"):
+    def load_script(self, language = "python") -> List[str]:
         scripts = self.conn.query(schemas.Scripts) \
         .filter(schemas.Scripts.adata_id == self.adata_id) \
-        .filter(schemas.Scripts.language == language).order_by(schemas.Scripts.created).all()
+        .filter(schemas.Scripts.language == language) \
+        .order_by(schemas.Scripts.created).all()
         if scripts:
             return [script.script for script in scripts]
     
@@ -53,7 +55,6 @@ class ScriptState:
         .filter(schemas.Scripts.language == "R").count() == 0:
             self.add_script(script="library(Seurat)", language="R")
             
-        
         
     def switch_adata(self, adata_id):
         self.adata_id = adata_id

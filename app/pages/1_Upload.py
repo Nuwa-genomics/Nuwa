@@ -39,7 +39,6 @@ class Upload:
     .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/upload_page.png
     """
     def __init__(self):
-        self.first_load = True
         self.conn: Session = SessionLocal()
         self.upload_file()
         self.scanpy_dataset()
@@ -75,7 +74,6 @@ class Upload:
         #warn user that workspace already has adata in
         if glob.glob(os.path.join(os.getenv('WORKDIR'), "adata", "*.h5ad")):
             st.info("Workspace already contains a dataset. You can import a new one or continue with existing files.")
-            self.first_load = False
         
         uploaded_f = st.file_uploader("Choose a file to upload", type=["csv", "h5ad", "h5", "loom", "mtx", "tsv"], accept_multiple_files=True)
         
@@ -281,43 +279,30 @@ class Upload:
 
 
     def show_anndata(self, adata, f = None, filename = ""):
+        #upload raw adata
+        # If there are already a file in this location. If so, don't overwrite. 
+        if not os.path.isfile(os.path.join(os.getenv('WORKDIR'), 'adata', f'{filename}.h5ad')):
 
-            new_dataset = False #this could be original dataset, test to see if it's different from adata state
-            
-            if 'adata_state' in st.session_state:
-                if st.session_state.adata_state.current.adata_name != filename.replace(" ", "_"): #if user is loading in new dataset we want to replace current
-                    new_dataset = True
-            
-            if ('adata_state' not in st.session_state) or new_dataset:
-                if filename == "":
-                    filename = f.name.split(".")[0]
+            if filename == "":
+                filename = f.name.split(".")[0]
+        
+            filename = filename.replace(" ", "_") #files must not contain spaces
+
+            sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'uploads', f'{filename}.h5ad'), adata=adata)
                     
-                filename = filename.replace(" ", "_") #files must not contain spaces
-                
-                #upload raw adata
-                sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'uploads', f'{filename}.h5ad'), adata=adata)
-                
-                adata.raw = adata
-                active_adata = AdataModel(
-                    work_id = st.session_state.current_workspace.id, 
-                    adata_name=f"{filename}", adata=adata, 
-                    filename=os.path.join(os.getenv('WORKDIR'), 'adata', f'{filename}.h5ad')
-                )
-                st.session_state["adata_state"] = AdataState(active=active_adata)
-                
-                #see if dataset already in db
-                if self.first_load: #TODO: this doesn't take into account loading a new dataset into original workspace. adata definition won't show
-                    if f != None:
-                        st.session_state["script_state"].add_script(f"#Uploaded adata should be added here. Adata used for current experiment was {filename}.h5ad\n", language="python")
-                        st.session_state["script_state"].add_script(f"#Uploaded adata should be added here. Adata used for current experiment was {filename}.h5ad\n", language="R")
-                    else:
-                        st.session_state["script_state"].add_script(f"#Uploaded adata should be added here.\n", language="python")
-                        st.session_state["script_state"].add_script(f"#Uploaded adata should be added here.\n", language="R")
+            adata.raw = adata
+            active_adata = AdataModel(
+                work_id = st.session_state.current_workspace.id, 
+                adata_name=f"{filename}", adata=adata, 
+                filename=os.path.join(os.getenv('WORKDIR'), 'adata', f'{filename}.h5ad')
+            )
+            st.session_state["adata_state"] = AdataState(active=active_adata)
+            st.toast("Successfully uploaded file", icon='✅')
 
-                st.toast("Successfully uploaded file", icon='✅')
+        else:
+            st.warning("A dataset with the same name already exists, will not overwrite.")
                 
-                
-            self.show_sidebar_preview(f)
+        self.show_sidebar_preview(f)
             
 
         

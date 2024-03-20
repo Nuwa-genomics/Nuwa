@@ -12,7 +12,8 @@ from pathlib import Path
 from utils.Gene_info import Gene_info
 from utils.species import *
 import numpy as np
-
+from state.StateManager import StateManager
+from models.ErrorMessage import ErrorMessage, WarningMessage
 
 
 class Sidebar:
@@ -21,6 +22,7 @@ class Sidebar:
     """
     def __init__(self):
         self.conn: Session = SessionLocal()
+        self.state_manager = StateManager()
 
     def show_preview(self, integrate=False):
         """
@@ -44,13 +46,14 @@ class Sidebar:
                     st.markdown(f"""<h3 style='font-size: 16px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_target.adata_name}</h3>""", unsafe_allow_html=True)
                     st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_target.adata}</p>""", unsafe_allow_html=True)
                 else:
-                    st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{st.session_state.adata_state.current.adata}</p>""", unsafe_allow_html=True)
+                    st.markdown(f"""<p style='font-size: 14px; color: rgba(255, 255, 255, 0.75)'>{self.state_manager.get_current_adata()}</p>""", unsafe_allow_html=True)
 
     def delete_experiment_btn(self):
         with st.sidebar:
             delete_btn = st.button(label="🗑️ Delete Experiment", use_container_width=True, key="btn_delete_adata")
             if delete_btn:
-                st.session_state.adata_state.delete_record(adata_name=st.session_state.sb_adata_selection)
+                self.state_manager.adata_state() \
+                .delete_record(adata_name=st.session_state.sb_adata_selection)
                 
                 
     def export_script(self):
@@ -93,15 +96,18 @@ class Sidebar:
         .. image:: https://raw.githubusercontent.com/nuwa-genomics/Nuwa/main/docs/assets/images/screenshots/notes.png
         """
         with st.sidebar:
- 
-            notes = st.session_state.adata_state.load_adata(workspace_id=st.session_state.current_workspace.id, adata_name=st.session_state.sb_adata_selection).notes
-            display_notes = notes if notes != None else ""
-            notes_ta = st.text_area(label="Notes", placeholder="Notes", value=display_notes, key="sidebar_notes")
             try:
-                st.session_state.adata_state.current.notes = notes_ta
-                st.session_state.adata_state.update_record()
+                load_adata = self.state_manager.adata_state() \
+                .load_adata(workspace_id=st.session_state.current_workspace.id, adata_name=st.session_state.sb_adata_selection)
+            
+                notes = load_adata.notes
+                display_notes = notes if notes != None else ""
+                notes_ta = st.text_area(label="Notes", placeholder="Notes", value=display_notes, key="sidebar_notes")
+
+                self.state_manager.adata_state().current.notes = notes_ta
+                self.state_manager.adata_state().update_record()
             except Exception as e:
-                st.toast("Notes failed to save", icon="❌")
+                st.toast(ErrorMessage.NOTES_FAILED_TO_SAVE.value, icon="❌")
                 print("Error: ", e)
 
     def get_adata(self, adataList, name) -> AdataModel:
@@ -135,7 +141,11 @@ class Sidebar:
                 try:
                     st.subheader("Create New Adata")
                     st.text_input(label="Name", key="ti_new_adata_name")
-                    st.selectbox(label="Dataset", key="sb_new_experiment_dataset", options=st.session_state.adata_state.get_adata_options())
+                    adata_options = self.state_manager.adata_state().get_adata_options()
+                    if isinstance(adata_options, ErrorMessage):
+                        st.toast(adata_options.value, icon="❌")
+                        return
+                    st.selectbox(label="Dataset", key="sb_new_experiment_dataset", options=adata_options)
                     st.text_input(label="Notes", key="ti_new_adata_notes")
                     st.button(label="Save", on_click=self.write_adata, key="btn_add_adata")
                 except Exception as e:
@@ -166,10 +176,11 @@ class Sidebar:
                     st.text_input(label="Download directory", value=os.path.join(os.getenv('WORKDIR'), 'downloads', st.session_state.sb_adata_selection), key="ti_save_adata_dir")
                     save_adata_btn = st.button(label="Download", key="btn_save_adata")
                     if save_adata_btn:
-                        selected_adata = st.session_state.adata_state.load_adata(workspace_id=st.session_state.current_workspace.id, adata_name=st.session_state.sb_adata_selection)
+                        selected_adata = self.state_manager.adata_state() \
+                        .load_adata(workspace_id=st.session_state.current_workspace.id, adata_name=st.session_state.sb_adata_selection)
 
-                        if not selected_adata:
-                            st.toast("Couldn't find selected adata to save", icon="❌")
+                        if isinstance(selected_adata, ErrorMessage):
+                            st.toast(selected_adata.value, icon="❌")
                         else:
                             download_path = os.path.join(os.getenv('WORKDIR'), 'downloads', st.session_state.sb_adata_selection)
                             if not os.path.exists(download_path):
@@ -209,7 +220,7 @@ class Sidebar:
             name = st.session_state.ti_new_adata_name
             notes = st.session_state.ti_new_adata_notes
 
-            st.session_state.adata_state.insert_record(AdataModel(
+            self.state_manager.adata_state().insert_record(AdataModel(
                 work_id=st.session_state.current_workspace.id,
                 adata_name=name,
                 filename=os.path.join(os.getenv('WORKDIR'), "adata", f"{name}.h5ad"),
@@ -247,14 +258,14 @@ class Sidebar:
         """
         try:
             format = ""
-            for var in st.session_state.adata_state.current.adata.var_names[:5]:
+            for var in StateManager().get_current_adata().var_names[:5]:
                 if not var.startswith('ENS'):
                     format = "gene_symbol"
                 else:
                     format = "ensembl"
 
             def change_gene_format():
-                gene_info = Gene_info(st.session_state.adata_state.current.adata)
+                gene_info = Gene_info(StateManager().get_current_adata())
                 if gene_info.fail == -1:
                     st.session_state["toggle_gene_format"] = not st.session_state["toggle_gene_format"]
                     return -1
@@ -263,7 +274,7 @@ class Sidebar:
                 else:
                     gene_info.convert_enseml_to_symbols() #change format to gene symbols
                     
-                st.session_state.adata_state.current.adata.var = gene_info.adata.var
+                StateManager().get_current_adata().var = gene_info.adata.var
 
                 if st.session_state.toggle_gene_format:
                     st.toast("Changed format to Ensembl IDs", icon='✅')
@@ -290,18 +301,40 @@ class Sidebar:
     def show(self, integrate = False):
         with st.sidebar:
             def set_adata():
-                if st.session_state.adata_state.switch_adata(st.session_state.sb_adata_selection) == -1:
-                    st.error("Couldn't switch adata")
+                switch_adata_result = self.state_manager.adata_state().switch_adata(st.session_state.sb_adata_selection)
+                if isinstance(switch_adata_result, ErrorMessage):
+                    st.toast(switch_adata_result.value, icon="❌")
                 
             
             if integrate:
-                st.selectbox(label="Current Experiment (reference adata):", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection", on_change=set_adata, index=st.session_state.adata_state.get_index_of_current())
-                st.selectbox(label="Integrate into:", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection_target")
+                options = self.state_manager.adata_state().get_adata_options()
+                index = self.state_manager.adata_state().get_index_of_current()
+                if isinstance(options, ErrorMessage):
+                    st.toast(options.value, icon="❌")
+                    return
+                if isinstance(index, ErrorMessage):
+                    st.toast(options.value, icon="❌")
+                    return
+                st.selectbox(
+                    label="Current Experiment (reference adata):", 
+                    options=options, 
+                    key="sb_adata_selection", 
+                    on_change=set_adata, 
+                    index=index
+                )
+                st.selectbox(
+                    label="Integrate into:", 
+                    options=options, 
+                    key="sb_adata_selection_target"
+                )
                     
-                
                 #set integrate adata
-                st.session_state['adata_ref']: AdataModel = st.session_state.adata_state.current.copy()
-                st.session_state['adata_target']: AdataModel = st.session_state.adata_state.load_adata(st.session_state.current_workspace.id, st.session_state.sb_adata_selection_target).copy()
+                
+                st.session_state['adata_ref'] = self.state_manager.adata_state().current
+                st.session_state['adata_target'] = self.state_manager.adata_state().load_adata(
+                    workspace_id=st.session_state.current_workspace.id, 
+                    adata_name=st.session_state.sb_adata_selection_target
+                )
             
                 #sync genes
                 #test var names
@@ -339,14 +372,21 @@ class Sidebar:
                     empty.markdown(f"""<p style='font-size: 15px; color: rgba(255, 255, 255, 0.75)'>Current experiment {len(st.session_state.adata_ref.adata.var_names)} genes</p><p style='font-size: 15px; color: rgba(255, 255, 255, 0.75)'>Target experiment {len(st.session_state.adata_target.adata.var_names)} genes</p>""", unsafe_allow_html=True)
                 else:
                     #set integrate adata
-                    st.session_state['adata_ref']: AdataModel = st.session_state.adata_state.current
-                    st.session_state['adata_target']: AdataModel = st.session_state.adata_state.load_adata(st.session_state.current_workspace.id, st.session_state.sb_adata_selection_target)
+                    st.session_state['adata_ref'] = self.state_manager.adata_state().current
+                    st.session_state['adata_target'] = self.state_manager.adata_state().load_adata(
+                        workspace_id=st.session_state.current_workspace.id, 
+                        adata_name=st.session_state.sb_adata_selection_target
+                    )
                     empty.markdown(f"""<p style='font-size: 15px; color: rgba(255, 255, 255, 0.75)'>Current experiment {len(st.session_state.adata_ref.adata.var_names)} genes</p><p style='font-size: 15px; color: rgba(255, 255, 255, 0.75)'>Target experiment {len(st.session_state.adata_target.adata.var_names)} genes</p>""", unsafe_allow_html=True)
                     
                 st.divider()
 
             else:
-                st.selectbox(label="Current Experiment:", options=st.session_state.adata_state.get_adata_options(), key="sb_adata_selection", on_change=set_adata, index=st.session_state.adata_state.get_index_of_current())
+                options = self.state_manager.adata_state().get_adata_options()
+                if isinstance(options, ErrorMessage):
+                    st.toast(options.value, icon="❌")
+                    return
+                st.selectbox(label="Current Experiment:", options=options, key="sb_adata_selection", on_change=set_adata, index=self.state_manager.adata_state().get_index_of_current())
 
                 Sidebar.species()
                 

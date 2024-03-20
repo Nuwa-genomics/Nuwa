@@ -264,9 +264,9 @@ class Spatial_transcriptomics:
                             sq.gr.ripley(self.adata, cluster_key=cluster_key, mode=mode, max_dist=max_dist, n_neigh=n_neighbours, n_simulations=n_simulations)
                             st.session_state.spatial_plots['ripley_score'] = dict(cluster_key=cluster_key, mode=mode, plot_sims=plot_sims)
                         #write to script state
-                        st.session_state["script_state"].add_script(f"sq.gr.ripley(adata, cluster_key={st.session_state.sb_cluster_key_ripley}, mode='L', max_dist=500)")
-                        st.session_state["script_state"].add_script(f"sq.pl.ripley(adata, cluster_key={st.session_state.sb_cluster_key_ripley}, mode='L')")
-                        st.session_state["script_state"].add_script("plt.show()")
+                        # st.session_state["script_state"].add_script(f"sq.gr.ripley(adata, cluster_key={st.session_state.sb_cluster_key_ripley}, mode='L', max_dist=500)")
+                        # st.session_state["script_state"].add_script(f"sq.pl.ripley(adata, cluster_key={st.session_state.sb_cluster_key_ripley}, mode='L')")
+                        # st.session_state["script_state"].add_script("plt.show()")
 
                         st.toast(f"Ran Ripley's {mode} scoring", icon="✅")
                 except Exception as e:
@@ -437,10 +437,10 @@ class Spatial_transcriptomics:
                             empty.empty()
                             empty.pyplot(ax_lri)
                             #write to script state
-                            st.session_state["script_state"].add_script(f"sq.gr.ligrec(adata, n_perms=100, cluster_key={st.session_state.sb_cluster_key_lri})")
-                            st.session_state["script_state"].add_adata(f"sq.pl.ligrec(adata, cluster_key={st.session_state.sb_cluster_key_lri},  \
-                                source_groups={st.session_state.ms_lri_source_groups}, target_groups={st.session_state.ms_lri_target_groups}, \
-                                means_range=(0.3, np.inf), alpha=1e-4, swap_axes=True)")
+                            # st.session_state["script_state"].add_script(f"sq.gr.ligrec(adata, n_perms=100, cluster_key={st.session_state.sb_cluster_key_lri})")
+                            # st.session_state["script_state"].add_adata(f"sq.pl.ligrec(adata, cluster_key={st.session_state.sb_cluster_key_lri},  \
+                            #     source_groups={st.session_state.ms_lri_source_groups}, target_groups={st.session_state.ms_lri_target_groups}, \
+                            #     means_range=(0.3, np.inf), alpha=1e-4, swap_axes=True)")
                 except Exception as e:
                     st.error(e)
                 
