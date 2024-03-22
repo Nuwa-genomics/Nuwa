@@ -15,8 +15,8 @@ from sqlalchemy.orm import Session
 from state.AdataState import AdataState
 from database.schemas import schemas
 from models.WorkspaceModel import WorkspaceModel
+from state.StateManager import StateManager
 import os
-import time
 from random import randrange
 import shutil
 from datetime import datetime, date
@@ -50,15 +50,29 @@ try:
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
     print()
-    print(f"{bcolors.BOLD}===============Testing Preprocess===============")
-    pp_test = Test_Preprocess(session_state=upload_state)
-    pp_state = pp_test.get_final_session_state()
+    print(f"{bcolors.BOLD}===============Testing Preprocess Pipeline 1===============")
+    pp_test = Test_Preprocess(session_state=upload_state, pipeline=1)
+    pp_state1 = pp_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
+
+    print()
+    print(f"{bcolors.BOLD}===============Testing Preprocess Pipeline 2===============")
+    pp_test = Test_Preprocess(session_state=upload_state, pipeline=2)
+    pp_state2 = pp_test.get_final_session_state()
+    print()
+    print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
+
+    print()
+    print(f"{bcolors.BOLD}===============Testing Preprocess Pipeline 3===============")
+    pp_test = Test_Preprocess(session_state=upload_state, pipeline=3)
+    pp_state3 = pp_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
 
     print()
     print(f"{bcolors.BOLD}===============Testing Create Citeseq Model===============")
-    create_model_test = Test_Create_Model(session_state=pp_state, model="Citeseq (dimensionality reduction)")
+    create_model_test = Test_Create_Model(session_state=pp_state2, model="Citeseq (dimensionality reduction)")
     create_model_state = create_model_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")
@@ -79,7 +93,7 @@ try:
     
     print()
     print(f"{bcolors.BOLD}===============Testing Create Solo Model===============")
-    create_model_test = Test_Create_Model(session_state=pp_state, model="Solo (doublet removal)")
+    create_model_test = Test_Create_Model(session_state=pp_state1, model="Solo (doublet removal)")
     create_model_state = create_model_test.get_final_session_state()
     print()
     print(f"{bcolors.OKGREEN}TEST PASSED{bcolors.ENDC}")

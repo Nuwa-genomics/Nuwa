@@ -48,7 +48,8 @@ def load_data_from_cache(state_file):
         dbfile = open(os.path.join(os.getenv('WORKDIR'), 'tmp', state_file), 'rb')    
         session = pickle.load(dbfile)
         for key in session:
-            if not (key.__contains__("FormSubmitter") or key.__contains__("file_uploader")):
+            if not (key.__contains__("FormSubmitter") or key.__contains__("file_uploader") or 
+                key.__contains__("btn") or key.__contains__("toggle")):
                 st.session_state[key] = session[key] # load in keys to session state
         dbfile.close()
 

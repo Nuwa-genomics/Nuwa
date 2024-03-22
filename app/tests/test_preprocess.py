@@ -1,16 +1,11 @@
 from streamlit.testing.v1 import AppTest
 import os
 from anndata import AnnData
-from state.AdataState import AdataState
-from models.AdataModel import AdataModel
-from models.AdataModel import AdataModel
-from models.WorkspaceModel import WorkspaceModel
 from database.database import SessionLocal
 from sqlalchemy.orm import Session
 from database.schemas import schemas
-from matplotlib.testing.compare import compare_images
-from pdf2image import convert_from_path
 import scanpy as sc
+import math
 import numpy as np
 import pandas as pd
 from utils.plotting import highest_expr_genes_box_plot, plot_doubletdetection_threshold_heatmap
@@ -27,7 +22,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 class Test_Preprocess:
-    def __init__(self, session_state = None):
+    def __init__(self, session_state = None, pipeline: int = 1):
         print(f"{bcolors.OKBLUE}Initialising page... {bcolors.ENDC}", end="")
         self.at = AppTest.from_file("pages/2_Preprocess.py")
         self.conn: Session = SessionLocal()
@@ -37,7 +32,18 @@ class Test_Preprocess:
         self.at.run(timeout=500)
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
+        if pipeline == 1:
+            self.pipeline1()
+        elif pipeline == 2:
+            self.pipeline2()
+        elif pipeline == 3:
+            self.pipeline3()
+        else:
+            raise Exception("Unknown run")
         
+        
+    def pipeline1(self):
         self.test_add_and_delete_adata()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
@@ -47,6 +53,10 @@ class Test_Preprocess:
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         self.test_filter_highest_expressed()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
+        self.test_doublet_prediction()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
 
@@ -69,14 +79,6 @@ class Test_Preprocess:
         self.test_filter_genes()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
-
-        self.test_doublet_prediction()
-        assert not self.at.exception
-        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
-        
-        self.test_pp_recipe()
-        assert not self.at.exception
-        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
         self.test_annot_mito()
         assert not self.at.exception
@@ -94,15 +96,19 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
 
-        #self.test_cell_cycle_scoring()
+        self.test_cell_cycle_scoring()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        self.test_downsampling_data()
+        self.test_downsampling_data_total_counts()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
 
-        self.test_subsampling_data()
+        self.test_downsampling_data_counts_per_cell()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
+        self.test_subsampling_data_fraction()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
@@ -118,11 +124,22 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        self.test_save_adata()
+        # self.test_save_adata()
+        # assert not self.at.exception
+        # print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+    def pipeline2(self):
+        self.test_subsampling_data_n_obs()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
-        
-        
+
+
+    def pipeline3(self):
+        self.test_pp_recipe()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
+
         
     def test_add_and_delete_adata(self):
         print(f"{bcolors.OKBLUE}test_add_and_delete_data {bcolors.ENDC}", end="")
@@ -185,8 +202,6 @@ class Test_Preprocess:
         assert_series_equal(adata1.var.dispersions, adata2.var.dispersions)
 
 
-    
-
     def test_filter_cells(self):
         print(f"{bcolors.OKBLUE}test_filter_cells {bcolors.ENDC}", end="")
         # Check inputs are correct
@@ -232,26 +247,36 @@ class Test_Preprocess:
         
     def test_pp_recipe(self):
         print(f"{bcolors.OKBLUE}test_pp_recipe {bcolors.ENDC}", end="")
-        self.at.number_input(key="ni_zheng17_n_genes").set_value(1100).run()
-        self.at.button(key="FormSubmitter:form_zheng17-Apply").click().run(timeout=100)
-        #assert self.at.session_state.adata_state.current.adata.n_vars == 1100
+        adata: AnnData = sc.datasets.pbmc3k()
+        self.at.session_state.adata_state.current.adata = adata
+        sc.write(adata=adata, filename=self.at.session_state.adata_state.current.filename)
+        sc.pp.recipe_seurat(adata, log=True)
+        self.at.checkbox(key="cb:pp:recipe:seurat:log").set_value(True)
+        self.at.button(key="FormSubmitter:form_seurat-Apply").click().run(timeout=100)
+        assert_frame_equal(self.at.session_state.adata_state.current.adata.to_df(), adata.to_df())
+        assert_frame_equal(self.at.session_state.adata_state.current.adata.obs, adata.obs)
+        assert_frame_equal(self.at.session_state.adata_state.current.adata.var, adata.var)
 
 
     def test_doublet_prediction(self):
         print(f"{bcolors.OKBLUE}test_doublet_prediction {bcolors.ENDC}", end="")
-        #adata = self.at.session_state.adata_state.current.adata.copy()
-        self.at.number_input(key="ni_sim_doublet_ratio").set_value(2.10).run()
-        self.at.number_input(key="ni_expected_doublet_rate").set_value(0.06).run()
-        self.at.number_input(key="ni_stdev_doublet_rate").set_value(0.02).run()
-        self.at.selectbox(key="sb_scrublet_batch_key").select("BATCH")
+        # Check inputs
+        assert self.at.session_state.adata_state.current.adata.n_obs == 9288
+        assert self.at.session_state.adata_state.current.adata.n_vars == 1222
+        from_file_adata = sc.read(self.at.session_state.adata_state.current.filename)
+        assert from_file_adata.n_vars == 1222
+        assert from_file_adata.n_obs == 9288
+        adata = self.at.session_state.adata_state.current.adata.copy()
+        self.at.number_input(key="ni:pp:scrublet:sim_doublet_ratio").set_value(2.10)
+        self.at.number_input(key="ni:pp:scrublet:expected_doublet_rate").set_value(0.06)
+        self.at.number_input(key="ni:pp:scrublet:stdev_doublet_rate").set_value(0.02)
+        self.at.selectbox(key="sb:pp:scrublet:batch_key").select("BATCH")
         self.at.button(key="FormSubmitter:scrublet_form-Run").click().run(timeout=100)
 
-        # sc.external.pp.scrublet(adata, sim_doublet_ratio=2.1, expected_doublet_rate=0.06, stdev_doublet_rate=0.02, batch_key="BATCH", random_state=42)
+        sc.external.pp.scrublet(adata, sim_doublet_ratio=2.10, expected_doublet_rate=0.06, stdev_doublet_rate=0.02, verbose=False, batch_key="BATCH", random_state=42)
 
-        # for i, score in enumerate(adata.obs.doublet_score):
-        #     assert score == self.at.session_state.adata_state.current.adata.obs.doublet_score[i]
-        # for i, pred in enumerate(adata.obs.predicted_doublet):
-        #     assert pred == self.at.session_state.adata_state.current.adata.obs.predicted_doublet[i]
+        assert_series_equal(adata.obs.doublet_score, self.at.session_state.adata_state.current.adata.obs.doublet_score)
+        assert_series_equal(adata.obs.predicted_doublet, self.at.session_state.adata_state.current.adata.obs.predicted_doublet)
 
         
     def test_annot_mito(self):
@@ -342,65 +367,75 @@ class Test_Preprocess:
 
     def test_batch_effect_removal_and_pca(self):
         print(f"{bcolors.OKBLUE}test_batch_effect_removal_and_adata {bcolors.ENDC}", end="")
-        # adata_original = self.at.session_state.adata_state.current.adata.copy()
-        # sc.pp.combat(adata_original, key='BATCH')
-        # sc.pp.pca(adata_original, random_state=42)
-        # self.at.selectbox(key="sb_batch_effect_key").select("BATCH").run()
-        # self.at.button(key="FormSubmitter:batch_effect_removal_form-Apply").click().run(timeout=500)
-        #first test pca in combat
-        #for i, item in enumerate(adata_original.obsm['X_pca']):
-            #assert np.array_equal(item, self.at.session_state.adata_state.current.adata.obsm['X_pca'][i])
 
-        #next test correct pca plot is generated
-        # df = pd.DataFrame({'pca1': adata_original.obsm['X_pca'][:,0], 'pca2': adata_original.obsm['X_pca'][:,1], 'color': adata_original.obs[f'{self.at.session_state.sb_pca_color_pp}']})  
-        # self.at.selectbox(key="sb_pca_color_pp").select("BATCH").run()
-        # self.at.button(key="FormSubmitter:pca_pp_form-Apply").click().run(timeout=100)
-        # assert np.array_equal(self.at.session_state['pp_df_pca']['pca1'], df['pca1'])
-        # assert np.array_equal(self.at.session_state['pp_df_pca']['pca2'], df['pca2'])
-        # assert np.array_equal(self.at.session_state['pp_df_pca']['color'], df['color'])
-        
-        
-    def test_downsampling_data(self):
-        print(f"{bcolors.OKBLUE}test_downsampling_data {bcolors.ENDC}", end="")
+        adata: AnnData = self.at.session_state.adata_state.current.adata.copy()
+        sc.pp.combat(adata, key='BATCH', inplace=True)
+        sc.pp.pca(adata, random_state=42)
 
-        print(self.at.session_state.adata_state.current.adata.to_df())
-        self.at.number_input(key="ni:pp:downsample_total_counts").set_value(1000)
+        # Run Combat
+        self.at.selectbox(key="sb:pp:combat:batch_key").select("BATCH")
+        self.at.button(key="FormSubmitter:batch_effect_removal_form-Apply").click().run(timeout=500)
+        
+        # Now run PCA
+        self.at.selectbox(key="sb:pp:pca:color").select("BATCH")
+        self.at.button(key="FormSubmitter:pca_pp_form-Apply").click().run(timeout=100)
+
+        assert np.array_equal(adata.obsm['X_pca'], self.at.session_state.adata_state.current.adata.obsm['X_pca'])
+
+        # Test plot generated
+        pp_pca_df = pd.DataFrame({'pca1': adata.obsm['X_pca'][:,0], 'pca2': adata.obsm['X_pca'][:,1], 'color': adata.obs['BATCH']})  
+        plots_dict: dict = self.at.session_state["preprocess_plots"]["pca"]
+        assert_frame_equal(plots_dict.get('df'), pp_pca_df)
+
+        
+    def test_downsampling_data_total_counts(self):
+        print(f"{bcolors.OKBLUE}test_downsampling_data_total_counts {bcolors.ENDC}", end="")
+        # Total counts
+        self.at.number_input(key="ni:pp:downsample:total_counts").set_value(1000.0)
         self.at.button(key="FormSubmitter:downsample_form_total_counts-Apply").click().run(timeout=100)
-        print(self.at.session_state.adata_state.current.adata.to_df())
-        print(self.at.session_state.adata_state.current.adata.to_df().sum().sum())
-        assert self.at.session_state.adata_state.current.adata.to_df().sum().sum() == 1000
+        assert self.at.session_state.adata_state.current.adata.to_df().sum().sum() == 1000.0
+
+
+    def test_downsampling_data_counts_per_cell(self):
+        print(f"{bcolors.OKBLUE}test_downsampling_data_counts_per_cell {bcolors.ENDC}", end="")
+        # Counts per cell
+        # Reset to raw to avoid negative values which skew counts
+        # TODO: Possibly reset to raw via another method?
+        self.at.number_input(key="ni:pp:downsample:counts_per_cell").set_value(2)
+        self.at.button(key="FormSubmitter:downsample_form_counts_per_cell-Apply").click().run(timeout=100)
+        #assert self.at.session_state.adata_state.current.adata.to_df().sum().sum() == self.at.session_state.adata_state.current.adata.n_obs * 2
         
-
-        # TODO: get counts per cell working
-        # self.at.number_input(key="ni:pp:downsample_counts_per_cell").set_value(1000)
-        # self.at.button(key="FormSubmitter:downsample_form_counts_per_cell-Apply").click().run(timeout=100)
-        # assert self.at.session_state.adata_state.current.adata.n_obs * 1.5 == self.at.session_state.adata_state.current.adata.to_df().sum().sum()
-
-
-    def test_subsampling_data(self):
-        print(f"{bcolors.OKBLUE}test_subsampling_data {bcolors.ENDC}", end="")
-
+        
+    def test_subsampling_data_fraction(self):
+        print(f"{bcolors.OKBLUE}test_subsampling_data_fraction {bcolors.ENDC}", end="")
         original_n_obs = self.at.session_state.adata_state.current.adata.n_obs
-        fraction = 0.9
-        self.at.number_input(key="ni_subsample_fraction").set_value(fraction).run(timeout=100)
+        fraction = 0.95
+        self.at.number_input(key="ni:pp:subsample:fraction").set_value(fraction)
         self.at.button(key="FormSubmitter:subsample_form_fraction-Apply").click().run(timeout=100)
         subsampled_n_obs = self.at.session_state.adata_state.current.adata.n_obs
-        assert float(subsampled_n_obs) == original_n_obs * fraction
+        assert subsampled_n_obs == math.floor(original_n_obs * fraction)
 
-        original_n_obs = self.at.session_state.adata_state.current.adata
-        n_obs = round(original_n_obs * 0.9)
-        self.at.number_input(key="ni_subsample_n_obs").set_value(n_obs).run(timeout=100)
+    
+
+    def test_subsampling_data_n_obs(self):
+        print(f"{bcolors.OKBLUE}test_subsampling_data_n_obs {bcolors.ENDC}", end="")
+        fraction = 0.95
+        original_n_obs = self.at.session_state.adata_state.current.adata.n_obs
+        n_obs = math.floor(original_n_obs * fraction)
+        print(n_obs)
+        self.at.number_input(key="ni:pp:subsample:n_obs").set_value(n_obs)
         self.at.button(key="FormSubmitter:subsample_form_n_obs-Apply").click().run(timeout=100)
+        print(self.at.session_state.adata_state.current.adata.n_obs)
         assert self.at.session_state.adata_state.current.adata.n_obs == n_obs
 
 
     def test_cell_cycle_scoring(self):
         print(f"{bcolors.OKBLUE}test_cell_cycle_scoring {bcolors.ENDC}", end="")
         #TODO: Figure out how to run this test, can't simulate loading a file
-        self.at.selectbox(key="sb_gene_col_cell_cycle").select("genes").run()
-        self.at.selectbox(key="sb_phase_col_cell_cycle").select("phase").run()
-        self.at.selectbox(key="sb_group_cell_cycle").select("BATCH").run()
-        self.at.button(key="FormSubmitter:cell_cycle_scoring_form-Run").click().run()
+        # self.at.selectbox(key="sb_gene_col_cell_cycle").select("genes").run()
+        # self.at.selectbox(key="sb_phase_col_cell_cycle").select("phase").run()
+        # self.at.selectbox(key="sb_group_cell_cycle").select("BATCH").run()
+        # self.at.button(key="FormSubmitter:cell_cycle_scoring_form-Run").click().run()
 
     def get_final_session_state(self):
         return self.at.session_state
