@@ -560,9 +560,6 @@ try:
 
     dge = Differential_gene_expression(st.session_state.adata_state.current.adata.copy())
 
-    sidebar.export_script()
-    sidebar.delete_experiment_btn()
-    sidebar.show_version()
     
 except Exception as e:
     if(st.session_state == {}):

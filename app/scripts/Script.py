@@ -1,6 +1,6 @@
 import streamlit as st
 from state.ScriptState import ScriptState
-from models.ScriptModel import Language
+from enums.Language import Language
 
 class Script:
     """

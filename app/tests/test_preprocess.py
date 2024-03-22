@@ -56,7 +56,7 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
 
-        self.test_doublet_prediction()
+        self.test_scrublet()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
 
@@ -80,18 +80,6 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        self.test_annot_mito()
-        assert not self.at.exception
-        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
-        
-        self.test_annot_ribo()
-        assert not self.at.exception
-        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
-        
-        self.test_annot_hb()
-        assert not self.at.exception
-        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
-        
         self.test_batch_effect_removal_and_pca()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
@@ -112,14 +100,6 @@ class Test_Preprocess:
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
-        self.test_measure_gene_counts()
-        assert not self.at.exception
-        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
-        
-        self.test_remove_genes()
-        assert not self.at.exception
-        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
-        
         self.test_regress_out()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
@@ -129,6 +109,35 @@ class Test_Preprocess:
         # print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
         
     def pipeline2(self):
+
+        self.test_geneID_conversion()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
+        self.test_remove_genes()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
+        self.test_annot_mito()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_annot_ribo()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+        
+        self.test_annot_hb()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
+        self.test_measure_gene_counts()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
+        self.test_doubletdetection()
+        assert not self.at.exception
+        print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
+
         self.test_subsampling_data_n_obs()
         assert not self.at.exception
         print(f"{bcolors.OKGREEN}OK{bcolors.ENDC}")
@@ -258,8 +267,8 @@ class Test_Preprocess:
         assert_frame_equal(self.at.session_state.adata_state.current.adata.var, adata.var)
 
 
-    def test_doublet_prediction(self):
-        print(f"{bcolors.OKBLUE}test_doublet_prediction {bcolors.ENDC}", end="")
+    def test_scrublet(self):
+        print(f"{bcolors.OKBLUE}test_scrublet {bcolors.ENDC}", end="")
         # Check inputs
         assert self.at.session_state.adata_state.current.adata.n_obs == 9288
         assert self.at.session_state.adata_state.current.adata.n_vars == 1222
@@ -278,6 +287,11 @@ class Test_Preprocess:
         assert_series_equal(adata.obs.doublet_score, self.at.session_state.adata_state.current.adata.obs.doublet_score)
         assert_series_equal(adata.obs.predicted_doublet, self.at.session_state.adata_state.current.adata.obs.predicted_doublet)
 
+    def test_doubletdetection(self):
+        print(f"{bcolors.OKBLUE}test_doubletdetection {bcolors.ENDC}", end="")
+        self.at.button(key="FormSubmitter:doubletdetection_form-Run").click().run(timeout=100)
+        #TODO: implement tests for charts
+
         
     def test_annot_mito(self):
         print(f"{bcolors.OKBLUE}test_annot_mito {bcolors.ENDC}", end="")
@@ -294,9 +308,20 @@ class Test_Preprocess:
         
     def test_measure_gene_counts(self):
         print(f"{bcolors.OKBLUE}test_measure_gene_counts {bcolors.ENDC}", end="")
+        # Single dataset
+        self.at.multiselect(key="ms:pp:measure_genes:genes").set_value(['XIST'])
+        self.at.button(key="FormSubmitter:measure_gene_counts_single_dataset-Run").click().run(timeout=100)
+        # Multiple datasets
+        self.at.selectbox(key="sb:pp:measure_genes:batch").select(['BATCH'])
+        self.at.multiselect(key="ms:pp:measure_genes_batch:genes").set_value(['XIST'])
+        self.at.button(key="FormSubmitter:measure_gene_counts_multiple_datasets-Run").click().run(timeout=100)
         
     def test_remove_genes(self):
         print(f"{bcolors.OKBLUE}test_remove_genes {bcolors.ENDC}", end="")
+        self.at.multiselect(key="ms:pp:remove_genes:genes").set_value(['MALAT1'])
+        self.at.button(key="FormSubmitter:remove_genes_form-Run").click().run(timeout=100)
+        assert 'MALAT1' not in self.at.session_state.adata_state.current.adata.var_names
+        
         
     def test_regress_out(self):
         print(f"{bcolors.OKBLUE}test_regress_out {bcolors.ENDC}", end="")
@@ -415,7 +440,6 @@ class Test_Preprocess:
         subsampled_n_obs = self.at.session_state.adata_state.current.adata.n_obs
         assert subsampled_n_obs == math.floor(original_n_obs * fraction)
 
-    
 
     def test_subsampling_data_n_obs(self):
         print(f"{bcolors.OKBLUE}test_subsampling_data_n_obs {bcolors.ENDC}", end="")
@@ -427,6 +451,10 @@ class Test_Preprocess:
         self.at.button(key="FormSubmitter:subsample_form_n_obs-Apply").click().run(timeout=100)
         print(self.at.session_state.adata_state.current.adata.n_obs)
         assert self.at.session_state.adata_state.current.adata.n_obs == n_obs
+
+    def test_geneID_conversion(self):
+        print(f"{bcolors.OKBLUE}test_geneID_conversion {bcolors.ENDC}", end="")
+        self.at.toggle(key="toggle_gene_format").set_value(False).run()
 
 
     def test_cell_cycle_scoring(self):

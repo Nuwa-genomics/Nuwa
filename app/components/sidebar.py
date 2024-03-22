@@ -13,7 +13,7 @@ from utils.Gene_info import Gene_info
 from utils.species import *
 import numpy as np
 from state.StateManager import StateManager
-from models.ErrorMessage import ErrorMessage, WarningMessage
+from enums.ErrorMessage import ErrorMessage, WarningMessage
 
 
 class Sidebar:
@@ -151,6 +151,14 @@ class Sidebar:
                 except Exception as e:
                     print("Error: ", e)
                     st.error(e)
+
+    def steps(self):
+        current_adata_id = self.state_manager.adata_state().current.id
+        sessions = self.conn.query(schemas.Session).filter(schemas.Session.adata_id == current_adata_id).all()
+        session_names = [session.description for session in sessions]
+        with st.sidebar:
+            st.select_slider(label="Pipeline steps", options=session_names)
+            st.button(label="🔧 Undo", key="btn_undo", use_container_width=True)
                     
                 
     def download_adata(self):
@@ -286,8 +294,7 @@ class Sidebar:
                 st.toggle(label="Ensembl ID", value=(format == "ensembl"), key="toggle_gene_format", on_change=change_gene_format)
 
         except Exception as e:
-            st.error(e)
-            print("Error: ", e)
+            st.toast(e, icon="❌")
             
             
     def show_version(self):
@@ -394,10 +401,13 @@ class Sidebar:
                 
             
             self.download_adata()
-                    
             self.add_experiment()
-                    
             self.notes()
+            self.show_preview()
+            self.export_script()
+            self.steps()
+            self.delete_experiment_btn()
+            self.show_version()
 
             
             

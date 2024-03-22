@@ -538,11 +538,6 @@ try:
     st.divider()
     analysis.plots()
 
-    sidebar.show_preview()
-    sidebar.export_script()
-    sidebar.delete_experiment_btn()
-    sidebar.show_version()
-
 
 except Exception as e:
     if(st.session_state == {}):

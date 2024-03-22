@@ -9,7 +9,7 @@ from database.database import SessionLocal
 from sqlalchemy.orm import Session
 from state.ScriptState import ScriptState
 import os
-from models.ErrorMessage import ErrorMessage, WarningMessage
+from enums.ErrorMessage import ErrorMessage, WarningMessage
 
 class AdataState:
     def __init__(self, active: AdataModel, insert_into_db=True):

@@ -715,16 +715,9 @@ try:
     sidebar = Sidebar()
 
     sidebar.show(integrate=True)
-
-    sidebar.show_preview(integrate=True)
             
     integrate = Integrate()
 
-    sidebar.export_script()
-
-    sidebar.delete_experiment_btn()
-
-    sidebar.show_version()
 
 except Exception as e:
     if(st.session_state == {}):

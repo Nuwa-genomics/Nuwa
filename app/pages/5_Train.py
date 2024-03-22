@@ -176,11 +176,6 @@ try:
     sidebar = Sidebar()
 
     sidebar.show()
-
-    sidebar.show_preview()
-    sidebar.export_script()
-    sidebar.delete_experiment_btn()
-    sidebar.show_version()
     
     train = Train(adata)
 

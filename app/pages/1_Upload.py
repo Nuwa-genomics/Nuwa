@@ -1,8 +1,6 @@
-from pydantic import ValidationError
 import streamlit as st
 import scanpy as sc
 import squidpy as sq
-import pickle
 import os
 from models.AdataModel import AdataModel
 from models.WorkspaceModel import WorkspaceModel
@@ -11,8 +9,6 @@ from sqlalchemy.orm import Session
 from database.schemas import schemas
 from state.AdataState import AdataState
 from state.StateManager import StateManager
-from state.ScriptState import ScriptState
-from utils.session_cache import load_data_from_cache, cache_data_to_session
 import loompy as lmp
 import glob
 from components.sidebar import Sidebar
@@ -40,6 +36,7 @@ class Upload:
     """
     def __init__(self):
         self.conn: Session = SessionLocal()
+        self.state_manager = StateManager()
         self.upload_file()
         self.scanpy_dataset()
         self.external_sources()
@@ -297,12 +294,26 @@ class Upload:
                 filename=os.path.join(os.getenv('WORKDIR'), 'adata', f'{filename}.h5ad')
             )
             st.session_state["adata_state"] = AdataState(active=active_adata)
+
+            self.state_manager \
+            .add_adata(adata) \
+            .add_description("Upload raw") \
+            .save_session()
+
             st.toast("Successfully uploaded file", icon='✅')
 
         else:
-            st.warning("A dataset with the same name already exists, will not overwrite.")
+
+            self.state_manager \
+            .add_adata(adata) \
+            .add_description("Upload raw") \
+            .save_session()
+            
+            st.toast("A dataset with the same name already exists, will not overwrite.", icon="⚠️")
                 
         self.show_sidebar_preview(f)
+
+        
             
 
         

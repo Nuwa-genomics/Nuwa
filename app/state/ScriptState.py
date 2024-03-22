@@ -2,7 +2,8 @@ from typing import List
 from scanpy import AnnData
 from sqlalchemy import update
 from database.schemas import schemas
-from models.ScriptModel import ScriptModel, Language
+from models.ScriptModel import ScriptModel
+from enums.Language import Language
 import scanpy as sc
 import streamlit as st
 from database.database import SessionLocal

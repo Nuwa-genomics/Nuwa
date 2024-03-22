@@ -12,7 +12,6 @@ class Workspaces(Base):
     data_dir = Column(String, nullable=False, unique=True)
     created = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
     description = Column(String, nullable=True)
-    cache_file = Column(String, nullable=True)
 
 class Adata(Base):
     __tablename__ = "adata"
@@ -31,4 +30,14 @@ class Scripts(Base):
     id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     script = Column(String, nullable=False)
     language = Column(String, nullable=False)
+    created = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+
+class Session(Base):
+    __tablename__ = "sessions"
+
+    id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    adata_id = Column(Integer, ForeignKey("adata.id", ondelete="CASCADE"), nullable=False)
+    session_id = Column(String, nullable=False)
+    filename = Column(String, nullable=False) 
+    description = Column(String, nullable=True)
     created = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))

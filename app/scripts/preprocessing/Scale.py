@@ -1,4 +1,4 @@
-from models.ScriptModel import Language
+from enums.Language import Language
 import streamlit as st
 from state.ScriptState import ScriptState
 import numpy as np
