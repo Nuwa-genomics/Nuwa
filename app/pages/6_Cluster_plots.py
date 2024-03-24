@@ -55,7 +55,7 @@ class Cluster_plots:
 
         self.col1, self.col2, self.col3 = st.columns(3)
 
-        self.conn: SessionLocal = SessionLocal()
+        self.conn = SessionLocal()
 
         self.PLOT_HEIGHT = 800
         self.MARKER_SIZE = 32
@@ -143,7 +143,7 @@ class Cluster_plots:
                                 st.line_chart(losses_df, use_container_width=True, height=290)
                                     
                             subcol1, _, _ = st.columns(3)
-                            submit_btn = subcol1.form_submit_button(label="Update", use_container_width=True)
+                            submit_btn = subcol1.form_submit_button(label="Update", use_container_width=True, type='primary')
                                         
                             if submit_btn:
                                 df = st.session_state["cluster_plots"]["autoencoder"]["df"]
@@ -169,7 +169,7 @@ class Cluster_plots:
                                     st.line_chart(vae_df, use_container_width=True, height=360, color=['#52f27d', '#f25272'])
 
                                 subcol1, _, _ = st.columns(3)
-                                submit_btn = subcol1.form_submit_button(label="Filter doublets", use_container_width=True)
+                                submit_btn = subcol1.form_submit_button(label="Filter doublets", use_container_width=True, type='primary')
                                 
                                 if submit_btn:
                                     st.session_state.adata_state.current.adata = st.session_state.adata_state.current.adata[st.session_state.adata_state.current.adata.obs.solo_prediction == 'singlet']
@@ -195,7 +195,7 @@ class Cluster_plots:
                                 st.session_state["cluster_plots"]["autoencoder"] = dict(df=df_ldvae, x="UMAP1", y="UMAP2", color_keys=[trained_model.SCVI_CLUSTERS_KEY], size=self.MARKER_SIZE)
                                 
                                 subcol1, _, _ = st.columns(3)
-                                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
 
                                 if submit_btn:
                                     raise Exception
@@ -255,7 +255,7 @@ class Cluster_plots:
                     st.session_state["cluster_plots"]["pca"] = dict(df=df_pca, color_keys=np.array([pca_colors]).flatten(), x="PCA1", y="PCA2", size=self.MARKER_SIZE)
 
                     subcol1, _, _ = st.columns(3)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                     if submit_btn:
                         with st.spinner("Computing PCA coordinates"):
                             self._do_pca(zero_center=zero_center)
@@ -322,7 +322,7 @@ class Cluster_plots:
                     n_pcs = subcol1.number_input(label="n_pcs", min_value=1, max_value=50, value=30)
                     log = subcol1.toggle(label="Log", value=True)
                     subcol1, _, _ = st.columns(3)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
 
                     if submit_btn:
                         with st.spinner("Computing variance ratio"):
@@ -380,7 +380,7 @@ class Cluster_plots:
                     st.session_state["cluster_plots"]["tsne"] = dict(df=df_tsne, color_keys=np.array([tsne_colors]).flatten(), x="tSNE1", y="tSNE2", size=self.MARKER_SIZE)
 
                     subcol1, _, _ = st.columns(3)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
 
                     if submit_btn:
                         with st.spinner("Computing tSNE coordinates"):
@@ -447,7 +447,7 @@ class Cluster_plots:
                         
                     subcol1, _, _ = st.columns(3)
                         
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                         
                     if submit_btn:
                         with st.spinner("Computing UMAP coordinates"):
@@ -537,6 +537,10 @@ try:
     analysis.variance_ratio_graph()
     st.divider()
     analysis.plots()
+
+    sidebar.steps()
+    sidebar.delete_experiment_btn()
+    sidebar.show_version()
 
 
 except Exception as e:

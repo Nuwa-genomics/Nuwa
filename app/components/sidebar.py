@@ -50,7 +50,7 @@ class Sidebar:
 
     def delete_experiment_btn(self):
         with st.sidebar:
-            delete_btn = st.button(label="🗑️ Delete Experiment", use_container_width=True, key="btn_delete_adata")
+            delete_btn = st.button(label="🗑️ Delete Experiment", use_container_width=True, key="btn_delete_adata", type='primary')
             if delete_btn:
                 self.state_manager.adata_state() \
                 .delete_record(adata_name=st.session_state.sb_adata_selection)
@@ -152,13 +152,20 @@ class Sidebar:
                     print("Error: ", e)
                     st.error(e)
 
+
     def steps(self):
-        current_adata_id = self.state_manager.adata_state().current.id
-        sessions = self.conn.query(schemas.Session).filter(schemas.Session.adata_id == current_adata_id).all()
-        session_names = [session.description for session in sessions]
         with st.sidebar:
-            st.select_slider(label="Pipeline steps", options=session_names)
-            st.button(label="🔧 Undo", key="btn_undo", use_container_width=True)
+            with st.form("form_session_steps"):
+                current_adata_id = self.state_manager.adata_state().current.id
+                sessions = self.conn.query(schemas.Session).filter(schemas.Session.adata_id == current_adata_id).all()
+                if sessions:
+                    session_names = [session.description for session in sessions]
+                
+                    steps = st.select_slider(label="Pipeline steps", options=session_names)
+                    submit_btn = st.form_submit_button(label="🔧 Undo", use_container_width=True)
+
+                    if submit_btn:
+                        print("hi")
                     
                 
     def download_adata(self):
@@ -405,9 +412,7 @@ class Sidebar:
             self.notes()
             self.show_preview()
             self.export_script()
-            self.steps()
-            self.delete_experiment_btn()
-            self.show_version()
+            
 
             
             

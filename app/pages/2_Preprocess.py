@@ -40,10 +40,6 @@ with open('css/common.css') as f:
     st.markdown(common_style, unsafe_allow_html=True)
 
 
-
-st.set_option('deprecation.showPyplotGlobalUse', False)
-
-
 class Preprocess:
     """
     Apply preprocessing on raw data for more effective analysis and detecting biological signal.
@@ -86,7 +82,7 @@ class Preprocess:
             st.subheader("Show highest expressed genes")
             n_top_genes = st.number_input(label="Number of genes", min_value=1, max_value=100, value=20, key="ni:pp:highly_variable:n_top_genes")
             subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Filter", use_container_width=True)
+            submit_btn = subcol1.form_submit_button(label="Filter", use_container_width=True, type='primary')
 
             if submit_btn:
                 try:
@@ -137,7 +133,7 @@ class Preprocess:
                 st.subheader("Remove genes")
                 remove_genes = st.multiselect(label="Genes", options=self.state_manager.adata_state().current.adata.var_names, key="ms:pp:remove_genes:genes")
                 subcol1, _, _ = st.columns(3)
-                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                 if submit_btn:
                     adata = self.state_manager.get_current_adata()
                     with st.spinner(text="Removing genes"):
@@ -240,7 +236,7 @@ class Preprocess:
                 disp = st.slider(label="Dispersion", min_value=0.00, max_value=100.00, value=(0.50, 100.00), format="%.2f")
                 remove = st.toggle(label="Remove non-variable genes", value=False, key="toggle:pp:highly_variable:seurat_remove", help="By default, highly variable genes are only annoted. This option will remove genes without highly variable expression.")
                 subcol1, _, _ = st.columns(3)
-                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
 
                 if submit_btn:
                     adata = self.state_manager.get_current_adata()
@@ -296,7 +292,7 @@ class Preprocess:
                 exclude_high_expr = subcol_input1.checkbox(label="Exclude highly_expr", value=False)
                 log_transform_total = subcol_input2.checkbox(label="Log transform", value=False)
                 subcol1, _, _ = st.columns(3)
-                submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
 
                 if submit_btn:
                     sc.pp.normalize_total(st.session_state.adata_state.current.adata, target_sum=target_sum, exclude_highly_expressed=exclude_high_expr, max_fraction=max_fraction)
@@ -341,7 +337,7 @@ class Preprocess:
                 min_genes = st.number_input(label="min genes for cell", min_value=1, value=None, key="ni:pp:filter_cells:min_genes")
 
                 subcol1, _, _ = st.columns(3)
-                submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
 
                 if submit_btn:
                     adata = self.state_manager.get_current_adata()
@@ -385,7 +381,7 @@ class Preprocess:
                 min_cells = st.number_input(label="min cells for gene", min_value=1, value=None, key="ni:pp:filter_genes:min_cells")
     
                 subcol1, _, _ = st.columns(3)
-                submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
                 if submit_btn:
                     adata: AnnData = self.state_manager.get_current_adata()
                     sc.pp.filter_genes(adata, min_cells=min_cells)
@@ -449,7 +445,7 @@ class Preprocess:
                     st.write("Parameters")
                     log = st.checkbox(label="Log", value=True, key="cb:pp:recipe:seurat:log")
                     subcol1, _, _ = st.columns(3)
-                    submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True, type='primary')
                     
                     if submit_btn:
                         adata = self.state_manager.get_current_adata()
@@ -474,7 +470,7 @@ class Preprocess:
                     n_pcs = col3.number_input(label="n_pcs", min_value=1, value=50, step=1, format="%i")
                     log = st.checkbox(label="Log", value=False, key="cb:pp:recipe:weinreb17:log")
                     subcol1, _, _ = st.columns(3)
-                    submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True, type='primary')
                     if submit_btn:
                         adata = self.state_manager.get_current_adata()
                         sc.pp.recipe_weinreb17(adata, log=log, mean_threshold=mean_threshold, cv_threshold=cv_threshold, n_pcs=n_pcs)
@@ -496,7 +492,7 @@ class Preprocess:
                     n_top_genes = st.number_input(label="n_top_genes", key="ni:pp:recipe:zheng17:n_genes", min_value=1, max_value=n_vars, value=min(1000, n_vars))
                     log = st.checkbox(label="Log", value=False)
                     subcol1, _, _ = st.columns(3)
-                    submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label='Apply', use_container_width=True, type='primary')
                     if submit_btn:
                         adata = self.state_manager.get_current_adata()
                         sc.pp.recipe_zheng17(adata, log=log, n_top_genes=n_top_genes)
@@ -592,7 +588,7 @@ class Preprocess:
             plot_charts()
 
             subcol1, _, _ = st.columns(3)
-            mito_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+            mito_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
 
             if mito_annot_submit_btn:
                 plot_charts(color_key_mito)
@@ -681,7 +677,7 @@ class Preprocess:
             plot_charts()
 
             subcol1, _, _ = st.columns(3)
-            ribo_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+            ribo_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
 
             if ribo_annot_submit_btn:
                 plot_charts(color_key_ribo)
@@ -770,7 +766,7 @@ class Preprocess:
             plot_charts()
 
             subcol1, _, _ = st.columns(3)
-            hb_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+            hb_annot_submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
 
             if hb_annot_submit_btn:
                 plot_charts(color_key_hb)
@@ -850,7 +846,7 @@ class Preprocess:
             stdev_doublet_rate = col3.number_input(label="stdev_doublet_rate", value=0.02, key="ni:pp:scrublet:stdev_doublet_rate")
             batch_key = st.selectbox(label="Batch key", key="sb:pp:scrublet:batch_key", options=np.append('None', self.state_manager.adata_state().current.adata.obs_keys()))
             subcol1, _, _ = st.columns(3)
-            scrublet_submit = subcol1.form_submit_button(label="Run", use_container_width=True)
+            scrublet_submit = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
 
             if scrublet_submit:
                 try:
@@ -1021,7 +1017,7 @@ class Preprocess:
             n_top_var_genes = col3.number_input(label="n_top_var_genes", value=10000, step=1)
             standard_scaling = st.toggle(label="standard scaling", value=False)
             subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
             
 
             if "doublet_doubletdetection" in st.session_state.adata_state.current.adata.obs:
@@ -1100,7 +1096,7 @@ class Preprocess:
             st.subheader("Regress out", help="Uses linear regression to remove unwanted sources of variation.")
             regress_keys = st.multiselect(label="Keys", options=st.session_state.adata_state.current.adata.obs_keys(), key="ms_regress_out_keys")
             subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+            submit_btn = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
             if submit_btn:
                 if st.session_state.ms_regress_out_keys:
                     sc.pp.regress_out(st.session_state.adata_state.current.adata, keys=regress_keys)
@@ -1141,7 +1137,7 @@ class Preprocess:
             zero_center = st.toggle(label="Zero center", value=True)
             max_value = st.number_input(label="Max value", value=10, key="ni:pp:scale_data:max_value")
             subcol1, _, _ = st.columns(3)
-            btn_scale_data_btn = subcol1.form_submit_button(label="Apply", use_container_width=True)
+            btn_scale_data_btn = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
             if btn_scale_data_btn:
                 adata = self.state_manager.get_current_adata()
                 sc.pp.scale(adata, zero_center=zero_center, max_value=max_value)
@@ -1186,7 +1182,7 @@ class Preprocess:
                 with st.form(key="downsample_form_counts_per_cell"):
                     counts_per_cell = st.number_input(label="Counts per cell", value=1, step=1, format="%i", key="ni:pp:downsample:counts_per_cell", help="Target total counts per cell. If a cell has more than 'counts_per_cell', it will be downsampled to this number. Resulting counts can be specified on a per cell basis by passing an array.Should be an integer or integer ndarray with same length as number of obs.")
                     subcol1, _, _ = st.columns(3)
-                    btn_downsample_counts_per_cell = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                    btn_downsample_counts_per_cell = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
                     if btn_downsample_counts_per_cell:
                         adata = self.state_manager.get_current_adata()
                         sc.pp.downsample_counts(adata, counts_per_cell=counts_per_cell, random_state=42)
@@ -1199,7 +1195,7 @@ class Preprocess:
                 with st.form(key="downsample_form_total_counts"):
                     total_counts = st.number_input(label="Total counts", key="ni:pp:downsample:total_counts", help="Target total counts. If the count matrix has more than total_counts it will be downsampled to have this number.")
                     subcol1, _, _ = st.columns(3)
-                    btn_downsample_total_counts = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                    btn_downsample_total_counts = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
                     if btn_downsample_total_counts:
                         adata = self.state_manager.get_current_adata()
                         sc.pp.downsample_counts(adata, total_counts=total_counts, random_state=42)
@@ -1246,7 +1242,7 @@ class Preprocess:
                     n_obs_default = self.state_manager.adata_state().current.adata.n_obs
                     n_obs = st.number_input(label="n obs", key="ni:pp:subsample:n_obs", help="Subsample to this number of observations.", value=n_obs_default, step=1, format="%i", max_value=n_obs_default)
                     subcol1, _, _ = st.columns(3)
-                    btn_subsample_n_obs = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                    btn_subsample_n_obs = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
                     if btn_subsample_n_obs:
                         adata: AnnData = self.state_manager.get_current_adata()
                         sc.pp.subsample(adata, n_obs=n_obs, random_state=42)
@@ -1260,7 +1256,7 @@ class Preprocess:
                 with st.form(key="subsample_form_fraction"):
                     fraction = st.number_input(label="subsample_fraction", key="ni:pp:subsample:fraction", help="Subsample this fraction of the number of observations.")
                     subcol1, _, _ = st.columns(3)
-                    btn_subsample_fraction = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                    btn_subsample_fraction = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
                     if btn_subsample_fraction:
                         adata: AnnData = self.state_manager.get_current_adata()
                         sc.pp.subsample(adata, fraction=fraction, random_state=42)
@@ -1309,7 +1305,7 @@ class Preprocess:
                 key = st.selectbox(label="Batch key", options=self.state_manager.adata_state().current.adata.obs_keys(), key="sb:pp:combat:batch_key", index=index)
                 covariates = st.multiselect(placeholder="Optional", label="Covariates", options=self.state_manager.adata_state().current.adata.obs_keys())
                 subcol1, _, _ = st.columns(3)
-                btn_batch_effect_removal = subcol1.form_submit_button(label="Apply", use_container_width=True)
+                btn_batch_effect_removal = subcol1.form_submit_button(label="Apply", use_container_width=True, type='primary')
                 if btn_batch_effect_removal:
                     adata = self.state_manager.get_current_adata()
                     with st.spinner(text="Running Combat batch effect correction"):
@@ -1368,7 +1364,7 @@ class Preprocess:
                       index = i           
             pca_color = st.selectbox(label="Color", options=adata.obs_keys(), key="sb:pp:pca:color", index=index)
             subcol1, _, _ = st.columns(3)
-            pca_pp_btn = subcol1.form_submit_button("Apply", use_container_width=True)
+            pca_pp_btn = subcol1.form_submit_button("Apply", use_container_width=True, type='primary')
             pca_empty = st.empty()
             
             if st.session_state["preprocess_plots"]["pca"] == None:
@@ -1432,7 +1428,7 @@ class Preprocess:
                 options = self.state_manager.adata_state().current.adata.var_names
                 genes = st.multiselect(label="Gene (e.g. XIST for detecting sex)", options=options, key="ms:pp:measure_genes:genes")
                 subcol_btn1, _, _ = st.columns(3)
-                submit_btn = subcol_btn1.form_submit_button(label="Run", use_container_width=True)
+                submit_btn = subcol_btn1.form_submit_button(label="Run", use_container_width=True, type='primary')
                 if submit_btn:
                     with st.spinner(text="Locating genes"):
                         adata = self.state_manager.get_current_adata()
@@ -1450,7 +1446,7 @@ class Preprocess:
                 batch_key_measure_gene_counts = st.selectbox(label="Obs key", options=st.session_state.adata_state.current.adata.obs_keys(), key="sb:pp:measure_genes:batch")
                 genes = st.selectbox(label="Gene (e.g. XIST for detecting sex)", options=gene_options, key="ms:pp:measure_genes_batch:genes")
                 subcol_btn1, _, _ = st.columns(3)
-                submit_btn = subcol_btn1.form_submit_button(label="Run", use_container_width=True)
+                submit_btn = subcol_btn1.form_submit_button(label="Run", use_container_width=True, type='primary')
                 if submit_btn:
                     with st.spinner(text="Locating genes"):
                         adata = self.state_manager.get_current_adata()
@@ -1578,7 +1574,7 @@ class Preprocess:
                 jitter = plot_col2.number_input(label="Jitter", min_value=0.1, max_value=1.0, value=0.4, step=0.1)
             
             subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
-            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not "pp_cell_cycle_marker_genes_df" in st.session_state))
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary', disabled=(not "pp_cell_cycle_marker_genes_df" in st.session_state))
             cell_cycle_container = st.empty()
 
             if submit_btn:
@@ -1709,6 +1705,10 @@ try:
         
           
     preprocess.cell_cycle_scoring()
+
+    sidebar.steps()
+    sidebar.delete_experiment_btn()
+    sidebar.show_version()
         
 
     

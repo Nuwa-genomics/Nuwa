@@ -39,19 +39,22 @@ class StateManager:
 
     def load_session(self):
 
-        # fetch cache file from db
-        if "current_workspace" in st.session_state:
-            current_workspace_id = st.session_state.current_workspace.id
+        # get current adata id either from session state or environment
+        if "adata_state" in st.session_state:
+            current_adata_id = st.session_state.adata_state.current.id
         else:
-            current_workspace_id = os.getenv('CURRENT_WORKSPACE_ID')
+            current_adata_id = os.getenv('CURRENT_ADATA_ID')
 
+        # fetch from database
         conn = SessionLocal()
-        cache_file = conn.query(schemas.Session) \
-            .filter(schemas.Session.work_id == current_workspace_id) \
-            .first() \
-            .filename
+        cache_files = conn.query(schemas.Session) \
+            .filter(schemas.Session.adata_id == int(current_adata_id)) \
+            .all() \
+            .sort(schemas.Session.created)
         
-        load_data_from_cache(cache_file)
+        st.write(cache_files)
+        
+        #load_data_from_cache(cache_file)
     
 
     def save_session(self):
@@ -76,9 +79,6 @@ class StateManager:
         # cache data to pickle file
         cache_data_to_session(description=self.description)
 
-
-    def init_session():
-        raise NotImplementedError
     
     ########## Adata state ##########
     

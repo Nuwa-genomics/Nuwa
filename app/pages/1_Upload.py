@@ -276,47 +276,48 @@ class Upload:
 
 
     def show_anndata(self, adata, f = None, filename = ""):
-        #upload raw adata
-        # If there are already a file in this location. If so, don't overwrite. 
-        if not os.path.isfile(os.path.join(os.getenv('WORKDIR'), 'adata', f'{filename}.h5ad')):
+        """upload raw adata. If there are already a file in this location. If so, don't overwrite. """
 
-            if filename == "":
-                filename = f.name.split(".")[0]
-        
-            filename = filename.replace(" ", "_") #files must not contain spaces
+        if filename == "":
+            filename = f.name.split(".")[0]
+        filename = filename.replace(" ", "_") # files must not contain spaces
+        filepath = os.path.join(os.getenv('WORKDIR'), 'adata', f'{filename}.h5ad')
+
+        if not os.path.isfile(filepath):
 
             sc.write(filename=os.path.join(os.getenv('WORKDIR'), 'uploads', f'{filename}.h5ad'), adata=adata)
-                    
+                        
             adata.raw = adata
             active_adata = AdataModel(
                 work_id = st.session_state.current_workspace.id, 
                 adata_name=f"{filename}", adata=adata, 
-                filename=os.path.join(os.getenv('WORKDIR'), 'adata', f'{filename}.h5ad')
+                filename=filepath
             )
             st.session_state["adata_state"] = AdataState(active=active_adata)
 
             self.state_manager \
             .add_adata(adata) \
-            .add_description("Upload raw") \
+            .add_description("Raw") \
             .save_session()
 
             st.toast("Successfully uploaded file", icon='✅')
 
         else:
 
-            self.state_manager \
-            .add_adata(adata) \
-            .add_description("Upload raw") \
-            .save_session()
-            
-            st.toast("A dataset with the same name already exists, will not overwrite.", icon="⚠️")
+            existing_adata = sc.read_h5ad(filename=filepath)
+
+            active_adata = AdataModel(
+                work_id = st.session_state.current_workspace.id, 
+                adata_name=f"{filename}", adata=existing_adata, 
+                filename=filepath
+            )
+
+            st.session_state["adata_state"] = AdataState(active=active_adata)
                 
         self.show_sidebar_preview(f)
 
         
-            
 
-        
     def show_sidebar_preview(self, file):
         
         with st.sidebar:

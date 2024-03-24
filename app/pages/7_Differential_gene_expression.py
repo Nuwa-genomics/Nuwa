@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 import matplotlib.pyplot as plt
-from matplotlib_venn import venn3
 import altair as alt
 import plotly.graph_objects as go
 from utils.plotting import plot_top_ranked_genes
@@ -87,7 +86,7 @@ class Differential_gene_expression:
                 group_by = st.selectbox(label="Group by", options=st.session_state.adata_state.current.adata.obs_keys())
                 marker_genes_container = st.empty()
                 subcol1, _, _ = st.columns(3)
-                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                 if submit_btn:
                     marker_genes_container.empty()
                     with st.spinner(text="Computing tests"):
@@ -159,7 +158,7 @@ class Differential_gene_expression:
                            
                 umap_color = st.selectbox(label="Color", options=self.adata.obs_keys(), key="sb_umap_color_dge")
                 subcol1, _, _ = st.columns(3)
-                umap_dge_btn = subcol1.form_submit_button("Apply", use_container_width=True)
+                umap_dge_btn = subcol1.form_submit_button("Apply", use_container_width=True, type='primary')
                 umap_empty = st.empty()
                 
                 run_umap(self.adata)
@@ -204,7 +203,7 @@ class Differential_gene_expression:
                 algorithm = st.selectbox(label="Algorithm", options=['Leiden', 'Louvain'])
                 resolution = st.number_input(label="Resolution", min_value=0.1, value=0.6, format="%.1f")
                 subcol1, _, _ = st.columns(3)
-                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                 if submit_btn:
                     with st.spinner(text=f"Computing {algorithm} clusters"):
                         sc.pp.neighbors(self.adata, n_neighbors=10, n_pcs=40)
@@ -258,7 +257,7 @@ class Differential_gene_expression:
                 n_genes = input_col2.text_input(label="n_genes", value=5, help="Number of genes to display in each cluster.")
                 group_by = input_col2.selectbox(label="Group by", options=st.session_state.adata_state.current.adata.obs_keys())
                 subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
-                viz_submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                viz_submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                 
                 if viz_submit_btn:
                     plt.style.use('tableau-colorblind10')
@@ -336,7 +335,7 @@ class Differential_gene_expression:
                     reference = subcol3.text_input(label="Reference", value="rest")
                     use_raw = subcol3.toggle(label="Use raw", value=False)
                     subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                     if submit_btn:
                         with st.spinner(text="Calculating plots"):
                             sc.tl.rank_genes_groups(st.session_state.adata_state.current.adata, groupby=group_by, method=method, use_raw=use_raw, reference=reference)
@@ -374,7 +373,7 @@ class Differential_gene_expression:
                     cluster1 = subcol1.selectbox(label="Compare group 1", options=np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique()), key="sb_cluster1_violin")
                     cluster2 = subcol1.selectbox(label="Compare group 2", options=np.append('rest', np.sort(st.session_state.adata_state.current.adata.obs[st.session_state.sb_violin_cluster_group].unique())), key="sb_cluster2_violin")
                     subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
 
                     if submit_btn:
                         with st.spinner(text="Calculating plots"):
@@ -441,7 +440,7 @@ class Differential_gene_expression:
                     cluster = subcol1.selectbox(label="Group", options=st.session_state.adata_state.current.adata.obs_keys())
                     genes = subcol2.multiselect(label="Genes", options=np.sort(st.session_state.adata_state.current.adata.var_names))
                     subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                     line_colors = ['#d1454c', '#8ee065', '#eda621', '#f071bf', '#9071f0', '#71e3f0', '#2f39ed', '#ed2f7b']
 
                     if submit_btn:
@@ -537,7 +536,7 @@ class Differential_gene_expression:
                 num_of_rows = col2.number_input(label="Number of rows", min_value=1, step=1, format="%i", value=8)
                 method = st.radio(label="method", options=['t-test', 't-test_overestim_var', 'wilcoxon', 'logreg'])
                 subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
-                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                 
                 if submit_btn:
                     fig = plot_top_ranked_genes(self.adata, cluster_name=cluster_key, n_rows=num_of_rows, method=method, height=800)
@@ -559,6 +558,10 @@ try:
     sidebar.show_preview()
 
     dge = Differential_gene_expression(st.session_state.adata_state.current.adata.copy())
+
+    sidebar.steps()
+    sidebar.delete_experiment_btn()
+    sidebar.show_version()
 
     
 except Exception as e:
