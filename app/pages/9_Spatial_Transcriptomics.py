@@ -192,7 +192,7 @@ class Spatial_transcriptomics:
                     n_perms = col1.number_input(label="n_perms", min_value=1, value=1000)
                     mode = col2.selectbox(label="mode", options=['zscore', 'count'])
                     subcol1, _, _, _ = st.columns(4)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                     if submit_btn:
                         with st.spinner(text="Running neighbourhood enrichment"):
                             sq.gr.spatial_neighbors(self.adata)
@@ -258,7 +258,7 @@ class Spatial_transcriptomics:
                     mode = col1.radio(label="mode", options=['F', 'G', 'L'])
                     plot_sims = st.toggle(label="plot_sims", value=False)
                     subcol1, _, _, _ = st.columns(4)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                     if submit_btn:
                         with st.spinner(text="Calculating Ripley score"):
                             sq.gr.ripley(self.adata, cluster_key=cluster_key, mode=mode, max_dist=max_dist, n_neigh=n_neighbours, n_simulations=n_simulations)
@@ -306,7 +306,7 @@ class Spatial_transcriptomics:
                     clusters = st.multiselect(label="Clusters", options=self.adata.obs[f"{st.session_state['sb:spatial:co_occurance:cluster_key']}"].unique())
                    
                     subcol1, _, _, _ = st.columns(4)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                     if submit_btn:
                         with st.spinner(text="Calculating co-occurance score"):
                             cluster_key = st.session_state['sb:spatial:co_occurance:cluster_key']
@@ -352,7 +352,7 @@ class Spatial_transcriptomics:
                     col1, col2 = st.columns(2, gap="medium")
                     cluster_key = col1.selectbox(label="Cluster Key", options=self.adata.obs_keys())
                     subcol1, _, _, _ = st.columns(4)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                     if submit_btn:
                         with st.spinner(text="Computing interaction matrix"):
                             sq.gr.spatial_neighbors(self.adata)
@@ -398,7 +398,7 @@ class Spatial_transcriptomics:
                     cluster_key = st.selectbox(label="Cluster Key", options=self.adata.obs_keys())
                     
                     subcol1, _, _, _ = st.columns(4)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                     if submit_btn:
                         with st.spinner(text="Calculating centrality score"):
                             sq.gr.spatial_neighbors(self.adata)
@@ -427,7 +427,7 @@ class Spatial_transcriptomics:
                     st.multiselect(label="Target groups", options=options, default=options[0], key="ms_lri_target_groups")
                     empty = st.empty()
                     subcol1, _, _, _ = st.columns(4)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                     if submit_btn:
                         with st.spinner(text="Computing ligand-receptor interaction matrix"):
                             sq.gr.ligrec(self.adata, n_perms=100, cluster_key=st.session_state.sb_cluster_key_lri)
@@ -452,10 +452,11 @@ try:
 
     spatial_t = Spatial_transcriptomics(adata)
     spatial_t.draw_page()
-    sidebar.show_preview()
-    sidebar.export_script()
+
+    sidebar.steps()
     sidebar.delete_experiment_btn()
     sidebar.show_version()
+
 
 except Exception as e:
     if(st.session_state == {}):

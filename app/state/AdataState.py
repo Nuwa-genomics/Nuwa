@@ -9,7 +9,7 @@ from database.database import SessionLocal
 from sqlalchemy.orm import Session
 from state.ScriptState import ScriptState
 import os
-from models.ErrorMessage import ErrorMessage, WarningMessage
+from enums.ErrorMessage import ErrorMessage, WarningMessage
 
 class AdataState:
     def __init__(self, active: AdataModel, insert_into_db=True):
@@ -29,6 +29,8 @@ class AdataState:
             #reinitialise current to include additional fields
             current: schemas.Adata = db_adatas.first()
             self.current = AdataModel(work_id=current.work_id, adata_name=current.adata_name, created=current.created, notes=current.notes, id=current.id, filename=current.filename)
+            # Add to env
+            os.environ["CURRENT_ADATA_ID"] = str(current.id)
 
         # add original adata to object
         self.current.adata = active.adata
@@ -48,6 +50,7 @@ class AdataState:
             self.current = new_current
             self.current_index = self.get_index_of_current()
             st.session_state["script_state"].switch_adata(new_current.id) #swap adata in script state
+            os.environ["CURRENT_ADATA_ID"] = new_current.id
 
         except Exception as e:
             st.toast(e, icon="❌")

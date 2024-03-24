@@ -10,69 +10,19 @@
 
 
 
-footer {visibility: hidden;}
-            .st-emotion-cache-1cypcdb {background: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%); box-shadow: 1px 0 10px -2px #000;}
-            .st-emotion-cache-86cver {color: rgba(250, 250, 250, 0.6)}
-            .stButton button {
-                border-radius: 0.5rem;
-                background: #004dcf;
-                color: #fff;
-                border: 1px solid #004dcf;
-                padding: 0.25rem 0.75rem;
-            }
+footer {
+    visibility: hidden;
+}
 
-            .stButton button:hover {
-                background: transparent;
-                color: #004dcf;
-                transition: all 0.1s ease-in-out;
-                border: 1px solid #004dcf;
-            }
+.st-emotion-cache-1cypcdb {
+    background: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%); box-shadow: 1px 0 10px -2px #000;
 
-            .stButton button:focus {
-                border: 1px solid #004dcf;
-                color: #004dcf;
-            }
+}
+.st-emotion-cache-86cver {
+    color: rgba(250, 250, 250, 0.6)
+}
 
-            .stButton button:active {
-                border: 1px solid #004dcf;
-                color: #004dcf;
-            }
+.st-emotion-cache-z5fcl4 {
+    padding-top: 2rem;
+}
 
-            .stButton button:visited {
-                border: 1px solid #004dcf;
-                color: #004dcf;
-            }
-
-            .st-emotion-cache-1b9yna5:focus:not(:active) {
-                border: 1px solid #004dcf;
-                color: #004dcf;
-            }
-
-            .st-emotion-cache-1b9yna5:focus:not(:hover) {
-                border: 1px solid #004dcf;
-                color: #fff;
-            }
-
-            .st-emotion-cache-oooxyj:focus:not(:active) {
-                border: 1px solid #004dcf;
-                color: #004dcf;
-            }
-
-            .st-emotion-cache-oooxyj:focus:not(:hover) {
-                border: 1px solid #004dcf;
-                color: #fff;
-            }
-
-            .st-emotion-cache-1ts31n5:focus:not(:active) {
-                border: 1px solid #004dcf;
-                color: #004dcf;
-            }
-
-            .st-emotion-cache-1ts31n5:focus:not(:hover) {
-                border: 1px solid #004dcf;
-                color: #fff;
-            }
-
-            .st-emotion-cache-z5fcl4 {
-                padding-top: 2rem;
-            }

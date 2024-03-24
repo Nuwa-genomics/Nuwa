@@ -13,7 +13,7 @@ from utils.Gene_info import Gene_info
 from utils.species import *
 import numpy as np
 from state.StateManager import StateManager
-from models.ErrorMessage import ErrorMessage, WarningMessage
+from enums.ErrorMessage import ErrorMessage, WarningMessage
 
 
 class Sidebar:
@@ -50,7 +50,7 @@ class Sidebar:
 
     def delete_experiment_btn(self):
         with st.sidebar:
-            delete_btn = st.button(label="🗑️ Delete Experiment", use_container_width=True, key="btn_delete_adata")
+            delete_btn = st.button(label="🗑️ Delete Experiment", use_container_width=True, key="btn_delete_adata", type='primary')
             if delete_btn:
                 self.state_manager.adata_state() \
                 .delete_record(adata_name=st.session_state.sb_adata_selection)
@@ -151,6 +151,21 @@ class Sidebar:
                 except Exception as e:
                     print("Error: ", e)
                     st.error(e)
+
+
+    def steps(self):
+        with st.sidebar:
+            with st.form("form_session_steps"):
+                current_adata_id = self.state_manager.adata_state().current.id
+                sessions = self.conn.query(schemas.Session).filter(schemas.Session.adata_id == current_adata_id).all()
+                if sessions:
+                    session_names = [session.description for session in sessions]
+                
+                    steps = st.select_slider(label="Pipeline steps", options=session_names)
+                    submit_btn = st.form_submit_button(label="🔧 Undo", use_container_width=True)
+
+                    if submit_btn:
+                        print("hi")
                     
                 
     def download_adata(self):
@@ -286,8 +301,7 @@ class Sidebar:
                 st.toggle(label="Ensembl ID", value=(format == "ensembl"), key="toggle_gene_format", on_change=change_gene_format)
 
         except Exception as e:
-            st.error(e)
-            print("Error: ", e)
+            st.toast(e, icon="❌")
             
             
     def show_version(self):
@@ -394,10 +408,11 @@ class Sidebar:
                 
             
             self.download_adata()
-                    
             self.add_experiment()
-                    
             self.notes()
+            self.show_preview()
+            self.export_script()
+            
 
             
             

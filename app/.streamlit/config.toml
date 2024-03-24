@@ -4,11 +4,8 @@ headless = true
 [client]
 toolbarMode = "viewer"
 
-[deprecation]
-showPyplotGlobalUse = false
-
 [theme]
-primaryColor="#1976d2"
+primaryColor="#004dcf"
 backgroundColor="#181a1e"
 secondaryBackgroundColor="linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%)"
 textColor="#fff"

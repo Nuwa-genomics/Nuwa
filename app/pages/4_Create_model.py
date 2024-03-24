@@ -362,8 +362,7 @@ try:
 
     create_model(adata)
 
-    sidebar.show_preview()
-    sidebar.export_script()
+    sidebar.steps()
     sidebar.delete_experiment_btn()
     sidebar.show_version()
     

@@ -121,7 +121,7 @@ try:
                 break
         st.selectbox(label="Embedding colors", options=adata.obs_keys(), key="plotly_embedding_color", index=cluster_color_index)
         st.slider(label="Point size", min_value=0.5, max_value=5.0, step=0.1, value=1.0, key="plotly_point_size")
-        st.button(label="Plot chart", use_container_width=True, on_click=change_embeddings)
+        st.button(label="Plot chart", use_container_width=True, on_click=change_embeddings, type='primary')
             
 
     if 'plotly_df' in st.session_state:

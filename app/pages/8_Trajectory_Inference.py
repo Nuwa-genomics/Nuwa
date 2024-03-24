@@ -168,7 +168,7 @@ class Trajectory_inference:
                     #genes
                     options = st.multiselect(label="Genes", options=self.adata.var_names, default=[self.adata.var_names[0]])
                     subcol1, _, _, _ = st.columns(4)
-                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                     
                     if submit_btn:
                         with st.spinner(text="Computing paga clusters"):
@@ -309,7 +309,7 @@ class Trajectory_inference:
                     algorithm = st.radio(label="Clustering algorithm", options=['leiden', 'louvain'])
                     root = st.selectbox(label='Root cell', options=(self.adata.obs['louvain'].unique()))
                     subcol1, _, _, _ = st.columns(4)
-                    dpt_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+                    dpt_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
                     if dpt_btn:
                         with st.spinner(text="Computing dpt"):
                             if algorithm not in self.adata.obs:
@@ -407,10 +407,10 @@ try:
 
     tji.draw_page()
 
-    sidebar.show_preview()
-    sidebar.export_script()
+    sidebar.steps()
     sidebar.delete_experiment_btn()
     sidebar.show_version()
+
 
 
 except Exception as e:

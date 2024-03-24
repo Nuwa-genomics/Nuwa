@@ -86,7 +86,7 @@ class Integrate:
             st.markdown(f"""<div style='color: rgb(50, 168, 82); font-weight: bold''>{st.session_state.adata_ref.adata_name} → {st.session_state.adata_target.adata_name}</div>""", unsafe_allow_html=True)
             obs = st.multiselect(label="Obs", options=st.session_state.adata_ref.adata.obs_keys())
             subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary', disabled=(not st.session_state.sync_genes))
             if submit_btn:
                 try:
                     with st.spinner(text="Integrating datasets"):
@@ -132,7 +132,7 @@ class Integrate:
                 disabled = True
 
             subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=disabled)
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=disabled, type='primary')
             if submit_btn:
                 with st.spinner(text="Integrating with Scanorama"):
                     adatas = [st.session_state.adata_ref.adata, st.session_state.adata_target.adata]
@@ -182,7 +182,7 @@ class Integrate:
             st.write(f"Apply to {st.session_state.adata_state.current.adata_name}")
             batch_key = st.selectbox(label="Batch key", options=st.session_state.adata_state.current.adata.obs_keys())
             subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
             if submit_btn:
                 with st.spinner(text="Computing PCA"):
                     sc.tl.pca(st.session_state.adata_state.current.adata)
@@ -228,7 +228,7 @@ class Integrate:
 
             
             subcol1_btn, _, _ = st.columns(3)
-            submit_btn = subcol1_btn.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes))
+            submit_btn = subcol1_btn.form_submit_button(label="Run", use_container_width=True, disabled=(not st.session_state.sync_genes), type='primary')
             
             if submit_btn:
                 try:
@@ -286,7 +286,7 @@ class Integrate:
             batch_key = st.text_input(label="Batch key", value="batch")
             empty = st.empty()
             subcol1_btn, _, _ = st.columns(3)
-            submit_btn = subcol1_btn.form_submit_button(label="Run", use_container_width=True)
+            submit_btn = subcol1_btn.form_submit_button(label="Run", use_container_width=True, type='primary')
             if submit_btn:
                 with st.spinner(text="Concatenating datasets"):
                     try:
@@ -353,7 +353,7 @@ class Integrate:
             colors = st.multiselect(label="Color (obs)", options=options, default=default)
             container = st.container()
             subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
             
             compute_umap()
             
@@ -433,7 +433,7 @@ class Integrate:
             max_epochs = input_col2.number_input(label="max_epochs", min_value=1, step=5, value=get_max_epochs_heuristic(st.session_state.adata_state.current.adata.n_obs), format="%i")
 
             subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
 
             if submit_btn:
                 with st.spinner(text="Training model"):
@@ -527,7 +527,7 @@ class Integrate:
             n_samples_per_label = input_col2.number_input(label="n_samples_per_label", min_value=1, value=100, format="%i", step=1)
 
             subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True)
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, type='primary')
             if submit_btn:
 
                 scvi.model.SCVI.setup_anndata(st.session_state.adata_state.current.adata, layer="counts", batch_key=batch_key)
@@ -607,7 +607,7 @@ class Integrate:
             embedding = input_col2.selectbox(label="Embedding", options=options, disabled=(not is_embeddings))
             preserve_neighbours = st.toggle(label="Preserve neighbours", value=True, disabled=(not is_embeddings))
             subcol1, _, _ = st.columns(3)
-            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not is_embeddings))
+            submit_btn = subcol1.form_submit_button(label="Run", use_container_width=True, disabled=(not is_embeddings), type='primary')
             if submit_btn:
                 with st.spinner(text="Generating plots"):
                     for color in colors:
@@ -682,7 +682,7 @@ class Integrate:
             batch_key = col1.selectbox(label="batch_key", options=st.session_state.adata_state.current.adata.obs_keys(), disabled=(not is_embeddings))
             label_key = col2.selectbox(label="Label key", options=st.session_state.adata_state.current.adata.obs_keys(), disabled=(not is_embeddings))
             subcol1, _, _, _, _, _, _, _, _ = st.columns(9)
-            submit_btn = subcol1.form_submit_button(label="Compute", use_container_width=True, disabled=(not is_embeddings))
+            submit_btn = subcol1.form_submit_button(label="Compute", use_container_width=True, disabled=(not is_embeddings), type='primary')
             if submit_btn:
                 with st.spinner(text="Computing metrics"):
 
@@ -715,16 +715,13 @@ try:
     sidebar = Sidebar()
 
     sidebar.show(integrate=True)
-
-    sidebar.show_preview(integrate=True)
             
     integrate = Integrate()
 
-    sidebar.export_script()
-
+    sidebar.steps()
     sidebar.delete_experiment_btn()
-
     sidebar.show_version()
+
 
 except Exception as e:
     if(st.session_state == {}):

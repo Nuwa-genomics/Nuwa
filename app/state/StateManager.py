@@ -12,7 +12,7 @@ import os
 import streamlit as st
 from anndata import AnnData
 from database.database import SessionLocal
-from models.ErrorMessage import ErrorMessage
+from enums.ErrorMessage import ErrorMessage
 
 class StateManager:
     """
@@ -22,10 +22,8 @@ class StateManager:
     ########## Factory methods ##########
 
     def add_script(self, script: Script):
-        # add script if present
-        if script is not None:
-            if isinstance(script, Script):
-                self.script = script
+        if isinstance(script, Script):
+            self.script = script
         return self
 
     def add_adata(self, adata: AnnData):
@@ -33,23 +31,30 @@ class StateManager:
             self.adata = adata
         return self
     
+    def add_description(self, description: str):
+        self.description = description
+        return self
+    
     ########## session ##########
 
     def load_session(self):
 
-        # fetch cache file from db
-        if "current_workspace" in st.session_state:
-            current_workspace_id = st.session_state.current_workspace.id
+        # get current adata id either from session state or environment
+        if "adata_state" in st.session_state:
+            current_adata_id = st.session_state.adata_state.current.id
         else:
-            current_workspace_id = os.getenv('CURRENT_WORKSPACE_ID')
+            current_adata_id = os.getenv('CURRENT_ADATA_ID')
 
+        # fetch from database
         conn = SessionLocal()
-        cache_file = conn.query(schemas.Workspaces) \
-            .filter(schemas.Workspaces.id == current_workspace_id) \
-            .first() \
-            .cache_file
+        cache_files = conn.query(schemas.Session) \
+            .filter(schemas.Session.adata_id == int(current_adata_id)) \
+            .all() \
+            .sort(schemas.Session.created)
         
-        load_data_from_cache(cache_file)
+        st.write(cache_files)
+        
+        #load_data_from_cache(cache_file)
     
 
     def save_session(self):
@@ -67,13 +72,13 @@ class StateManager:
         if hasattr(self, 'script'):
             self.script.add_script()
 
+        if not hasattr(self, 'description'):
+            self.description = ""
+
 
         # cache data to pickle file
-        cache_data_to_session()
+        cache_data_to_session(description=self.description)
 
-
-    def init_session():
-        raise NotImplementedError
     
     ########## Adata state ##########
     
